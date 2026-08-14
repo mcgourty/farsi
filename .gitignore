@@ -1,0 +1,6 @@
+.obsidian/
+.cursor/
+.DS_Store
+*.pdf
+*.apkg
+fonts/

@@ -1,0 +1,3547 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Farsi">
+<meta name="theme-color" content="#f9fafb">
+<title>Farsi Flashcards</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  /* Ink palette + tokens adapted from ../weekly */
+  --bg: #f9fafb;          /* gray-50 page background */
+  --surface: #ffffff;     /* white cards */
+  --surface-2: #ebecef;   /* gray-150 hover rail */
+  --gold: #26251e;        /* ink — primary accent (active states, progress) */
+  --gold-dim: #a3a29c;    /* ink-light */
+  --gold-bright: #26251e; /* ink — answer text */
+  --text: #26251e;        /* ink */
+  --text-dim: #5a5954;    /* ink-muted */
+  --green: #117010;       /* notice success text */
+  --red: #dc2626;         /* notice error text */
+  --blue: #165fc6;        /* notice info text */
+  --radius: 16px;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body {
+  font-family: 'Source Sans 3', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+header {
+  text-align: center;
+  padding: 32px 20px 16px;
+}
+header h1 {
+  font-size: 2.4rem;
+  font-weight: 900;
+  letter-spacing: -0.02em;
+  color: var(--text);
+}
+header .subtitle {
+  font-size: 0.95rem;
+  color: var(--text-dim);
+  margin-top: 4px;
+  font-weight: 300;
+  direction: rtl;
+  font-size: 1.1rem;
+}
+
+.filters {
+  max-width: 740px;
+  margin: 0 auto 12px;
+  padding: 0 20px;
+}
+.filter-group {
+  margin-bottom: 12px;
+}
+.filter-group label {
+  display: block;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  color: var(--gold-dim);
+  margin-bottom: 6px;
+  font-weight: 700;
+}
+.pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.pill {
+  padding: 6px 14px;
+  border-radius: 99px;
+  border: 1.5px solid var(--surface-2);
+  background: transparent;
+  color: var(--text-dim);
+  font-size: 0.82rem;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all 0.15s;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.pill:hover { border-color: var(--gold-dim); color: var(--text); }
+.pill.active {
+  background: var(--gold);
+  border-color: var(--gold);
+  color: var(--bg);
+}
+
+.stats-bar {
+  max-width: 740px;
+  margin: 0 auto 16px;
+  padding: 0 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.card-count {
+  font-size: 0.85rem;
+  color: var(--text-dim);
+}
+.card-count strong { color: var(--gold); }
+.progress-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.progress-track {
+  width: 120px;
+  height: 4px;
+  background: var(--surface-2);
+  border-radius: 99px;
+  overflow: hidden;
+}
+.progress-fill {
+  height: 100%;
+  background: var(--gold);
+  border-radius: 99px;
+  transition: width 0.3s;
+}
+.progress-text {
+  font-size: 0.8rem;
+  color: var(--text-dim);
+  min-width: 42px;
+  text-align: right;
+}
+
+.card-area {
+  max-width: 580px;
+  margin: 0 auto;
+  padding: 0 20px 20px;
+  perspective: 1200px;
+}
+.card-wrapper {
+  position: relative;
+  width: 100%;
+  min-height: 340px;
+  cursor: pointer;
+}
+.card {
+  width: 100%;
+  min-height: 340px;
+  position: relative;
+  transform-style: preserve-3d;
+  transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.card.flipped { transform: rotateY(180deg); }
+.card-face {
+  position: absolute;
+  inset: 0;
+  backface-visibility: hidden;
+  border-radius: var(--radius);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 32px;
+  border: 1.5px solid var(--surface-2);
+  overflow-y: auto;
+}
+.card-front {
+  background: linear-gradient(160deg, var(--surface), var(--surface-2));
+}
+.card-back {
+  background: linear-gradient(160deg, var(--surface-2), #1a2438);
+  transform: rotateY(180deg);
+  border-color: var(--gold-dim);
+}
+.front-content {
+  text-align: center;
+  width: 100%;
+}
+.farsi-big {
+  font-size: 3rem;
+  direction: rtl;
+  line-height: 1.4;
+  font-weight: 400;
+  color: #fff;
+  word-break: break-word;
+}
+.english-big {
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: #fff;
+}
+.card-tag {
+  position: absolute;
+  top: 14px;
+  left: 16px;
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--text-dim);
+  background: var(--bg);
+  padding: 3px 10px;
+  border-radius: 99px;
+  font-weight: 700;
+}
+.tap-hint {
+  position: absolute;
+  bottom: 14px;
+  font-size: 0.72rem;
+  color: var(--text-dim);
+  opacity: 0.5;
+}
+.back-content {
+  text-align: center;
+  width: 100%;
+}
+.back-content .farsi-answer {
+  font-size: 2.2rem;
+  direction: rtl;
+  color: var(--gold-bright);
+  margin-bottom: 12px;
+  line-height: 1.4;
+}
+.back-content .pinglish {
+  font-size: 1.15rem;
+  color: var(--blue);
+  font-style: italic;
+  margin-bottom: 10px;
+}
+.back-content .meaning {
+  font-size: 1.3rem;
+  font-weight: 700;
+  margin-bottom: 14px;
+}
+.back-content .breakdown {
+  font-size: 0.88rem;
+  color: var(--text-dim);
+  line-height: 1.6;
+  border-top: 1px solid var(--surface-2);
+  padding-top: 12px;
+  margin-top: 4px;
+}
+.letter-forms {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  margin: 12px 0;
+  width: 100%;
+  max-width: 320px;
+}
+.letter-form-cell {
+  text-align: center;
+  padding: 8px 4px;
+  background: var(--bg);
+  border-radius: 8px;
+}
+.letter-form-cell .form-label {
+  font-size: 0.6rem;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  letter-spacing: 0.1em;
+  margin-bottom: 4px;
+}
+.letter-form-cell .form-char {
+  font-size: 2rem;
+  direction: rtl;
+  color: var(--gold-bright);
+}
+
+.nav-row {
+  max-width: 580px;
+  margin: 0 auto;
+  padding: 0 20px 12px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+}
+.nav-btn {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  border: 1.5px solid var(--surface-2);
+  background: var(--surface);
+  color: var(--text);
+  font-size: 1.2rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s;
+}
+.nav-btn:hover { border-color: var(--gold); color: var(--gold); }
+.nav-btn:disabled { opacity: 0.25; cursor: default; border-color: var(--surface-2); color: var(--text-dim); }
+.nav-pos {
+  font-size: 0.9rem;
+  color: var(--text-dim);
+  min-width: 80px;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+.bottom-actions {
+  max-width: 580px;
+  margin: 0 auto;
+  padding: 0 20px 16px;
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+}
+.action-btn {
+  padding: 8px 18px;
+  border-radius: 99px;
+  border: 1.5px solid var(--surface-2);
+  background: transparent;
+  color: var(--text-dim);
+  font-size: 0.8rem;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all 0.15s;
+  font-weight: 600;
+}
+.action-btn:hover { border-color: var(--gold-dim); color: var(--text); }
+.action-btn.active { background: var(--surface-2); color: var(--gold); border-color: var(--gold-dim); }
+
+.score-row {
+  max-width: 580px;
+  margin: 0 auto;
+  padding: 0 20px 32px;
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+}
+.score-btn {
+  padding: 10px 28px;
+  border-radius: var(--radius);
+  border: none;
+  font-size: 0.9rem;
+  font-family: inherit;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.score-btn.know {
+  background: rgba(61, 220, 132, 0.15);
+  color: var(--green);
+  border: 1.5px solid rgba(61, 220, 132, 0.3);
+}
+.score-btn.know:hover { background: rgba(61, 220, 132, 0.25); }
+.score-btn.dunno {
+  background: rgba(255, 107, 107, 0.15);
+  color: var(--red);
+  border: 1.5px solid rgba(255, 107, 107, 0.3);
+}
+.score-btn.dunno:hover { background: rgba(255, 107, 107, 0.25); }
+
+.shortcuts {
+  max-width: 580px;
+  margin: 0 auto;
+  padding: 0 20px 40px;
+  text-align: center;
+}
+.shortcuts span {
+  font-size: 0.7rem;
+  color: var(--text-dim);
+  opacity: 0.5;
+}
+kbd {
+  display: inline-block;
+  padding: 1px 6px;
+  border-radius: 4px;
+  border: 1px solid var(--surface-2);
+  background: var(--surface);
+  font-family: inherit;
+  font-size: 0.68rem;
+  margin: 0 1px;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 80px 20px;
+  color: var(--text-dim);
+}
+.empty-state h2 {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.4rem;
+  color: var(--text);
+  margin-bottom: 8px;
+}
+
+.dir-toggle {
+  display: flex;
+  gap: 0;
+  border-radius: 99px;
+  overflow: hidden;
+  border: 1.5px solid var(--surface-2);
+  margin-bottom: 12px;
+  max-width: 740px;
+  margin-left: auto;
+  margin-right: auto;
+  padding: 0 20px;
+}
+.dir-btn {
+  flex: 1;
+  padding: 8px 12px;
+  border: none;
+  background: transparent;
+  color: var(--text-dim);
+  font-size: 0.82rem;
+  font-family: inherit;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.15s;
+}
+.dir-btn.active { background: var(--gold); color: var(--bg); }
+
+.tabs {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  padding: 14px 20px 18px;
+}
+.tab-btn {
+  padding: 9px 26px;
+  border-radius: 99px;
+  border: 1.5px solid var(--surface-2);
+  background: transparent;
+  color: var(--text-dim);
+  font-size: 0.92rem;
+  font-family: inherit;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.tab-btn:hover { border-color: var(--gold-dim); color: var(--text); }
+.tab-btn.active { background: var(--gold); border-color: var(--gold); color: var(--bg); }
+
+.mastered-badge {
+  position: absolute;
+  top: 14px;
+  right: 16px;
+  font-size: 0.62rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  font-weight: 700;
+  color: var(--green);
+  background: rgba(61, 220, 132, 0.08);
+  border: 1px solid rgba(61, 220, 132, 0.35);
+  padding: 3px 10px;
+  border-radius: 99px;
+}
+
+.conj-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 10px;
+  font-size: 0.78rem;
+}
+.conj-table th {
+  font-size: 0.6rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--gold-dim);
+  padding: 4px 6px;
+  text-align: left;
+  border-bottom: 1px solid var(--surface-2);
+  font-weight: 700;
+}
+.conj-table td {
+  padding: 5px 6px;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+  text-align: left;
+  vertical-align: top;
+}
+.conj-table td.person {
+  color: var(--text-dim);
+  font-weight: 600;
+  white-space: nowrap;
+}
+.conj-table td .fa {
+  display: block;
+  direction: rtl;
+  text-align: left;
+  color: var(--gold-bright);
+  font-size: 0.95rem;
+  line-height: 1.3;
+}
+.conj-table td .pin {
+  color: var(--text);
+  font-style: italic;
+}
+.conj-imp {
+  margin-top: 12px;
+  font-size: 0.82rem;
+  color: var(--text-dim);
+  border-top: 1px solid var(--surface-2);
+  padding-top: 10px;
+  line-height: 1.8;
+  text-align: left;
+}
+.conj-imp strong { color: var(--blue); font-style: italic; font-weight: 600; }
+.conj-imp .fa-inline { color: var(--gold-bright); direction: rtl; unicode-bidi: embed; }
+
+.drill-chips {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  margin-top: 20px;
+  flex-wrap: wrap;
+}
+.chip {
+  padding: 5px 16px;
+  border-radius: 99px;
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+.chip.person {
+  background: rgba(91, 158, 240, 0.12);
+  color: var(--blue);
+  border: 1px solid rgba(91, 158, 240, 0.3);
+}
+.chip.tense {
+  background: rgba(212, 162, 69, 0.12);
+  color: var(--gold-bright);
+  border: 1px solid rgba(212, 162, 69, 0.3);
+}
+.drill-verb-pin {
+  font-size: 1.2rem;
+  color: var(--blue);
+  font-style: italic;
+  margin-top: 8px;
+}
+.drill-verb-en {
+  font-size: 0.95rem;
+  color: var(--text-dim);
+  margin-top: 4px;
+}
+
+@media (max-width: 520px) {
+  header h1 { font-size: 1.8rem; }
+  .farsi-big { font-size: 2.2rem; }
+  .card-face { padding: 32px 20px; }
+  .card-wrapper, .card { min-height: 300px; }
+}
+</style>
+<style>
+/* ============================================================
+   Theme adapted from ../weekly — Neue Haas Grotesk (body),
+   Saans (titles), ink text palette, white cards on gray-50,
+   Intercom-style notice colors as the only accents.
+   ============================================================ */
+
+@font-face {
+  font-family: "Neue Haas Grotesk";
+  src: url("fonts/NeueHaasGrotesk/NeueHaasDisplay-Roman.woff") format("woff"),
+       url("fonts/NeueHaasGrotesk/NeueHaasDisplay-Roman.ttf") format("truetype");
+  font-weight: normal;
+  font-style: normal;
+}
+@font-face {
+  font-family: "Neue Haas Grotesk";
+  src: url("fonts/NeueHaasGrotesk/NeueHaasDisplay-Mediu.woff") format("woff"),
+       url("fonts/NeueHaasGrotesk/NeueHaasDisplay-Mediu.ttf") format("truetype");
+  font-weight: 500;
+  font-style: normal;
+}
+@font-face {
+  font-family: "Neue Haas Grotesk";
+  src: url("fonts/NeueHaasGrotesk/NeueHaasDisplay-Bold.woff") format("woff"),
+       url("fonts/NeueHaasGrotesk/NeueHaasDisplay-Bold.ttf") format("truetype");
+  font-weight: bold;
+  font-style: normal;
+}
+@font-face {
+  font-family: "Neue Haas Grotesk";
+  src: url("fonts/NeueHaasGrotesk/NeueHaasDisplay-Light.woff") format("woff"),
+       url("fonts/NeueHaasGrotesk/NeueHaasDisplay-Light.ttf") format("truetype");
+  font-weight: 300;
+  font-style: normal;
+}
+@font-face {
+  font-family: "Saans";
+  src: url("fonts/Saans/Saans-Bold.woff2") format("woff2"),
+       url("fonts/Saans/Saans-Bold.woff") format("woff");
+  font-weight: bold;
+  font-style: normal;
+}
+@font-face {
+  font-family: "Saans Heavy";
+  src: url("fonts/Saans/Saans-Heavy.woff2") format("woff2"),
+       url("fonts/Saans/Saans-Heavy.woff") format("woff");
+  font-weight: normal;
+  font-style: normal;
+}
+
+:root {
+  --font-sans: "Neue Haas Grotesk", ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-title: "Saans", ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-hero: "Saans Heavy", ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, monospace;
+  --font-farsi: "Vazirmatn", "SF Arabic", "Geeza Pro", "Tahoma", sans-serif;
+
+  --ink: #26251e;
+  --ink-muted: #5a5954;
+  --ink-light: #a3a29c;
+  --gray-100: #f3f4f6;
+  --gray-150: #ebecef;
+  --gray-200: #e5e7eb;
+
+  --notice: #e0daf2;
+  --notice-border: #b3a8d8;
+  --notice-text: #5b21b6;
+  --notice-error: #ffdbdb;
+  --notice-error-border: #ef4444;
+  --notice-error-text: #dc2626;
+  --notice-success: #c7f1c6;
+  --notice-success-border: #69cc66;
+  --notice-success-text: #117010;
+  --notice-info: #d7e7fe;
+  --notice-info-border: #89b6f6;
+  --notice-info-text: #165fc6;
+
+  --shadow-around-sm: 0 0 10px -3px rgba(0, 0, 0, 0.1), 0 0 4px -2px rgba(0, 0, 0, 0.05);
+  --shadow-around-md: 0 0 15px -3px rgba(0, 0, 0, 0.1), 0 0 6px -2px rgba(0, 0, 0, 0.05);
+}
+
+body {
+  font-family: var(--font-sans);
+  background: var(--bg);
+  -webkit-font-smoothing: antialiased;
+  font-feature-settings: "rlig" 1, "calt" 1;
+}
+::selection { background: var(--ink); color: #fff; }
+
+/* Header */
+header { padding: 44px 20px 4px; }
+header h1 {
+  font-family: var(--font-hero);
+  font-size: 1.9rem;
+  font-weight: normal;
+  letter-spacing: -0.025em;
+  color: var(--ink);
+  font-variant-ligatures: no-contextual;
+}
+header .subtitle {
+  font-family: var(--font-farsi);
+  font-size: 0.95rem;
+  font-weight: 400;
+  color: var(--ink-light);
+  margin-top: 6px;
+}
+
+/* Tabs */
+.tabs { padding: 22px 20px 26px; gap: 6px; }
+.tab-btn {
+  font-family: var(--font-title);
+  background: var(--surface);
+  border: 1px solid var(--gray-200);
+  color: var(--ink-muted);
+  font-weight: 500;
+  font-size: 0.88rem;
+  padding: 9px 24px;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  transition: all 0.15s ease;
+  font-variant-ligatures: no-contextual;
+}
+.tab-btn:hover { background: var(--gray-150); color: var(--ink); border-color: var(--gray-200); }
+.tab-btn.active {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: #fff;
+}
+
+/* Filters */
+.filter-group { margin-bottom: 14px; }
+.filter-group label {
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.1em;
+  color: var(--ink-muted);
+  font-weight: 500;
+}
+.pill {
+  background: var(--surface);
+  border: 1px solid var(--gray-200);
+  color: var(--ink-muted);
+  font-weight: 500;
+  font-size: 0.79rem;
+  padding: 6px 15px;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.04);
+  transition: all 0.15s ease;
+}
+.pill:hover { background: var(--gray-150); color: var(--ink); border-color: var(--gray-200); }
+.pill.active {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: #fff;
+  font-weight: 500;
+}
+
+/* Stats bar */
+.card-count { font-size: 0.82rem; color: var(--ink-muted); }
+.card-count strong { color: var(--ink); }
+.progress-track {
+  height: 5px;
+  background: var(--gray-200);
+  border: none;
+}
+.progress-fill { background: var(--ink); }
+.progress-text { font-size: 0.78rem; color: var(--ink-light); }
+
+/* Cards */
+.card-face {
+  background: var(--surface);
+  border: 1px solid var(--gray-200);
+  border-radius: 16px;
+  box-shadow: var(--shadow-around-md);
+}
+.card-front { background: var(--surface); }
+.card-back {
+  background: var(--gray-100);
+  border-color: var(--gray-200);
+}
+.farsi-big { font-family: var(--font-farsi); font-weight: 500; color: var(--ink); }
+.english-big { color: var(--ink); }
+.back-content .farsi-answer { font-family: var(--font-farsi); font-weight: 500; color: var(--ink); }
+.back-content .pinglish { color: var(--notice-info-text); }
+.back-content .meaning { color: var(--ink); }
+.back-content .breakdown { color: var(--ink-muted); border-top: 1px solid var(--gray-200); }
+.card-tag {
+  font-family: var(--font-mono);
+  background: var(--gray-100);
+  border: 1px solid var(--gray-200);
+  color: var(--ink-muted);
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  font-size: 0.6rem;
+}
+.tap-hint { font-size: 0.7rem; color: var(--ink-light); opacity: 1; }
+.letter-form-cell {
+  background: var(--surface);
+  border: 1px solid var(--gray-200);
+  border-radius: 10px;
+}
+.letter-form-cell .form-label { color: var(--ink-light); }
+.letter-form-cell .form-char { font-family: var(--font-farsi); color: var(--ink); }
+
+/* Nav + actions */
+.nav-btn {
+  background: var(--surface);
+  border: 1px solid var(--gray-200);
+  color: var(--ink-muted);
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  transition: all 0.15s ease;
+}
+.nav-btn:hover { background: var(--gray-150); color: var(--ink); border-color: var(--gray-200); }
+.nav-btn:disabled { background: var(--surface); color: var(--ink-light); }
+.nav-pos { font-size: 0.84rem; color: var(--ink-muted); }
+.action-btn {
+  font-family: var(--font-title);
+  background: var(--surface);
+  border: 1px solid var(--gray-200);
+  color: var(--ink-muted);
+  font-weight: 500;
+  font-size: 0.78rem;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.04);
+  transition: all 0.15s ease;
+  font-variant-ligatures: no-contextual;
+}
+.action-btn:hover { background: var(--gray-150); color: var(--ink); border-color: var(--gray-200); }
+.action-btn.active {
+  background: var(--notice);
+  border-color: var(--notice-border);
+  color: var(--notice-text);
+}
+
+/* Score buttons */
+.score-btn {
+  font-family: var(--font-title);
+  border-radius: 12px;
+  padding: 11px 32px;
+  font-size: 0.88rem;
+  font-weight: 500;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  transition: all 0.15s ease;
+  font-variant-ligatures: no-contextual;
+}
+.score-btn.know {
+  background: var(--notice-success);
+  border: 1px solid var(--notice-success-border);
+  color: var(--notice-success-text);
+}
+.score-btn.know:hover { filter: brightness(0.97); transform: translateY(-1px); }
+.score-btn.dunno {
+  background: var(--notice-error);
+  border: 1px solid var(--notice-error-border);
+  color: var(--notice-error-text);
+}
+.score-btn.dunno:hover { filter: brightness(0.97); transform: translateY(-1px); }
+
+/* Shortcuts */
+.shortcuts span { color: var(--ink-light); opacity: 1; }
+kbd {
+  font-family: var(--font-mono);
+  background: var(--surface);
+  border: 1px solid var(--gray-200);
+  border-bottom-width: 2px;
+  border-radius: 5px;
+  font-size: 0.64rem;
+  color: var(--ink-muted);
+}
+
+/* Empty state */
+.empty-state { color: var(--ink-muted); }
+.empty-state h2 {
+  font-family: var(--font-title);
+  font-weight: bold;
+  color: var(--ink);
+  letter-spacing: -0.01em;
+  font-variant-ligatures: no-contextual;
+}
+
+/* Verb trainer */
+.conj-table th {
+  font-family: var(--font-mono);
+  color: var(--ink-light);
+  border-bottom: 1px solid var(--gray-200);
+  letter-spacing: 0.08em;
+  font-weight: 500;
+}
+.conj-table td { border-bottom: 1px solid var(--gray-150); }
+.conj-table td.person { color: var(--ink-light); }
+.conj-table td .fa { font-family: var(--font-farsi); color: var(--ink); }
+.conj-table td .pin { color: var(--ink-muted); }
+.conj-imp { color: var(--ink-muted); border-top: 1px solid var(--gray-200); }
+.conj-imp strong { color: var(--notice-info-text); }
+.conj-imp .fa-inline { font-family: var(--font-farsi); color: var(--ink); }
+.chip {
+  font-weight: 500;
+  font-size: 0.8rem;
+  padding: 6px 16px;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+}
+.chip.person {
+  background: var(--notice-info);
+  border: 1px solid var(--notice-info-border);
+  color: var(--notice-info-text);
+}
+.chip.tense {
+  background: var(--notice);
+  border: 1px solid var(--notice-border);
+  color: var(--notice-text);
+}
+.drill-verb-pin { color: var(--notice-info-text); }
+.drill-verb-en { color: var(--ink-muted); }
+.mastered-badge {
+  font-family: var(--font-mono);
+  background: var(--notice-success);
+  border: 1px solid var(--notice-success-border);
+  color: var(--notice-success-text);
+  letter-spacing: 0.08em;
+  font-size: 0.56rem;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+}
+
+/* Grading row (4-button FSRS scale) */
+.score-row { gap: 10px; flex-wrap: wrap; }
+.score-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 9px 20px;
+  min-width: 92px;
+}
+.score-sub {
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  opacity: 0.75;
+  font-weight: 400;
+}
+.score-btn.again {
+  background: var(--notice-error);
+  border: 1px solid var(--notice-error-border);
+  color: var(--notice-error-text);
+}
+.score-btn.hard {
+  background: #fdf0d5;
+  border: 1px solid #e0b877;
+  color: #8a5a09;
+}
+.score-btn.easy {
+  background: var(--notice-info);
+  border: 1px solid var(--notice-info-border);
+  color: var(--notice-info-text);
+}
+.score-btn.show {
+  background: var(--ink);
+  border: 1px solid var(--ink);
+  color: #fff;
+  min-width: 240px;
+  padding: 12px 28px;
+}
+.score-btn.again:hover, .score-btn.hard:hover, .score-btn.easy:hover, .score-btn.show:hover {
+  filter: brightness(0.97);
+  transform: translateY(-1px);
+}
+.score-btn.suggest { box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.18); }
+
+/* Typed recall */
+.typed-input {
+  width: 100%;
+  max-width: 340px;
+  margin-top: 18px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  border: 1px solid var(--gray-200);
+  background: var(--surface);
+  font-family: var(--font-sans);
+  font-size: 1rem;
+  color: var(--ink);
+  text-align: center;
+  outline: none;
+}
+.typed-input:focus { border-color: var(--ink-light); box-shadow: var(--shadow-around-sm); }
+.typed-banner {
+  margin-top: 14px;
+  padding: 7px 14px;
+  border-radius: 10px;
+  font-size: 0.82rem;
+  font-weight: 500;
+}
+.typed-banner.right {
+  background: var(--notice-success);
+  border: 1px solid var(--notice-success-border);
+  color: var(--notice-success-text);
+}
+.typed-banner.wrong {
+  background: var(--notice-error);
+  border: 1px solid var(--notice-error-border);
+  color: var(--notice-error-text);
+}
+.due-chip {
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.06em;
+  color: var(--ink-light);
+}
+
+.filter-toggle { display: none; }
+.phone-hint { display: none; }
+
+/* Phone: one AirDropped file, no extra fonts needed, usable with a thumb */
+@media (max-width: 720px) {
+  html, body { -webkit-text-size-adjust: 100%; }
+  body {
+    padding-bottom: calc(18px + env(safe-area-inset-bottom));
+  }
+  header { padding: 16px 16px 0; }
+  header h1 { font-size: 1.45rem; }
+  .tabs { padding: 12px 16px 10px; }
+  .tab-btn { padding: 10px 18px; min-height: 44px; }
+  .filters { padding: 0 16px; }
+  .stats-bar { padding: 0 16px 10px; flex-wrap: wrap; gap: 8px; }
+  .progress-track { width: 88px; }
+  .card-area { padding: 0 16px 12px; }
+  .card-wrapper, .card { min-height: 260px; }
+  .card-face { padding: 28px 16px; }
+  .farsi-big { font-size: 2rem; }
+  .nav-row { padding: 0 16px 8px; }
+  .nav-btn { width: 44px; height: 44px; }
+  .bottom-actions {
+    padding: 0 16px 10px;
+    flex-wrap: wrap;
+  }
+  .action-btn { min-height: 40px; }
+  .shortcuts { display: none; }
+  .score-row {
+    position: sticky;
+    bottom: 0;
+    z-index: 5;
+    max-width: none;
+    margin: 0;
+    padding: 10px 12px calc(10px + env(safe-area-inset-bottom));
+    gap: 8px;
+    background: color-mix(in srgb, var(--bg) 88%, transparent);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+  }
+  .score-btn { min-width: 0; flex: 1; padding: 10px 8px; }
+  .score-btn.show { min-width: 0; width: 100%; }
+  .typed-input { font-size: 16px; max-width: none; }
+  .filter-toggle {
+    display: block;
+    margin: 0 16px 10px;
+    width: calc(100% - 32px);
+    min-height: 44px;
+    border-radius: 12px;
+    border: 1px solid var(--gray-200);
+    background: var(--surface);
+    color: var(--ink);
+    font-family: var(--font-title);
+    font-size: 0.88rem;
+    font-weight: 500;
+  }
+  body.filters-collapsed #fc-filters,
+  body.filters-collapsed #vt-filters { display: none !important; }
+  .phone-hint {
+    display: block;
+    max-width: 580px;
+    margin: 0 auto 8px;
+    padding: 0 16px;
+    font-size: 0.72rem;
+    color: var(--ink-light);
+    text-align: center;
+    line-height: 1.4;
+  }
+  .phone-hint[hidden] { display: none; }
+}
+@media (hover: none) {
+  .pill:hover, .tab-btn:hover, .action-btn:hover, .nav-btn:hover { background: inherit; }
+}
+button, .pill, .tab-btn, .action-btn, .score-btn, .nav-btn {
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Farsi Flashcards</h1>
+  <div class="subtitle">پارسی را پاس بداریم</div>
+</header>
+
+<div class="tabs">
+  <button class="tab-btn active" id="tab-cards" onclick="setTab('cards')">Flashcards</button>
+  <button class="tab-btn" id="tab-verbs" onclick="setTab('verbs')">Verb Trainer</button>
+</div>
+
+<p class="phone-hint" id="phone-hint" hidden>On iPhone: open this file in Safari, then Share → Add to Home Screen. Progress stays on this phone.</p>
+<button type="button" class="filter-toggle" id="filter-toggle" onclick="toggleFilters()">Filters</button>
+
+<div class="filters" id="fc-filters">
+  <div class="filter-group">
+    <label>Study Mode</label>
+    <div class="pills" id="mode-pills"></div>
+  </div>
+  <div class="filter-group">
+    <label>Session</label>
+    <div class="pills" id="session-pills"></div>
+  </div>
+  <div class="filter-group">
+    <label>Card Type</label>
+    <div class="pills" id="type-pills"></div>
+  </div>
+  <div class="filter-group">
+    <label>Front Shows</label>
+    <div class="pills" id="front-pills"></div>
+  </div>
+  <div class="filter-group">
+    <label>Vocab Direction</label>
+    <div class="pills" id="dir-pills"></div>
+  </div>
+</div>
+
+<div class="filters" id="vt-filters" style="display:none">
+  <div class="filter-group">
+    <label>Mode</label>
+    <div class="pills" id="vt-mode-pills"></div>
+  </div>
+  <div class="filter-group" id="vt-tense-group">
+    <label>Tenses</label>
+    <div class="pills" id="vt-tense-pills"></div>
+  </div>
+  <div class="filter-group">
+    <label>Verbs</label>
+    <div class="pills" id="vt-verb-pills"></div>
+  </div>
+</div>
+
+<div class="stats-bar">
+  <div class="card-count" id="card-count"></div>
+  <div class="progress-row">
+    <div class="progress-track"><div class="progress-fill" id="progress-fill"></div></div>
+    <div class="progress-text" id="progress-text">0%</div>
+  </div>
+</div>
+
+<div class="card-area" id="card-area">
+  <div class="card-wrapper" id="card-wrapper" onclick="flipCard()">
+    <div class="card" id="card">
+      <div class="card-face card-front" id="card-front"></div>
+      <div class="card-face card-back" id="card-back"></div>
+    </div>
+  </div>
+</div>
+
+<div class="nav-row">
+  <button class="nav-btn" id="prev-btn" onclick="prev()">&#8592;</button>
+  <div class="nav-pos" id="nav-pos">1 / 1</div>
+  <button class="nav-btn" id="next-btn" onclick="next()">&#8594;</button>
+</div>
+
+<div class="bottom-actions">
+  <button class="action-btn" id="typed-btn" onclick="toggleTyped()">Type answer</button>
+  <button class="action-btn" id="shuffle-btn" onclick="toggleShuffle()">Shuffle</button>
+  <button class="action-btn" id="mastered-btn" onclick="toggleHideMastered()">Hide mastered</button>
+  <button class="action-btn" id="newlimit-btn" onclick="cycleNewLimit()">New/day: 20</button>
+  <button class="action-btn" onclick="resetProgress()">Reset</button>
+</div>
+
+<div class="score-row" id="score-row"></div>
+
+<div class="shortcuts" id="shortcuts">
+  <span><kbd>Space</kbd> show answer &nbsp; <kbd>1</kbd> again &nbsp; <kbd>2</kbd> hard &nbsp; <kbd>3</kbd> good &nbsp; <kbd>4</kbd> easy &nbsp; <kbd>&#8594;</kbd> skip</span>
+</div>
+
+<script>
+const CARDS = [];
+
+function addCards(session, type, items, direction) {
+  for (const item of items) {
+    if (item.length === 4) {
+      const [farsi, pinglish, english, breakdown] = item;
+      if (direction === 'farsi-to-english') {
+        CARDS.push({ session, type, direction, farsi, pinglish, english, breakdown });
+      } else {
+        CARDS.push({ session, type, direction, farsi, pinglish, english, breakdown });
+      }
+    } else if (item.length === 7) {
+      const [name, sound, isolated, initial, medial, final, notes] = item;
+      CARDS.push({ session, type: 'alphabet', direction: 'letter', name, sound, isolated, initial, medial, final, notes });
+    }
+  }
+}
+
+const s22_vocab = [
+  ["\u0648\u0631\u0632\u0634 \u06A9\u0631\u062F\u0646","varzesh kardan","to exercise","\u0648-\u0631-\u0632-\u0634 \u06A9-\u0631-\u062F-\u0646"],
+  ["\u0648\u064E","va","and","\u0648 (v\u0101v)"],
+  ["\u0645\u0650\u0633\u0648\u0627\u06A9","mesv\u0101k","toothbrush","\u0645-\u0633-\u0648-\u0627-\u06A9"],
+  ["\u0645\u06CC\u0648\u0647","miveh","fruit","\u0645-\u06CC-\u0648-\u0647"],
+  ["\u0644\u06CC\u0648\u0627\u0646","liv\u0101n","glass","\u0644-\u06CC-\u0648-\u0627-\u0646"],
+  ["\u067E\u064E\u0631\u0648\u0627\u0646\u0647","parv\u0101neh","butterfly","\u067E-\u0631-\u0648-\u0627-\u0646-\u0647"],
+  ["\u0627\u0648 / \u0627\u0648\u0646","oo / oon","he, she","\u0627-\u0648 (formal) / \u0627-\u0648-\u0646 (colloquial)"],
+  ["\u0631\u0648\u0632","rooz","day","\u0631-\u0648-\u0632"],
+  ["\u0627\u0645\u0631\u0648\u0632","emrooz","today","\u0627-\u0645-\u0631-\u0648-\u0632 (lit: this day)"],
+  ["\u062E\u0648\u0628","khoob","good","\u062E-\u0648-\u0628"],
+  ["\u062F\u0648\u0633\u062A","doost","friend","\u062F-\u0648-\u0633-\u062A"],
+  ["\u0634\u0648\u0631","shoor","salty","\u0634-\u0648-\u0631"],
+  ["\u0627\u064F\u0631\u062F\u064E\u06A9","ordak","duck","\u0627-\u0631-\u062F-\u06A9"],
+  ["\u062E\u064F\u0648\u0634","khosh","pleasant","\u062E-\u0648-\u0634"],
+  ["\u062E\u064F\u0648\u0634\u0645\u064E\u0632\u0647","khoshmaze","delicious","\u062E\u0648\u0634 (pleasant) + \u0645\u0632\u0647 (taste)"],
+  ["\u062A\u0648","to","you (informal)","\u062A-\u0648"],
+  ["\u067E\u064F\u0644\u064F\u0648","polo","cooked rice","\u067E-\u0644-\u0648"],
+  ["\u062F\u0648","do","two","\u062F-\u0648"],
+  ["\u062E\u0648\u062F","khod","self","\u062E-\u0648-\u062F"],
+  ["\u062E\u0648\u062F\u06A9\u0627\u0631","khodk\u0101r","pen (ballpoint)","\u062E\u0648\u062F (self) + \u06A9\u0627\u0631 (work) = automatic"],
+  ["\u0645\u062A\u0631\u0648","metro","metro, subway","\u0645-\u062A-\u0631-\u0648"],
+  ["\u06AF\u06CC\u0644\u0627\u0633","gil\u0101s","cherry","\u06AF-\u06CC-\u0644-\u0627-\u0633"],
+  ["\u06AF\u064F\u0631\u0628\u0647","gorbeh","cat","\u06AF-\u0631-\u0628-\u0647"],
+  ["\u0633\u064E\u06AF","sag","dog","\u0633-\u06AF"],
+  ["\u0632\u0646\u062F\u06AF\u06CC","zendegi","life","\u0632-\u0646-\u062F-\u06AF-\u06CC"],
+  ["\u06AF\u0627\u0648","g\u0101v","cow","\u06AF-\u0627-\u0648"],
+  ["\u0627\u06CC\u0646","in","this","\u0627-\u06CC-\u0646"],
+  ["\u0622\u0646 / \u0627\u0648\u0646","\u0101n / oon","that","\u0627-\u06CC-\u0646 (formal) / \u0627-\u0648-\u0646 (colloquial)"],
+  ["\u0627\u06CC\u0646\u062C\u0627","inj\u0101","here","\u0627\u06CC\u0646 (this) + \u062C\u0627 (place)"],
+  ["\u0622\u0646\u062C\u0627","\u0101nj\u0101","there","\u0622\u0646 (that) + \u062C\u0627 (place)"],
+  ["\u0686\u0637\u0648\u0631","chetor","how","\u0686-\u0637-\u0648-\u0631"],
+  ["\u0645\u0627\u0645\u0627\u0646","m\u0101m\u0101n","mom","\u0645-\u0627-\u0645-\u0627-\u0646"],
+  ["\u0628\u0627\u0628\u0627","b\u0101b\u0101","dad","\u0628-\u0627-\u0628-\u0627"],
+  ["\u0645\u0627\u0645\u0627\u0646\u200C\u0628\u0632\u0631\u06AF","m\u0101m\u0101nbozorg","grandmother","\u0645\u0627\u0645\u0627\u0646 + \u0628\u0632\u0631\u06AF (big)"],
+  ["\u0628\u0627\u0628\u0627\u0628\u0632\u0631\u06AF","b\u0101b\u0101bozorg","grandfather","\u0628\u0627\u0628\u0627 + \u0628\u0632\u0631\u06AF (big)"],
+  ["\u062E\u06CC\u0644\u06CC","kheili","very","\u062E-\u06CC-\u0644-\u06CC"],
+  ["\u0645\u0645\u0646\u0648\u0646","mamnoon","thank you","\u0645-\u0645-\u0646-\u0648-\u0646"],
+  ["\u0628\u062F","bad","bad","\u0628-\u062F"],
+  ["\u0627\u06CC\u0631\u0627\u0646\u06CC","ir\u0101ni","Iranian","\u0627\u06CC\u0631\u0627\u0646 + \u06CC"],
+  ["\u0628\u0627\u0647\u0648\u0634","b\u0101hoosh","smart","\u0628\u0627 (with) + \u0647\u0648\u0634 (intelligence)"],
+];
+
+const s22_grammar = [
+  ["\u0645\u0646 \u0647\u0633\u062A\u0645","man hastam","I am","\u0647\u0633\u062A\u0645 = am (1st person singular)"],
+  ["\u062A\u0648 \u0647\u0633\u062A\u06CC","to hasti","you are (informal)","\u0647\u0633\u062A\u06CC = are (2nd person singular)"],
+  ["\u0627\u0648 \u0647\u0633\u062A","oo hast","he/she is","\u0647\u0633\u062A = is (3rd person singular)"],
+  ["\u0645\u0627 \u0647\u0633\u062A\u06CC\u0645","m\u0101 hastim","we are","\u0647\u0633\u062A\u06CC\u0645 = are (1st person plural)"],
+  ["\u0634\u0645\u0627 \u0647\u0633\u062A\u06CC\u062F","shom\u0101 hastid","you are (formal/plural)","\u0647\u0633\u062A\u06CC\u062F = are (2nd person plural)"],
+  ["\u0622\u0646\u0647\u0627 \u0647\u0633\u062A\u0646\u062F","\u0101nh\u0101 hastand","they are","\u0647\u0633\u062A\u0646\u062F = are (3rd person plural)"],
+  ["\u062E\u0648\u0628\u0645","khoobam","I am good","\u062E\u0648\u0628 + \u0640\u064E\u0645 (I am)"],
+  ["\u062E\u0648\u0628\u06CC","khoobi","you are good","\u062E\u0648\u0628 + \u0640\u06CC (you are)"],
+  ["\u062E\u0648\u0628\u0647","khoobeh","he/she is good","\u062E\u0648\u0628 + \u0640\u0647 (he/she is)"],
+  ["\u062E\u0648\u0628\u06CC\u0645","khoobim","we are good","\u062E\u0648\u0628 + \u0640\u06CC\u0645 (we are)"],
+  ["\u062E\u0648\u0628\u06CC\u062F","khoobid","you are good (pl)","\u062E\u0648\u0628 + \u0640\u06CC\u062F (you are)"],
+  ["\u062E\u0648\u0628\u0646\u062F","khooband","they are good","\u062E\u0648\u0628 + \u0640\u0646\u062F (they are)"],
+];
+
+const s22_phrases = [
+  ["\u062A\u0648 \u0686\u0637\u0648\u0631\u06CC\u061F","to chetori?","How are you? (informal)","\u062A\u0648 (you) + \u0686\u0637\u0648\u0631\u06CC (how)"],
+  ["\u0634\u0645\u0627 \u0686\u0637\u0648\u0631\u06CC\u062F\u061F","shom\u0101 chetorid?","How are you? (formal)","\u0634\u0645\u0627 (you formal) + \u0686\u0637\u0648\u0631\u06CC\u062F (how are)"],
+  ["\u0645\u0627\u0645\u0627\u0646 \u0648 \u0628\u0627\u0628\u0627 \u0686\u0637\u0648\u0631\u0646\u062F\u061F","m\u0101m\u0101n o b\u0101b\u0101 chetorand?","How are mom and dad?","\u0686\u0637\u0648\u0631\u0646\u062F = how are they"],
+  ["\u062E\u06CC\u0644\u06CC \u0645\u0645\u0646\u0648\u0646","kheili mamnoon","thank you very much","\u062E\u06CC\u0644\u06CC (very) + \u0645\u0645\u0646\u0648\u0646 (thanks)"],
+  ["\u0628\u062F \u0646\u06CC\u0633\u062A\u0646\u062F","bad nistand","they're not bad","\u0628\u062F (bad) + \u0646\u06CC\u0633\u062A\u0646\u062F (are not)"],
+];
+
+const s23_vocab = [
+  ["\u062E\u0648\u0634\u062A\u06CC\u067E","khoshtip","good-looking (men)","\u062E\u0648\u0634 (pleasant) + \u062A\u06CC\u067E (type/look)"],
+  ["\u062E\u0648\u0634\u06AF\u0644","khoshgel","beautiful","\u062E\u0648\u0634 (pleasant) + \u06AF\u0644 (flower)"],
+  ["\u062E\u0648\u0634\u0645\u0632\u0647","khoshmaze","delicious","\u062E\u0648\u0634 (pleasant) + \u0645\u0632\u0647 (taste)"],
+  ["\u062E\u0648\u0631\u0634\u062A","khorosht","stew","\u062E-\u0648-\u0631-\u0634-\u062A"],
+  ["\u062E\u0648\u0634\u0628\u062E\u062A","khoshbakht","fortunate, lucky","\u062E\u0648\u0634 (pleasant) + \u0628\u062E\u062A (fortune)"],
+  ["\u0686\u0627\u06CC","ch\u0101y","tea","\u0686-\u0627-\u06CC"],
+  ["\u0686\u062A\u0631","chatr","umbrella","\u0686-\u062A-\u0631"],
+  ["\u067E\u06CC\u0686","pich","screw, turn","\u067E-\u06CC-\u0686"],
+  ["\u0686\u0646\u06AF\u0627\u0644","chang\u0101l","fork, claw","\u0686-\u0646-\u06AF-\u0627-\u0644"],
+  ["\u0628\u0686\u0647","bacheh","child, kid","\u0628-\u0686-\u0647"],
+  ["\u0686\u0648\u067E\u0627\u0646","choop\u0101n","shepherd","\u0686-\u0648-\u067E-\u0627-\u0646"],
+  ["\u06AF\u0648\u0634\u062A","goosht","meat","\u06AF-\u0648-\u0634-\u062A"],
+  ["\u0633\u0628\u0632\u06CC\u062C\u0627\u062A","sabzij\u0101t","vegetables","\u0633\u0628\u0632\u06CC (herb) + \u062C\u0627\u062A (plural)"],
+  ["\u0633\u0628\u0632","sabz","green","\u0633-\u0628-\u0632"],
+  ["\u0633\u0628\u0632\u06CC","sabzi","herb","\u0633-\u0628-\u0632-\u06CC"],
+  ["\u0645\u0627\u0633\u062A","m\u0101st","yogurt","\u0645-\u0627-\u0633-\u062A"],
+  ["\u0645\u0627\u0647\u06CC","m\u0101hi","fish","\u0645-\u0627-\u0647-\u06CC"],
+  ["\u0639\u0633\u0644","asal","honey","\u0639-\u0633-\u0644"],
+  ["\u062F\u0631\u06CC\u0627","dary\u0101","sea","\u062F-\u0631-\u06CC-\u0627"],
+  ["\u063A\u0630\u0627\u06CC \u062F\u0631\u06CC\u0627\u06CC\u06CC","ghaz\u0101-ye dary\u0101yi","seafood","\u063A\u0630\u0627 (food) + \u062F\u0631\u06CC\u0627\u06CC\u06CC (of sea)"],
+  ["\u06AF\u06CC\u0627\u0647","gi\u0101h","plant","\u06AF-\u06CC-\u0627-\u0647"],
+  ["\u063A\u0630\u0627\u06CC \u06AF\u06CC\u0627\u0647\u06CC","ghaz\u0101-ye gi\u0101hi","vegetarian food","\u063A\u0630\u0627 (food) + \u06AF\u06CC\u0627\u0647\u06CC (plant-based)"],
+  ["\u06AF\u06CC\u0627\u0647\u200C\u062E\u0648\u0627\u0631","gi\u0101h-kh\u0101r","vegetarian (person)","\u06AF\u06CC\u0627\u0647 (plant) + \u062E\u0648\u0627\u0631 (eater)"],
+  ["\u0634\u0631\u0627\u0628","shar\u0101b","wine","\u0634-\u0631-\u0627-\u0628"],
+  ["\u0642\u0631\u0645\u0632","ghermez","red","\u0642-\u0631-\u0645-\u0632"],
+  ["\u0633\u0641\u06CC\u062F","sefid","white","\u0633-\u0641-\u06CC-\u062F"],
+  ["\u0622\u0628 \u062C\u0648","\u0101b-jo","beer","\u0622\u0628 (water) + \u062C\u0648 (barley)"],
+  ["\u062C\u0648","jo","barley","\u062C-\u0648"],
+  ["\u0622\u0628 \u0645\u06CC\u0648\u0647","\u0101b miveh","juice","\u0622\u0628 (water) + \u0645\u06CC\u0648\u0647 (fruit)"],
+  ["\u0622\u0628 \u0633\u06CC\u0628","\u0101b sib","apple juice","\u0622\u0628 (water) + \u0633\u06CC\u0628 (apple)"],
+  ["\u0633\u06CC\u0628","sib","apple","\u0633-\u06CC-\u0628"],
+  ["\u062F\u0645\u200C\u0646\u0648\u0634","dam-noosh","herbal tea","\u062F-\u0645-\u0646-\u0648-\u0634"],
+  ["\u0686\u0627\u06CC \u0633\u0628\u0632","ch\u0101y-e sabz","green tea","\u0686\u0627\u06CC + \u0633\u0628\u0632 (green)"],
+  ["\u0686\u0627\u06CC \u0633\u06CC\u0627\u0647","ch\u0101y-e si\u0101h","black tea","\u0686\u0627\u06CC + \u0633\u06CC\u0627\u0647 (black)"],
+  ["\u0633\u06CC\u0627\u0647","si\u0101h","black","\u0633-\u06CC-\u0627-\u0647"],
+  ["\u0634\u0631\u0628\u062A","sharbat","syrup drink","\u0634-\u0631-\u0628-\u062A"],
+  ["\u0646\u0648\u0634\u0627\u0628\u0647","noosh\u0101beh","soda","\u0646-\u0648-\u0634-\u0627-\u0628-\u0647"],
+  ["\u0634\u06A9\u0631","shekar","sugar","\u0634-\u06A9-\u0631"],
+  ["\u0642\u0646\u062F","ghand","sugar cube","\u0642-\u0646-\u062F"],
+  ["\u0634\u06CC\u0631","shir","lion / milk","\u0634-\u06CC-\u0631"],
+  ["\u062E\u0648\u0631\u0634\u06CC\u062F","khorshid","sun","\u062E-\u0648-\u0631-\u0634-\u06CC-\u062F"],
+  ["\u067E\u0631\u0686\u0645","parcham","flag","\u067E-\u0631-\u0686-\u0645"],
+  ["\u0645\u0634\u0631\u0648\u0628","mashroob","alcohol","\u0645-\u0634-\u0631-\u0648-\u0628"],
+  ["\u0645\u0633\u062A","mast","drunk","\u0645-\u0633-\u062A"],
+  ["\u0645\u0633\u062A\u06CC","masti","drunkenness","\u0645-\u0633-\u062A-\u06CC"],
+  ["\u0631\u0627\u0647","r\u0101h","path, way","\u0631-\u0627-\u0647"],
+  ["\u062C\u0647\u0627\u0646","jah\u0101n","world","\u062C-\u0647-\u0627-\u0646"],
+  ["\u0646\u0648\u0631","noor","light","\u0646-\u0648-\u0631"],
+  ["\u062A\u0627\u0631\u06CC\u06A9\u06CC","t\u0101riki","darkness","\u062A\u0627\u0631\u06CC\u06A9 (dark) + \u06CC"],
+  ["\u067E\u06CC\u0631\u0648\u0632","pirooz","victorious","\u067E-\u06CC-\u0631-\u0648-\u0632"],
+  ["\u067E\u0627\u06CC\u0627\u0646","p\u0101y\u0101n","end","\u067E-\u0627-\u06CC-\u0627-\u0646"],
+  ["\u0634\u0628","shab","night","\u0634-\u0628"],
+];
+
+const s23_grammar = [
+  ["\u0645\u06CC\u200C\u062E\u0648\u0631\u0645","mikhoram","I eat/drink","\u0645\u06CC + \u062E\u0648\u0631 + \u0645"],
+  ["\u0645\u06CC\u200C\u062E\u0648\u0631\u06CC","mikhori","you eat/drink","\u0645\u06CC + \u062E\u0648\u0631 + \u06CC"],
+  ["\u0645\u06CC\u200C\u062E\u0648\u0631\u0647","mikhoreh","he/she eats/drinks","\u0645\u06CC + \u062E\u0648\u0631 + \u0647"],
+  ["\u0645\u06CC\u200C\u062E\u0648\u0631\u06CC\u0645","mikhorim","we eat/drink","\u0645\u06CC + \u062E\u0648\u0631 + \u06CC\u0645"],
+  ["\u0645\u06CC\u200C\u062E\u0648\u0631\u06CC\u062F","mikhorid","you eat/drink (formal)","\u0645\u06CC + \u062E\u0648\u0631 + \u06CC\u062F"],
+  ["\u0645\u06CC\u200C\u062E\u0648\u0631\u0646\u062F","mikhorand","they eat/drink","\u0645\u06CC + \u062E\u0648\u0631 + \u0646\u062F"],
+  ["\u0646\u0645\u06CC\u200C\u062E\u0648\u0631\u0645","nemikhoram","I don't eat/drink","\u0646\u0645\u06CC + \u062E\u0648\u0631 + \u0645"],
+  ["\u0646\u0645\u06CC\u200C\u062E\u0648\u0631\u06CC","nemikhori","you don't eat/drink","\u0646\u0645\u06CC + \u062E\u0648\u0631 + \u06CC"],
+  ["\u0646\u0645\u06CC\u200C\u062E\u0648\u0631\u0647","nemikhoreh","he/she doesn't eat/drink","\u0646\u0645\u06CC + \u062E\u0648\u0631 + \u0647"],
+  ["\u0646\u0645\u06CC\u200C\u062E\u0648\u0631\u06CC\u0645","nemikhorim","we don't eat/drink","\u0646\u0645\u06CC + \u062E\u0648\u0631 + \u06CC\u0645"],
+  ["\u0646\u0645\u06CC\u200C\u062E\u0648\u0631\u06CC\u062F","nemikhorid","you don't eat/drink (formal)","\u0646\u0645\u06CC + \u062E\u0648\u0631 + \u06CC\u062F"],
+];
+
+const s23_phrases = [
+  ["\u0645\u0646 \u06AF\u0648\u0634\u062A \u0645\u06CC\u200C\u062E\u0648\u0631\u0645","man goosht mikhoram","I eat meat","Subject + Object + Verb"],
+  ["\u0645\u0646 \u0645\u0627\u0647\u06CC \u0646\u0645\u06CC\u200C\u062E\u0648\u0631\u0645","man m\u0101hi nemikhoram","I don't eat fish","Subject + Object + Negative Verb"],
+  ["\u0628\u062F\u0648\u0646 \u0634\u06A9\u0631 \u0644\u0637\u0641\u0627\u064B","bedoon-e shekar lotfan","without sugar please","\u0628\u062F\u0648\u0646 (without) + \u0634\u06A9\u0631 + \u0644\u0637\u0641\u0627\u064B (please)"],
+  ["\u0646\u0648\u0634 \u062C\u0627\u0646!","noosh-e j\u0101n!","Enjoy your meal!","\u0646\u0648\u0634 (sweet) + \u062C\u0627\u0646 (soul)"],
+  ["\u0628\u0647 \u0633\u0644\u0627\u0645\u062A\u06CC!","be sal\u0101mati!","Cheers! (to health)","\u0628\u0647 (to) + \u0633\u0644\u0627\u0645\u062A\u06CC (health)"],
+  ["\u0647\u0631 \u062F\u0648","har do","both","\u0647\u0631 (every) + \u062F\u0648 (two)"],
+  ["\u0645\u0646 \u0647\u0631 \u062F\u0648 \u0631\u0648 \u062F\u0648\u0633\u062A \u062F\u0627\u0631\u0645","man har do ro doost d\u0101ram","I like both","\u0647\u0631 \u062F\u0648 (both) + \u0631\u0648 (object marker) + \u062F\u0648\u0633\u062A \u062F\u0627\u0631\u0645 (I like)"],
+  ["\u0627\u0648\u0646 \u0645\u0633\u062A\u0647","oon masteh","he/she is drunk","\u0627\u0648\u0646 (he/she) + \u0645\u0633\u062A (drunk) + \u0647 (is)"],
+  ["\u0645\u0646 \u0645\u0633\u062A \u0646\u06CC\u0633\u062A\u0645","man mast nistam","I am not drunk","\u0645\u0646 + \u0645\u0633\u062A + \u0646\u06CC\u0633\u062A\u0645 (am not)"],
+  ["\u0633\u0628\u0632\u06CC \u067E\u0644\u0648 \u0628\u0627 \u0645\u0627\u0647\u06CC","sabzi polo b\u0101 m\u0101hi","herb rice with fish (Nowruz dish)","\u0633\u0628\u0632\u06CC + \u067E\u0644\u0648 + \u0628\u0627 (with) + \u0645\u0627\u0647\u06CC"],
+];
+
+const s2425_vocab = [
+  ["\u0628\u0631\u0633\u0648\u0646","beresoon","send! deliver! (imperative)","imperative of \u0631\u0633\u0648\u0646\u062F\u0646 (resoondan)"],
+  ["\u0628\u06AF\u0648","begoo","tell! say! (imperative)","imperative of \u06AF\u0641\u062A\u0646 (goftan)"],
+  ["\u0628\u062F\u0647","bedeh","give! (imperative)","imperative of \u062F\u0627\u062F\u0646 (d\u0101dan)"],
+  ["\u0628\u06A9\u0646","bokon","do! (imperative)","imperative of \u06A9\u0631\u062F\u0646 (kardan)"],
+  ["\u0646\u06A9\u0646","nakon","don't! (negative imperative)","\u0646\u064E + \u06A9\u0646"],
+  ["\u0628\u062E\u0648\u0646","bekhoon","read! (imperative)","imperative of \u062E\u0648\u0646\u062F\u0646 (khoondan)"],
+  ["\u0628\u062E\u0648\u0631","bokhor","eat! (imperative)","imperative of \u062E\u0648\u0631\u062F\u0646 (khordan)"],
+  ["\u0628\u0631\u0648","boro","go! (imperative)","imperative of \u0631\u0641\u062A\u0646 (raftan)"],
+  ["\u0628\u0634\u06CC\u0646","beshin","sit! sit down! (imperative)","imperative of \u0646\u0634\u0633\u062A\u0646 (neshastan)"],
+  ["\u0628\u0641\u0631\u0645\u0627\u06CC\u06CC\u062F","befarm\u0101yid","please (polite invitation)","formal polite imperative"],
+  ["\u062E\u0648\u0627\u0646\u062F\u0646","kh\u0101ndan / khoondan","to read","\u062E-\u0648-\u0627-\u0646-\u062F-\u0646"],
+  ["\u062F\u0631\u0633 \u062E\u0648\u0646\u062F\u0646","dars khoondan","to study","\u062F\u0631\u0633 (lesson) + \u062E\u0648\u0646\u062F\u0646 (to read)"],
+  ["\u0622\u0648\u0627\u0632 \u062E\u0648\u0627\u0646\u062F\u0646","\u0101v\u0101z kh\u0101ndan / khoondan","to sing","\u0622\u0648\u0627\u0632 (song/singing) + \u062E\u0648\u0627\u0646\u062F\u0646"],
+  ["\u062E\u0648\u0627\u0646\u0646\u062F\u0647","kh\u0101nandeh","singer","\u062E\u0648\u0627\u0646\u062F\u0646 + \u0640\u0646\u062F\u0647 (agent suffix)"],
+  ["\u06A9\u062A\u0627\u0628\u062E\u0648\u0646\u0647","ket\u0101bkhoone","library","\u06A9\u062A\u0627\u0628 (book) + \u062E\u0648\u0646\u0647 (house)"],
+  ["\u0634\u0644\u0648\u063A","sholugh","busy / crowded","\u0634-\u0644-\u0648-\u063A"],
+  ["\u0648\u0642\u062A","vaght","time","\u0648-\u0642-\u062A"],
+  ["\u0647\u0645\u06CC\u0634\u0647","hamishe","always","\u0647-\u0645-\u06CC-\u0634-\u0647"],
+  ["\u0645\u0639\u0645\u0648\u0644\u0627\u064B","m\u0101'moolan","usually","\u0645-\u0639-\u0645-\u0648-\u0644-\u0627"],
+  ["\u0647\u06CC\u0686\u200C\u0648\u0642\u062A","hich-vaght","never","\u0647\u06CC\u0686 (no/none) + \u0648\u0642\u062A (time)"],
+  ["\u0628\u0639\u0636\u06CC \u0648\u0642\u062A\u200C\u0647\u0627","baazi vaght-h\u0101","sometimes","\u0628\u0639\u0636\u06CC (some) + \u0648\u0642\u062A\u200C\u0647\u0627 (times)"],
+  ["\u0628\u06CC\u0634\u062A\u0631 \u0648\u0642\u062A\u200C\u0647\u0627","bishtare vaght-h\u0101","most of the time, often","\u0628\u06CC\u0634\u062A\u0631 (more/most) + \u0648\u0642\u062A\u200C\u0647\u0627"],
+  ["\u0628\u0639\u0636\u06CC","baazi","some (of)","\u0628-\u0639-\u0636-\u06CC"],
+  ["\u0628\u06CC\u0634\u062A\u0631","bishtar-e","most, the majority of","\u0628-\u06CC-\u0634-\u062A-\u0631"],
+  ["\u0628\u0627\u062F","b\u0101d","wind","\u0628-\u0627-\u062F (long \u0101)"],
+  ["\u0628\u0627\u062F\u06CC","b\u0101di","windy","\u0628\u0627\u062F (wind) + \u06CC"],
+  ["\u0628\u0639\u062F","ba'd","then, after","\u0628-\u0639-\u062F (with glottal)"],
+  ["\u0628\u0639\u062F \u0627\u0632 \u0638\u0647\u0631","ba'd az zohr","afternoon","\u0628\u0639\u062F (after) + \u0627\u0632 (from) + \u0638\u0647\u0631 (noon)"],
+  ["\u0628\u0627\u0632\u06CC","b\u0101zi","play, game","\u0628-\u0627-\u0632-\u06CC"],
+  ["\u062E\u06CC\u0627\u0631\u0634\u0648\u0631","khi\u0101r-shoor","gherkins, salt-pickled cucumbers","\u062E\u06CC\u0627\u0631 (cucumber) + \u0634\u0648\u0631 (salty)"],
+  ["\u062E\u06CC\u0627\u0631","khi\u0101r","cucumber","\u062E-\u06CC-\u0627-\u0631"],
+  ["\u062A\u0631\u0634\u06CC","torshi","sour pickles, vinegar-based pickled vegetables","\u062A-\u0631-\u0634-\u06CC"],
+  ["\u0639\u0634\u0642","eshgh","love","\u0639-\u0634-\u0642"],
+  ["\u0639\u0634\u0642\u0645","eshgham","my love (endearment)","\u0639\u0634\u0642 + \u0645 (my)"],
+  ["\u0639\u0627\u0634\u0642","\u0101shegh","lover, in love","\u0639-\u0627-\u0634-\u0642"],
+  ["\u0622\u0647\u0646\u06AF","\u0101hang","song","\u0627-\u0647-\u0646-\u06AF"],
+  ["\u0633\u0641\u0631","safar","travel, trip","\u0633-\u0641-\u0631"],
+  ["\u0633\u0641\u0631 \u06A9\u0631\u062F\u0646","safar kardan","to travel","\u0633\u0641\u0631 (travel) + \u06A9\u0631\u062F\u0646 (to do)"],
+  ["\u0634\u0647\u0631","shahr","city","\u0634-\u0647-\u0631"],
+  ["\u062F\u0633\u062A\u0634\u0648\u06CC\u06CC","dastshooyi","restroom","\u062F\u0633\u062A (hand) + \u0634\u0648\u06CC\u06CC (washing)"],
+  ["\u0633\u0646\u062A\u06CC","sonnati","traditional","\u0633-\u0646-\u062A-\u06CC"],
+  ["\u0642\u062F\u06CC\u0645\u06CC","ghadimi","old (things, places)","\u0642-\u062F-\u06CC-\u0645-\u06CC"],
+  ["\u067E\u06CC\u0631","pir","old (people)","\u067E-\u06CC-\u0631"],
+  ["\u062F\u0627\u0646\u0634\u06AF\u0627\u0647","d\u0101neshg\u0101h","university","\u062F\u0627\u0646\u0634 (knowledge) + \u06AF\u0627\u0647 (place)"],
+  ["\u0638\u0631\u0641","zarf","dish, plate","\u0638-\u0631-\u0641"],
+  ["\u062A\u0645\u06CC\u0632","tamiz","clean","\u062A-\u0645-\u06CC-\u0632"],
+  ["\u062F\u0633\u0631","desser","dessert, pudding","\u062F-\u0633-\u0631"],
+  ["\u062A\u0627\u0632\u0647","t\u0101zeh","fresh","\u062A-\u0627-\u0632-\u0647"],
+  ["\u0622\u0645\u0627\u062F\u0647","\u0101m\u0101deh","ready, prepared","\u0627-\u0645-\u0627-\u062F-\u0647"],
+  ["\u0628\u0627\u062F\u0645\u062C\u0627\u0646","b\u0101demj\u0101n","aubergine, eggplant","\u0628-\u0627-\u062F-\u0645-\u062C-\u0627-\u0646"],
+  ["\u062E\u0648\u0631\u0634\u062A \u0628\u0627\u062F\u0645\u062C\u0627\u0646","khorosht-e b\u0101demj\u0101n","aubergine stew","\u062E\u0648\u0631\u0634\u062A (stew) + \u0628\u0627\u062F\u0645\u062C\u0627\u0646"],
+  ["\u0622\u0634\u067E\u0632\u062E\u0648\u0646\u0647","\u0101shpaz-khooneh","kitchen","\u0622\u0634\u067E\u0632 (cook) + \u062E\u0648\u0646\u0647 (house)"],
+  ["\u0622\u0634\u067E\u0632\u06CC \u06A9\u0631\u062F\u0646","\u0101shpazi kardan","to cook","\u0622\u0634\u067E\u0632\u06CC (cooking) + \u06A9\u0631\u062F\u0646 (to do)"],
+  ["\u0634\u06CC\u0631\u06CC\u0646\u06CC","shirini","sweets, pastry","\u0634\u06CC\u0631\u06CC\u0646 (sweet) + \u06CC"],
+  ["\u0632\u06CC\u0628\u0627","zib\u0101","beautiful","\u0632-\u06CC-\u0628-\u0627"],
+  ["\u0645\u0648\u0631\u062F \u0639\u0644\u0627\u0642\u0647","mored-e al\u0101ghe","favourite","\u0645\u0648\u0631\u062F (case) + \u0639\u0644\u0627\u0642\u0647 (interest)"],
+  ["\u062F\u0631\u0633","dars","lesson","\u062F-\u0631-\u0633"],
+  ["\u0639\u0635\u0631","asr","evening, late afternoon","\u0639-\u0635-\u0631"],
+  ["\u0631\u0633\u062A\u0648\u0631\u0627\u0646","restor\u0101n","restaurant","\u0631-\u0633-\u062A-\u0648-\u0631-\u0627-\u0646"],
+  ["\u0686\u0646\u062F \u062A\u0627","chand t\u0101","a few, several","\u0686\u0646\u062F (how many/some) + \u062A\u0627 (counter)"],
+];
+
+const s2425_grammar = [
+  ["\u0628\u062E\u0646\u062F","bekhand","Laugh! (singular imperative)","\u0628\u0650 + \u062E\u0646\u062F (present stem of \u062E\u0646\u062F\u06CC\u062F\u0646)"],
+  ["\u0628\u062E\u0646\u062F\u06CC\u062F","bekhandid","Laugh! (formal/plural imperative)","\u0628\u0650 + \u062E\u0646\u062F + \u06CC\u062F"],
+  ["\u0646\u062E\u0646\u062F","nakhand","Don't laugh! (negative imperative)","\u0646\u064E + \u062E\u0646\u062F"],
+  ["\u0628\u0641\u0631\u0645\u0627\u06CC\u06CC\u062F \u0628\u062E\u0648\u0631\u06CC\u062F","befarm\u0101yid bokhorid","Please eat! (formal polite)","\u0628\u0641\u0631\u0645\u0627\u06CC\u06CC\u062F + \u0628\u062E\u0648\u0631\u06CC\u062F"],
+  ["\u0628\u0641\u0631\u0645\u0627\u06CC\u06CC\u062F \u0628\u0634\u06CC\u0646\u06CC\u062F","befarm\u0101yid beshinid","Please sit down! (formal polite)","\u0628\u0641\u0631\u0645\u0627\u06CC\u06CC\u062F + \u0628\u0634\u06CC\u0646\u06CC\u062F"],
+];
+
+const s2425_phrases = [
+  ["\u0633\u0644\u0627\u0645 \u0628\u0631\u0633\u0648\u0646!","sal\u0101m beresoon!","Send my regards!","\u0633\u0644\u0627\u0645 (regards) + \u0628\u0631\u0633\u0648\u0646 (send/deliver)"],
+  ["\u0628\u0647 \u0645\u0631\u06CC\u0645 \u0633\u0644\u0627\u0645 \u0628\u0631\u0633\u0648\u0646!","be Maryam sal\u0101m beresoon!","Say hi to Maryam!","\u0628\u0647 (to) + \u0645\u0631\u06CC\u0645 + \u0633\u0644\u0627\u0645 + \u0628\u0631\u0633\u0648\u0646"],
+  ["\u0645\u0627\u0645\u0627\u0646\u0645 \u0633\u0644\u0627\u0645 \u0645\u06CC\u0631\u0633\u0648\u0646\u0647","m\u0101m\u0101nam sal\u0101m miresooneh","My mom is sending regards","\u0645\u0627\u0645\u0627\u0646\u0645 + \u0633\u0644\u0627\u0645 + \u0645\u06CC\u0631\u0633\u0648\u0646\u0647 (delivers)"],
+  ["\u0628\u0647 \u0645\u0646 \u0628\u06AF\u0648","be man begoo","Tell me!","\u0628\u0647 (to) + \u0645\u0646 (me) + \u0628\u06AF\u0648 (tell)"],
+  ["\u0628\u0647 \u0627\u0648\u0646 \u0628\u06AF\u0648","be oon begoo","Tell her/him!","\u0628\u0647 (to) + \u0627\u0648\u0646 (her/him) + \u0628\u06AF\u0648 (tell)"],
+  ["\u0628\u0647 \u0645\u0646 \u0628\u062F\u0647","be man bedeh","Give me!","\u0628\u0647 (to) + \u0645\u0646 (me) + \u0628\u062F\u0647 (give)"],
+  ["\u0627\u06CC\u0646 \u0631\u0648 \u0628\u062E\u0648\u0646","in ro bekhoon","Read this!","\u0627\u06CC\u0646 (this) + \u0631\u0648 (object marker) + \u0628\u062E\u0648\u0646 (read)"],
+  ["\u0633\u0631\u0645 \u0634\u0644\u0648\u063A\u0647","saram sholugh-e","I'm busy","\u0633\u0631\u0645 (my head) + \u0634\u0644\u0648\u063A\u0647 (is busy)"],
+  ["\u0627\u0645\u0631\u0648\u0632 \u0633\u0631\u062A \u0634\u0644\u0648\u063A\u0647\u061F","emrooz saret sholugh-e?","Are you busy today?","\u0627\u0645\u0631\u0648\u0632 (today) + \u0633\u0631\u062A (your head) + \u0634\u0644\u0648\u063A\u0647"],
+  ["\u0627\u06CC\u0646 \u0647\u0641\u062A\u0647 \u0648\u0642\u062A \u0646\u062F\u0627\u0631\u0645","in hafte vaght nad\u0101ram","I don't have time this week","\u0627\u06CC\u0646 \u0647\u0641\u062A\u0647 + \u0648\u0642\u062A (time) + \u0646\u062F\u0627\u0631\u0645"],
+  ["\u0627\u0645\u0631\u0648\u0632 \u0648\u0642\u062A \u062F\u0627\u0631\u0645","emrooz vaght d\u0101ram","I have time today","\u0627\u0645\u0631\u0648\u0632 + \u0648\u0642\u062A + \u062F\u0627\u0631\u0645 (have)"],
+  ["\u0645\u0646 \u0647\u0645\u06CC\u0634\u0647 \u0628\u0633\u062A\u0646\u06CC \u0633\u0641\u0627\u0631\u0634 \u0645\u06CC\u062F\u0645","man hamishe bastani sef\u0101resh midam","I always order ice cream","\u0647\u0645\u06CC\u0634\u0647 (always) + \u0633\u0641\u0627\u0631\u0634 \u0645\u06CC\u062F\u0645 (I order)"],
+  ["\u0627\u0648\u0646 \u0647\u0645\u06CC\u0634\u0647 \u0645\u06CC\u062E\u0646\u062F\u0647","oon hamishe mikhandeh","He/She always laughs","\u0627\u0648\u0646 + \u0647\u0645\u06CC\u0634\u0647 + \u0645\u06CC\u062E\u0646\u062F\u0647 (laughs)"],
+  ["\u0645\u0646 \u0647\u06CC\u0686\u200C\u0648\u0642\u062A \u0628\u0647 \u0633\u06AF\u0645 \u0628\u06CC\u0633\u06A9\u0648\u06CC\u062A \u0646\u0645\u06CC\u062F\u0645","man hich-vaght be sagam biscuit nemidam","I never give my dog biscuits","\u0647\u06CC\u0686\u200C\u0648\u0642\u062A (never) + \u0646\u0645\u06CC\u062F\u0645 (don't give)"],
+  ["\u0645\u0646 \u0639\u0627\u0634\u0642\u062A \u0647\u0633\u062A\u0645","man \u0101sheghet hastam","I am in love with you / I love you","\u0645\u0646 + \u0639\u0627\u0634\u0642\u062A (in love with you) + \u0647\u0633\u062A\u0645 (am)"],
+  ["\u0645\u0646 \u0639\u0627\u0634\u0642 \u0627\u06CC\u0646 \u0622\u0647\u0646\u06AF \u0647\u0633\u062A\u0645","man \u0101shegh-e in \u0101hang hastam","I love this song","\u0639\u0627\u0634\u0642 (in love) + \u0627\u06CC\u0646 \u0622\u0647\u0646\u06AF (this song)"],
+  ["\u0645\u0646 \u0639\u0627\u0634\u0642 \u0627\u06CC\u0646 \u0634\u0647\u0631 \u0647\u0633\u062A\u0645","man \u0101shegh-e in shahr hastam","I'm in love with this city","\u0639\u0627\u0634\u0642 + \u0627\u06CC\u0646 \u0634\u0647\u0631 (this city)"],
+  ["\u0645\u0627\u0645\u0627\u0646\u0645 \u0639\u0627\u0634\u0642 \u0633\u0641\u0631 \u06A9\u0631\u062F\u0646 \u0647\u0633\u062A","m\u0101m\u0101nam \u0101shegh-e safar kardan hast","My mom loves traveling","\u0639\u0627\u0634\u0642 + \u0633\u0641\u0631 \u06A9\u0631\u062F\u0646 (traveling)"],
+  ["\u0627\u0648\u0646 \u0639\u0627\u0634\u0642 \u0634\u06A9\u0644\u0627\u062A \u0647\u0633\u062A","oon \u0101shegh-e shokol\u0101t hast","He/She loves chocolate","\u0639\u0627\u0634\u0642 + \u0634\u06A9\u0644\u0627\u062A"],
+  ["\u0645\u0627\u0645\u0627\u0646\u200C\u0628\u0632\u0631\u06AF\u0634 \u062A\u0631\u0634\u06CC \u062F\u0631\u0633\u062A \u0645\u06CC\u06A9\u0646\u0647","m\u0101m\u0101n-bozorgesh torshi dorost mikoneh","His/her grandma makes pickles","\u0645\u0627\u0645\u0627\u0646\u200C\u0628\u0632\u0631\u06AF\u0634 + \u062A\u0631\u0634\u06CC + \u062F\u0631\u0633\u062A \u0645\u06CC\u06A9\u0646\u0647"],
+  ["\u0645\u0646 \u0639\u0627\u0634\u0642 \u062E\u0627\u0646\u0648\u0627\u062F\u0647\u200C\u0627\u0645 \u0647\u0633\u062A\u0645","man \u0101shegh-e khoonevāde-am hastam","I love my family","\u0639\u0627\u0634\u0642 + \u062E\u0627\u0646\u0648\u0627\u062F\u0647\u200C\u0627\u0645 (my family)"],
+  ["\u0645\u0627 \u062F\u0631 \u0634\u0647\u0631 \u06CC\u0632\u062F \u0632\u0646\u062F\u06AF\u06CC \u0645\u06CC\u06A9\u0646\u06CC\u0645","m\u0101 dar shahr-e Yazd zendegi mikonim","We live in the city of Yazd","\u0632\u0646\u062F\u06AF\u06CC \u0645\u06CC\u06A9\u0646\u06CC\u0645 (we live)"],
+  ["\u0645\u0627 \u0647\u0645\u06CC\u0634\u0647 \u062F\u0631 \u0631\u0633\u062A\u0648\u0631\u0627\u0646\u0645\u0648\u0646 \u063A\u0630\u0627\u06CC \u0633\u0646\u062A\u06CC \u062F\u0631\u0633\u062A \u0645\u06CC\u06A9\u0646\u06CC\u0645","m\u0101 hamishe dar restor\u0101n-emoon ghaz\u0101-ye sonnati dorost mikonim","We always make traditional food in our restaurant","\u0631\u0633\u062A\u0648\u0631\u0627\u0646\u0645\u0648\u0646 = our restaurant (Tehran)"],
+  ["\u0645\u0646 \u062F\u0631 \u062F\u0627\u0646\u0634\u06AF\u0627\u0647 \u062F\u0631\u0633 \u0645\u06CC\u062E\u0648\u0646\u0645","man dar d\u0101neshg\u0101h dars mikhoonam","I study at university","\u062F\u0631\u0633 \u0645\u06CC\u062E\u0648\u0646\u0645 (I study)"],
+  ["\u0645\u0646 \u0647\u06CC\u0686\u200C\u0648\u0642\u062A \u0622\u0634\u067E\u0632\u06CC \u0646\u0645\u06CC\u06A9\u0646\u0645","man hichvaght \u0101shpazi nemikonam","I never cook","\u0647\u06CC\u0686\u200C\u0648\u0642\u062A + \u0622\u0634\u067E\u0632\u06CC \u0646\u0645\u06CC\u06A9\u0646\u0645"],
+  ["\u0631\u0633\u062A\u0648\u0631\u0627\u0646 \u0627\u0645\u0631\u0648\u0632 \u062E\u06CC\u0644\u06CC \u0634\u0644\u0648\u063A \u0647\u0633\u062A","restor\u0101n emrooz kheili sholugh hast","The restaurant is very busy today","\u0634\u0644\u0648\u063A (busy/crowded)"],
+  ["\u062E\u0648\u0631\u0634\u062A \u0628\u0627\u062F\u0645\u062C\u0648\u0646 \u062E\u0648\u0631\u0634\u062A \u0645\u0648\u0631\u062F \u0639\u0644\u0627\u0642\u0645 \u0647\u0633\u062A","khorosht-e b\u0101demjoon khorosht-e mored-e al\u0101gham hast","Aubergine stew is my favourite stew","\u0645\u0648\u0631\u062F \u0639\u0644\u0627\u0642\u0645 (my favourite)"],
+];
+
+const alphabet = [
+  ["alef","\u0101 / a","\u0627","\u0627","\u0640\u0627","\u0640\u0627","Long 'a' or silent carrier"],
+  ["be","b","\u0628","\u0628\u0640","\u0640\u0628\u0640","\u0640\u0628","Like English 'b'"],
+  ["pe","p","\u067E","\u067E\u0640","\u0640\u067E\u0640","\u0640\u067E","Like English 'p' (Persian only)"],
+  ["te","t","\u062A","\u062A\u0640","\u0640\u062A\u0640","\u0640\u062A","Like English 't'"],
+  ["se","s","\u062B","\u062B\u0640","\u0640\u062B\u0640","\u0640\u062B","Like 's' (Arabic loan words)"],
+  ["jim","j","\u062C","\u062C\u0640","\u0640\u062C\u0640","\u0640\u062C","Like 'j' in 'judge'"],
+  ["che","ch","\u0686","\u0686\u0640","\u0640\u0686\u0640","\u0640\u0686","Like 'ch' in 'chair' (Persian only)"],
+  ["he (\u1e25\u0101)","h","\u062D","\u062D\u0640","\u0640\u062D\u0640","\u0640\u062D","Breathy 'h'"],
+  ["khe","kh","\u062E","\u062E\u0640","\u0640\u062E\u0640","\u0640\u062E","Like 'ch' in Scottish 'loch'"],
+  ["sin","s","\u0633","\u0633\u0640","\u0640\u0633\u0640","\u0640\u0633","Like English 's'"],
+  ["shin","sh","\u0634","\u0634\u0640","\u0640\u0634\u0640","\u0640\u0634","Like 'sh' in 'ship'"],
+  ["s\u0101d","s","\u0635","\u0635\u0640","\u0640\u0635\u0640","\u0640\u0635","Emphatic 's' (Arabic)"],
+  ["z\u0101d","z","\u0636","\u0636\u0640","\u0640\u0636\u0640","\u0640\u0636","Emphatic 'z' (Arabic)"],
+  ["t\u0101","t","\u0637","\u0637\u0640","\u0640\u0637\u0640","\u0640\u0637","Emphatic 't' (Arabic)"],
+  ["z\u0101","z","\u0638","\u0638\u0640","\u0640\u0638\u0640","\u0640\u0638","Emphatic 'z' (Arabic)"],
+  ["eyn","'","\u0639","\u0639\u0640","\u0640\u0639\u0640","\u0640\u0639","Glottal sound"],
+  ["gheyn","gh","\u063A","\u063A\u0640","\u0640\u063A\u0640","\u0640\u063A","Guttural 'g'"],
+  ["fe","f","\u0641","\u0641\u0640","\u0640\u0641\u0640","\u0640\u0641","Like English 'f'"],
+  ["q\u0101f","gh / q","\u0642","\u0642\u0640","\u0640\u0642\u0640","\u0640\u0642","Deep guttural (\u2248 \u063A in Persian)"],
+  ["k\u0101f","k","\u06A9","\u06A9\u0640","\u0640\u06A9\u0640","\u0640\u06A9","Like English 'k'"],
+  ["g\u0101f","g","\u06AF","\u06AF\u0640","\u0640\u06AF\u0640","\u0640\u06AF","Like 'g' in 'go' (Persian only)"],
+  ["l\u0101m","l","\u0644","\u0644\u0640","\u0640\u0644\u0640","\u0640\u0644","Like English 'l'"],
+  ["mim","m","\u0645","\u0645\u0640","\u0640\u0645\u0640","\u0640\u0645","Like English 'm'"],
+  ["nun","n","\u0646","\u0646\u0640","\u0640\u0646\u0640","\u0640\u0646","Like English 'n'"],
+  ["he","h / e","\u0647","\u0647\u0640","\u0640\u0647\u0640","\u0640\u0647","Like 'h' or silent 'e' at end"],
+  ["ye","y / i","\u06CC","\u06CC\u0640","\u0640\u06CC\u0640","\u0640\u06CC","Like 'y' or long 'ee'"],
+  ["d\u0101l","d","\u062F","\u062F","\u0640\u062F","\u0640\u062F","Like English 'd' (non-connecting)"],
+  ["z\u0101l","z","\u0630","\u0630","\u0640\u0630","\u0640\u0630","Like 'z' (non-connecting)"],
+  ["re","r","\u0631","\u0631","\u0640\u0631","\u0640\u0631","Rolled 'r' (non-connecting)"],
+  ["ze","z","\u0632","\u0632","\u0640\u0632","\u0640\u0632","Like English 'z' (non-connecting)"],
+  ["zhe","zh","\u0698","\u0698","\u0640\u0698","\u0640\u0698","Like 's' in 'measure' (Persian only)"],
+  ["v\u0101v","v / oo / o","\u0648","\u0648","\u0640\u0648","\u0640\u0648","v, oo, or o sound (non-connecting)"],
+];
+
+// Build card set
+for (const c of s22_vocab)   { addCards('22','vocabulary',  [c], 'farsi-to-english'); addCards('22','vocabulary',  [c], 'english-to-farsi'); }
+for (const c of s22_grammar) { addCards('22','grammar',     [c], 'farsi-to-english'); }
+for (const c of s22_phrases) { addCards('22','phrases',     [c], 'farsi-to-english'); }
+for (const c of s23_vocab)   { addCards('23','vocabulary',  [c], 'farsi-to-english'); addCards('23','vocabulary',  [c], 'english-to-farsi'); }
+for (const c of s23_grammar) { addCards('23','grammar',     [c], 'farsi-to-english'); }
+for (const c of s23_phrases) { addCards('23','phrases',     [c], 'farsi-to-english'); }
+for (const c of s2425_vocab)   { addCards('24-25','vocabulary',  [c], 'farsi-to-english'); addCards('24-25','vocabulary',  [c], 'english-to-farsi'); }
+for (const c of s2425_grammar) { addCards('24-25','grammar',     [c], 'farsi-to-english'); }
+for (const c of s2425_phrases) { addCards('24-25','phrases',     [c], 'farsi-to-english'); }
+
+// SESSION 26 DATA
+const s26_vocab = [
+  // To know
+  ["\u062F\u0627\u0646\u0633\u062A\u0646","d\u0101nestan / dunestan","to know","\u062F-\u0627-\u0646-\u0633-\u062A-\u0646"],
+  ["\u062F\u0627\u0646\u0634","d\u0101nesh","knowledge","\u062F-\u0627-\u0646-\u0634"],
+  ["\u06A9\u062C\u0627\u0633\u062A","koj\u0101st","where is?","\u06A9\u062C\u0627 (where) + \u0633\u062A (is)"],
+  ["\u06CC\u0639\u0646\u06CC","yani","means, i.e.","\u06CC-\u0639-\u0646-\u06CC"],
+  ["\u0686\u06CC","chi","what","\u0686-\u06CC"],
+  ["\u0686\u06CC\u0647","chi-e","what is it?","\u0686\u06CC (what) + \u0647 (is)"],
+  // Math
+  ["\u0631\u06CC\u0627\u0636\u06CC","ri\u0101zi","mathematics","\u0631-\u06CC-\u0627-\u0636-\u06CC"],
+  ["\u06A9\u0644\u0627\u0633","kel\u0101s","class","\u06A9-\u0644-\u0627-\u0633"],
+  // Time
+  ["\u0633\u0627\u0639\u062A","s\u0101\u2019at","clock, watch, hour, time","\u0633-\u0627-\u0639-\u062A"],
+  ["\u0646\u06CC\u0645","nim","half","\u0646-\u06CC-\u0645"],
+  ["\u0631\u0628\u0639","rob","quarter","\u0631-\u0628-\u0639"],
+  ["\u062F\u0642\u06CC\u0642\u0647","daghighe","minute","\u062F-\u0642-\u06CC-\u0642-\u0647"],
+  ["\u062B\u0627\u0646\u06CC\u0647","s\u0101nieh","second","\u062B-\u0627-\u0646-\u06CC-\u0647"],
+  ["\u0644\u062D\u0638\u0647","lahzeh","moment","\u0644-\u062D-\u0638-\u0647"],
+  ["\u0635\u0628\u0631","sabr","patience","\u0635-\u0628-\u0631"],
+  ["\u0628\u0628\u062E\u0634\u06CC\u062F","bebakhshid","excuse me","\u0628-\u0628-\u062E-\u0634-\u06CC-\u062F"],
+  // Numbers 1-10
+  ["\u06CC\u06A9","yek","one (1)","\u06CC-\u06A9"],
+  ["\u062F\u0648","do","two (2)","\u062F-\u0648"],
+  ["\u0633\u0647","seh","three (3)","\u0633-\u0647"],
+  ["\u0686\u0647\u0627\u0631","chah\u0101r","four (4)","\u0686-\u0647-\u0627-\u0631"],
+  ["\u067E\u0646\u062C","panj","five (5)","\u067E-\u0646-\u062C"],
+  ["\u0634\u0634","shish","six (6)","\u0634-\u0634"],
+  ["\u0647\u0641\u062A","haft","seven (7)","\u0647-\u0641-\u062A"],
+  ["\u0647\u0634\u062A","hasht","eight (8)","\u0647-\u0634-\u062A"],
+  ["\u0646\u0647","noh","nine (9)","\u0646-\u0647"],
+  ["\u062F\u0647","dah","ten (10)","\u062F-\u0647"],
+  // Numbers 11-20
+  ["\u06CC\u0627\u0632\u062F\u0647","y\u0101zdah","eleven (11)","\u06CC-\u0627-\u0632-\u062F-\u0647"],
+  ["\u062F\u0648\u0627\u0632\u062F\u0647","dav\u0101zdah","twelve (12)","\u062F-\u0648-\u0627-\u0632-\u062F-\u0647"],
+  ["\u0633\u06CC\u0632\u062F\u0647","sizdah","thirteen (13)","\u0633-\u06CC-\u0632-\u062F-\u0647"],
+  ["\u0686\u0647\u0627\u0631\u062F\u0647","chah\u0101rdah","fourteen (14)","\u0686-\u0647-\u0627-\u0631-\u062F-\u0647"],
+  ["\u067E\u0627\u0646\u0632\u062F\u0647","p\u0101nzdah / punzdah","fifteen (15)","\u067E-\u0627-\u0646-\u0632-\u062F-\u0647"],
+  ["\u0634\u0627\u0646\u0632\u062F\u0647","sh\u0101nzdah / shunzdah","sixteen (16)","\u0634-\u0627-\u0646-\u0632-\u062F-\u0647"],
+  ["\u0647\u0641\u062F\u0647","hefdah / hifdah","seventeen (17)","\u0647-\u0641-\u062F-\u0647"],
+  ["\u0647\u062C\u062F\u0647","hejdah / hijdah","eighteen (18)","\u0647-\u062C-\u062F-\u0647"],
+  ["\u0646\u0648\u0632\u062F\u0647","noozdah","nineteen (19)","\u0646-\u0648-\u0632-\u062F-\u0647"],
+  ["\u0628\u06CC\u0633\u062A","bist","twenty (20)","\u0628-\u06CC-\u0633-\u062A"],
+  // Tens
+  ["\u0633\u06CC","si","thirty (30)","\u0633-\u06CC"],
+  ["\u0686\u0647\u0644","chehel","forty (40)","\u0686-\u0647-\u0644"],
+  ["\u067E\u0646\u062C\u0627\u0647","panj\u0101h","fifty (50)","\u067E-\u0646-\u062C-\u0627-\u0647"],
+  ["\u0634\u0635\u062A","shast","sixty (60)","\u0634-\u0635-\u062A"],
+  ["\u0647\u0641\u062A\u0627\u062F","haft\u0101d","seventy (70)","\u0647-\u0641-\u062A-\u0627-\u062F"],
+  ["\u0647\u0634\u062A\u0627\u062F","hasht\u0101d","eighty (80)","\u0647-\u0634-\u062A-\u0627-\u062F"],
+  ["\u0646\u0648\u062F","navad","ninety (90)","\u0646-\u0648-\u062F"],
+  ["\u0635\u062F","sad","one hundred (100)","\u0635-\u062F"],
+  ["\u0647\u0632\u0627\u0631","hez\u0101r","one thousand (1000)","\u0647-\u0632-\u0627-\u0631"],
+  // Year / age
+  ["\u0633\u0627\u0644","s\u0101l","year","\u0633-\u0627-\u0644"],
+  ["\u0627\u0645\u0633\u0627\u0644","ems\u0101l","this year","\u0627\u0645 (this) + \u0633\u0627\u0644 (year)"],
+  ["\u0686\u0646\u062F","chand","how many","\u0686-\u0646-\u062F"],
+  ["\u0641\u0648\u062A \u06A9\u0631\u062F\u0646","foat kardan","to pass away, to die","\u0641\u0648\u062A (death) + \u06A9\u0631\u062F\u0646 (to do)"],
+  // Meals
+  ["\u0635\u0628\u062D\u0648\u0646\u0647 / \u0635\u0628\u062D\u0627\u0646\u0647","sobhooneh / sobh\u0101neh","breakfast","\u0635\u0628\u062D (morning) + \u0627\u0646\u0647"],
+  ["\u0646\u0627\u0647\u0627\u0631","n\u0101h\u0101r","lunch","\u0646-\u0627-\u0647-\u0627-\u0631"],
+  ["\u0634\u0627\u0645","sh\u0101m","dinner","\u0634-\u0627-\u0645"],
+  ["\u06A9\u06CC","kay","when","\u06A9-\u06CC"],
+  ["\u0627\u0645\u0634\u0628","emshab","tonight","\u0627\u0645 (this) + \u0634\u0628 (night)"],
+  ["\u0635\u0628\u062D","sobh","morning","\u0635-\u0628-\u062D"],
+  ["\u0638\u0647\u0631","zohr","noon","\u0638-\u0647-\u0631"],
+  // With
+  ["\u0634\u0648\u0647\u0631","shohar","husband","\u0634-\u0648-\u0647-\u0631"],
+  ["\u0628\u0627 \u0647\u0645","b\u0101 ham","together","\u0628\u0627 (with) + \u0647\u0645 (each other)"],
+  ["\u0647\u0645\u06A9\u0627\u0631","hamk\u0101r","colleague","\u0647\u0645 (together) + \u06A9\u0627\u0631 (work)"],
+  ["\u0647\u0645\u06A9\u0644\u0627\u0633\u06CC","hamkel\u0101si","classmate","\u0647\u0645 (together) + \u06A9\u0644\u0627\u0633\u06CC (class)"],
+  ["\u062E\u0648\u0627\u0647\u0631","kh\u0101har","sister","\u062E-\u0648-\u0627-\u0647-\u0631"],
+  ["\u0647\u0645\u0633\u0631","hamsar","spouse","\u0647\u0645 (together) + \u0633\u0631 (head)"],
+  ["\u0645\u0627\u0634\u06CC\u0646","m\u0101shin","car","\u0645-\u0627-\u0634-\u06CC-\u0646"],
+  ["\u062C\u062F\u06CC\u062F / \u0646\u0648","jadid / no","new","\u062C-\u062F-\u06CC-\u062F"],
+];
+
+const s26_grammar = [
+  // midoonam conjugation
+  ["\u0645\u06CC\u062F\u0648\u0646\u0645","midoonam","I know","\u0645\u06CC + \u062F\u0648\u0646 + \u0645"],
+  ["\u0645\u06CC\u062F\u0648\u0646\u06CC","midooni","you know","\u0645\u06CC + \u062F\u0648\u0646 + \u06CC"],
+  ["\u0645\u06CC\u062F\u0648\u0646\u0647","midooneh","he/she knows","\u0645\u06CC + \u062F\u0648\u0646 + \u0647"],
+  ["\u0645\u06CC\u062F\u0648\u0646\u06CC\u0645","midoonim","we know","\u0645\u06CC + \u062F\u0648\u0646 + \u06CC\u0645"],
+  ["\u0645\u06CC\u062F\u0648\u0646\u06CC\u062F","midoonid","you know (formal)","\u0645\u06CC + \u062F\u0648\u0646 + \u06CC\u062F"],
+  ["\u0645\u06CC\u062F\u0648\u0646\u0646\u062F","midoonand","they know","\u0645\u06CC + \u062F\u0648\u0646 + \u0646\u062F"],
+  // negative
+  ["\u0646\u0645\u06CC\u062F\u0648\u0646\u0645","nemidoonam","I don't know","\u0646\u0645\u06CC + \u062F\u0648\u0646 + \u0645"],
+  ["\u0646\u0645\u06CC\u062F\u0648\u0646\u06CC","nemidooni","you don't know","\u0646\u0645\u06CC + \u062F\u0648\u0646 + \u06CC"],
+];
+
+const s26_phrases = [
+  // Knowing
+  ["\u062A\u0648 \u0627\u06CC\u0646 \u0631\u0648 \u0645\u06CC\u062F\u0648\u0646\u06CC\u061F","to in ro midooni?","Do you know this?","\u062A\u0648 + \u0627\u06CC\u0646 \u0631\u0648 (this, obj.) + \u0645\u06CC\u062F\u0648\u0646\u06CC"],
+  ["\u062A\u0648 \u0645\u06CC\u062F\u0648\u0646\u06CC \u0627\u0648\u0646 \u06A9\u062C\u0627\u0633\u062A\u061F","to midooni oon koj\u0101st?","Do you know where he/she is?","\u0645\u06CC\u062F\u0648\u0646\u06CC + \u06A9\u062C\u0627\u0633\u062A (where is)"],
+  ["\u062A\u0648 \u0645\u06CC\u062F\u0648\u0646\u06CC \u0627\u06CC\u0646 \u06CC\u0639\u0646\u06CC \u0686\u06CC\u061F","to midooni in yani chi?","Do you know what this means?","\u06CC\u0639\u0646\u06CC (means) + \u0686\u06CC (what)"],
+  ["\u062A\u0648 \u0645\u06CC\u062F\u0648\u0646\u06CC \u0627\u06CC\u0646 \u0686\u06CC\u0647\u061F","to midooni in chi-e?","Do you know what this is?","\u0686\u06CC\u0647 = what is it"],
+  // Time
+  ["\u0633\u0627\u0639\u062A \u0686\u0646\u062F\u0647\u061F","s\u0101\u2019at chand-e?","What time is it?","\u0633\u0627\u0639\u062A (time) + \u0686\u0646\u062F\u0647 (how much is)"],
+  ["\u0627\u0644\u0627\u0646 \u0633\u0627\u0639\u062A \u0686\u0646\u062F\u0647\u061F","al\u0101n s\u0101\u2019at chand-e?","What time is it now?","\u0627\u0644\u0627\u0646 (now) + \u0633\u0627\u0639\u062A \u0686\u0646\u062F\u0647"],
+  ["\u0628\u0628\u062E\u0634\u06CC\u062F\u060C \u0633\u0627\u0639\u062A \u0686\u0646\u062F\u0647\u061F","bebakhshid, s\u0101\u2019at chand-e?","Excuse me, what time is it?","\u0628\u0628\u062E\u0634\u06CC\u062F (excuse me)"],
+  ["\u0633\u0627\u0639\u062A \u067E\u0646\u062C\u0647","s\u0101\u2019at panj-e","It is 5 o'clock","\u0633\u0627\u0639\u062A + number + \u0647 (is)"],
+  ["\u0633\u0627\u0639\u062A \u062F\u0647 \u0648 \u0646\u06CC\u0645\u0647","s\u0101\u2019at dah-o nim-e","It's 10:30","\u0646\u06CC\u0645 = half"],
+  ["\u0633\u0627\u0639\u062A \u0647\u0641\u062A \u0648 \u0631\u0628\u0639\u0647","s\u0101\u2019at haft-o rob-e","It's 7:15","\u0631\u0628\u0639 = quarter"],
+  ["\u0633\u0627\u0639\u062A \u06CC\u06A9 \u0631\u0628\u0639 \u0628\u0647 \u0646\u0647\u0647","s\u0101\u2019at yek rob be noh-e","It's a quarter to 9 (8:45)","\u06CC\u06A9 \u0631\u0628\u0639 \u0628\u0647 = a quarter to"],
+  ["\u06CC\u0647 \u0644\u062D\u0638\u0647 \u0635\u0628\u0631 \u06A9\u0646","ye lahze sabr kon","Just a moment, please","\u06CC\u0647 \u0644\u062D\u0638\u0647 (one moment) + \u0635\u0628\u0631 \u06A9\u0646 (wait)"],
+  // Year / age
+  ["\u062A\u0648 \u0686\u0646\u062F \u0633\u0627\u0644 \u062F\u0627\u0631\u06CC\u061F","to chand s\u0101l d\u0101ri?","How old are you?","\u0686\u0646\u062F \u0633\u0627\u0644 \u062F\u0627\u0631\u06CC = how many years do you have"],
+  ["\u062A\u0648 \u0686\u0646\u062F \u0633\u0627\u0644\u062A\u0647\u061F","to chand s\u0101let-e?","How old are you? (short form)","\u0633\u0627\u0644\u062A\u0647 = your years is"],
+  ["\u0634\u0645\u0627 \u0686\u0646\u062F \u0633\u0627\u0644\u062A\u0648\u0646\u0647\u061F","shom\u0101 chand s\u0101letoon-e?","How old are you? (formal)","\u0633\u0627\u0644\u062A\u0648\u0646\u0647 = your (formal) years is"],
+  ["\u0645\u0646 \u0633\u06CC \u0648 \u0633\u0647 \u0633\u0627\u0644\u0645\u0647","man si-o seh s\u0101lam-e","I am 33 years old","\u0633\u0627\u0644\u0645\u0647 = my years is"],
+  ["\u0627\u0648\u0646 \u0686\u0646\u062F \u0633\u0627\u0644\u0634\u0647\u061F","oon chand s\u0101lesh-e?","How old is he/she?","\u0633\u0627\u0644\u0634\u0647 = his/her years is"],
+  ["\u0628\u0627\u0628\u0627\u0628\u0632\u0631\u06AF\u0645 \u0641\u0648\u062A \u06A9\u0631\u062F\u0647","b\u0101b\u0101-bozorgam foat kardeh","My grandpa has passed away","\u0641\u0648\u062A \u06A9\u0631\u062F\u0647 = has died (past participle)"],
+  // Meals
+  ["\u062A\u0648 \u06A9\u06CC \u0635\u0628\u062D\u0648\u0646\u0647 \u0645\u06CC\u062E\u0648\u0631\u06CC\u061F","to kay sobhooneh mikhori?","When do you eat breakfast?","\u06A9\u06CC (when) + \u0635\u0628\u062D\u0648\u0646\u0647 + \u0645\u06CC\u062E\u0648\u0631\u06CC"],
+  ["\u0645\u0646 \u0633\u0627\u0639\u062A \u0647\u0641\u062A \u0635\u0628\u062D\u0627\u0646\u0647 \u0645\u06CC\u062E\u0648\u0631\u0645","man s\u0101\u2019at-e haft sobh\u0101neh mikhoram","I eat breakfast at 7","\u0633\u0627\u0639\u062A\u0650 = at (time)"],
+  ["\u0645\u0646 \u0633\u0627\u0639\u062A \u062F\u0648 \u0646\u0627\u0647\u0627\u0631 \u0645\u06CC\u062E\u0648\u0631\u0645","man s\u0101\u2019at-e do n\u0101h\u0101r mikhoram","I eat lunch at 2","\u0633\u0627\u0639\u062A\u0650 \u062F\u0648"],
+  ["\u0645\u0646 \u0634\u0627\u0645 \u062F\u0631\u0633\u062A \u0645\u06CC\u06A9\u0646\u0645","man sh\u0101m dorost mikonam","I cook dinner","\u0634\u0627\u0645 + \u062F\u0631\u0633\u062A \u0645\u06CC\u06A9\u0646\u0645 (I make)"],
+  ["\u062A\u0648 \u0627\u0645\u0634\u0628 \u0634\u0627\u0645 \u062F\u0631\u0633\u062A \u0645\u06CC\u06A9\u0646\u06CC\u061F","to emshab sh\u0101m dorost mikoni?","Will you cook dinner tonight?","\u0627\u0645\u0634\u0628 (tonight)"],
+  // With family/friends
+  ["\u0645\u0646 \u0627\u0645\u0631\u0648\u0632 \u0628\u0627 \u062E\u0648\u0646\u0648\u0627\u062F\u0647\u200C\u0627\u0645 \u0646\u0627\u0647\u0627\u0631 \u0645\u06CC\u062E\u0648\u0631\u0645","man emrooz b\u0101 khoonevādam nāhār mikhoram","Today I'm having lunch with my family","\u0628\u0627 \u062E\u0648\u0646\u0648\u0627\u062F\u0647\u200C\u0627\u0645 = with my family"],
+  ["\u0645\u0646 \u0648 \u0634\u0648\u0647\u0631\u0645 \u0627\u0645\u0631\u0648\u0632 \u0628\u0627 \u0647\u0645 \u0646\u0627\u0647\u0627\u0631 \u0645\u06CC\u062E\u0648\u0631\u06CC\u0645","man va shoharam emrooz b\u0101 ham n\u0101h\u0101r mikhorim","My husband and I are having lunch together today","\u0628\u0627 \u0647\u0645 = together"],
+  ["\u062E\u0648\u0627\u0647\u0631\u0645 \u0627\u0645\u0631\u0648\u0632 \u0628\u0627 \u062F\u0648\u0633\u062A\u200C\u0647\u0627\u0634 \u0635\u0628\u062D\u0648\u0646\u0647 \u0645\u06CC\u062E\u0648\u0631\u0647","kh\u0101haram emrooz b\u0101 doost-h\u0101sh sobhooneh mikhoreh","My sister is having breakfast with her friends today","\u0628\u0627 \u062F\u0648\u0633\u062A\u200C\u0647\u0627\u0634 = with her friends"],
+  ["\u0645\u0646 \u0627\u0645\u0631\u0648\u0632 \u0628\u0627 \u0647\u0645\u06A9\u0627\u0631\u0645 \u0634\u0627\u0645 \u0645\u06CC\u062E\u0648\u0631\u0645","man emrooz b\u0101 hamk\u0101ram sh\u0101m mikhoram","I'm having dinner with my colleague today","\u0628\u0627 \u0647\u0645\u06A9\u0627\u0631\u0645 = with my colleague"],
+  // Do you know (age/name/work)
+  ["\u062A\u0648 \u0645\u06CC\u062F\u0648\u0646\u06CC \u0627\u0648\u0646 \u0686\u0646\u062F \u0633\u0627\u0644\u0634\u0647\u061F","to midooni oon chand s\u0101lesh-e?","Do you know how old she is?","\u0645\u06CC\u062F\u0648\u0646\u06CC + \u0686\u0646\u062F \u0633\u0627\u0644\u0634\u0647"],
+  ["\u0646\u0645\u06CC\u062F\u0648\u0646\u0645 \u0686\u0646\u062F \u0633\u0627\u0644\u0634\u0647","nemidoonam chand s\u0101lesh-e","I don't know how old she is","\u0646\u0645\u06CC\u062F\u0648\u0646\u0645 + \u0686\u0646\u062F \u0633\u0627\u0644\u0634\u0647"],
+  ["\u062A\u0648 \u0645\u06CC\u062F\u0648\u0646\u06CC \u0627\u0633\u0645\u0634 \u0686\u06CC\u0647\u061F","to midooni esmesh chi-e?","Do you know what his name is?","\u0627\u0633\u0645\u0634 (his name) + \u0686\u06CC\u0647 (what is)"],
+  ["\u062A\u0648 \u0645\u06CC\u062F\u0648\u0646\u06CC \u06A9\u062C\u0627 \u06A9\u0627\u0631 \u0645\u06CC\u06A9\u0646\u0647\u061F","to midooni koj\u0101 k\u0101r mikoneh?","Do you know where she works?","\u06A9\u062C\u0627 (where) + \u06A9\u0627\u0631 \u0645\u06CC\u06A9\u0646\u0647 (works)"],
+];
+
+for (const c of s26_vocab)   { addCards('26','vocabulary',  [c], 'farsi-to-english'); addCards('26','vocabulary',  [c], 'english-to-farsi'); }
+for (const c of s26_grammar) { addCards('26','grammar',     [c], 'farsi-to-english'); }
+for (const c of s26_phrases) { addCards('26','phrases',     [c], 'farsi-to-english'); }
+
+// SESSION 27 DATA — moods, feelings (sardam-e...), weather, infinitives as nouns, because/why
+const s27_vocab = [
+  ["خوشحال","khoshhāl","happy","خوش (pleasant) + حال (state)"],
+  ["شاد","shād","joyful","ش-ا-د"],
+  ["ناراحت","nārāhat","upset, sad","نا (not) + راحت (comfortable)"],
+  ["غمگین","ghamgin","sad","غم (sorrow) + گین"],
+  ["عصبانی","asabāni","angry","ع-ص-ب-ا-ن-ی"],
+  ["عصبی","asabi","nervous, tense","ع-ص-ب-ی"],
+  ["نگران","negarān","worried, anxious","ن-گ-ر-ا-ن"],
+  ["راحت","rāhat","comfortable, at ease","ر-ا-ح-ت"],
+  ["باران / بارون","bārān / bāroon","rain","ب-ا-ر-ا-ن"],
+  ["بارونی","bārooni","rainy","بارون (rain) + ی"],
+  ["مهمان‌نوازی","mehmān-navāzi","hospitality","مهمان (guest) + نوازی (treating kindly)"],
+  ["مهمان‌نواز","mehmān-navāz","hospitable","مهمان (guest) + نواز"],
+  ["سخت","sakht","hard, difficult","س-خ-ت"],
+  ["شیرین","shirin","sweet","ش-ی-ر-ی-ن"],
+  ["مهم","mohem","important","م-ه-م"],
+  ["پولدار","pooldār","rich","پول (money) + دار (having)"],
+  ["که","ke","that (connector)","ک-ه"],
+  ["چون","chon","because, since","چ-و-ن"],
+  ["برای اینکه","barāye inke","because","برای (for) + اینکه (that)"],
+  ["چرا","cherā","why","چ-ر-ا"],
+  ["برای چی","barāye chi","why, for what","برای (for) + چی (what)"],
+  ["تمیز کردن","tamiz kardan","to clean","تمیز (clean) + کردن (to do)"],
+  ["شستن","shostan","to wash","present stem: شور (shoor)"],
+  ["آماده کردن","āmāde kardan","to prepare, to make ready","آماده (ready) + کردن"],
+  ["اجاره کردن","ejāre kardan","to rent","اجاره (rent) + کردن"],
+  ["پختن","pokhtan","to cook, to bake","present stem: پز (paz)"],
+  ["مردن","mordan","to die","present stem: میر (mir)"],
+  ["عاشق بودن","āshegh boodan","to be in love","عاشق (in love) + بودن (to be)"],
+  ["پولدار بودن","pooldār boodan","to be rich","پولدار (rich) + بودن"],
+];
+
+const s27_grammar = [
+  ["من سردمه","man sardam-e","I'm cold (I feel cold)","سرد (cold) + م (my) + ه (is)"],
+  ["من سردم نیست","man sardam nist","I'm not cold","سردم + نیست (is not)"],
+  ["من گرممه","man garmam-e","I'm hot (I feel hot)","گرم (hot) + م + ه"],
+  ["تو سردته؟","to sardet-e?","Are you cold?","سرد + ت (your) + ه"],
+  ["اون سردشه","oon sardesh-e","He/she is cold","سرد + ش (his/her) + ه"],
+  ["ما سردمونه","mā sardemoon-e","We are cold","سرد + مون (our) + ه"],
+  ["شما گرمتونه؟","shomā garmetoon-e?","Are you (pl) hot?","گرم + تون (your pl) + ه"],
+  ["گشنمه","goshnam-e","I'm hungry","گشنه (hungry) + م + ه"],
+  ["تشنمه","teshnam-e","I'm thirsty","تشنه (thirsty) + م + ه"],
+];
+
+const s27_phrases = [
+  ["زندگی کردن در ایران الان خیلی سخته","zendegi kardan dar Irān alān kheili sakht-e","Living in Iran is very hard right now","infinitive used as a noun (subject)"],
+  ["سگ داشتن خیلی سخته ولی شیرین هم هست","sag dāshtan kheili sakht-e vali shirin ham hast","Having a dog is hard, but it's also sweet","ولی (but) + هم (also)"],
+  ["پول داشتن برای من مهم نیست","pool dāshtan barāye man mohem nist","Having money is not important to me","برای من (for me) + مهم نیست"],
+  ["ورزش کردن برای من خیلی مهمه","varzesh kardan barāye man kheili mohem-e","Exercising is very important to me","infinitive as noun + مهمه (is important)"],
+  ["خونه اجاره کردن تو لندن خیلی سخته","khoone ejāre kardan too London kheili sakht-e","Renting a house in London is very hard","تو (in, colloquial)"],
+  ["داشتن یه دوست خوب خیلی مهمه","dāshtan-e ye doost-e khoob kheili mohem-e","Having a good friend is very important","داشتنِ + ezāfe"],
+  ["امروز هوا بارونیه","emrooz havā bārooni-e","The weather is rainy today","هوا (weather) + بارونی (rainy) + ه (is)"],
+  ["از دست من ناراحتی؟","az dast-e man nārāhati?","Are you upset with me?","از دستِ (from the hand of = with)"],
+  ["اون از دست من خیلی ناراحته","oon az dast-e man kheili nārāhat-e","She/he is really upset with me","ناراحت + ه (is)"],
+  ["از دست من عصبانی هستی؟","az dast-e man asabāni hasti?","Are you angry with me?","عصبانی (angry) + هستی (you are)"],
+  ["مامانم همیشه نگرانه","māmānam hamishe negarān-e","My mom is always worried","نگران + ه (is)"],
+  ["مامانم همیشه نگران منه","māmānam hamishe negarān-e man-e","My mom is always worried about me","نگرانِ من (worried about me)"],
+  ["من نگرانتم","man negarānetam","I'm worried about you","نگران + ت (you) + م (I am)"],
+  ["نگران نباش!","negarān nabāsh!","Don't worry!","نباش = negative imperative of بودن"],
+  ["راحت باشید!","rāhat bāshid!","Make yourself comfortable! Relax!","راحت (comfortable) + باشید (be, pl)"],
+  ["من اینجا راحت نیستم","man injā rāhat nistam","I'm not comfortable here","نیستم (I am not)"],
+  ["چرا غمگینی؟","cherā ghamgini?","Why are you sad?","چرا (why) + غمگین + ی (you are)"],
+  ["من خوشحالم چون امشب کلاس فارسی دارم","man khoshhālam chon emshab kelās-e Fārsi dāram","I'm happy because I have Farsi class tonight","چون (because)"],
+  ["من غمگینم چون هوا این هفته ابریه","man ghamginam chon havā in hafte abri-e","I'm sad because the weather is cloudy this week","ابری (cloudy) + ه"],
+];
+
+// SESSION 28 DATA — demonstratives, present continuous, dige, hamdige, future time, raftan + be
+const s28_vocab = [
+  ["اینها / اینا","inhā / inā","these","این (this) + ها (plural)"],
+  ["آنها / اونا","ānhā / oonā","those, they","آن (that) + ها"],
+  ["دیگر / دیگه","digar / dige","other, another, else, anymore","د-ی-گ-ر"],
+  ["همدیگر / همدیگه","hamdigar / hamdige","each other, one another","هم (same) + دیگه (other)"],
+  ["فردا","fardā","tomorrow","ف-ر-د-ا"],
+  ["پس‌فردا","pas-fardā","the day after tomorrow","پس (after) + فردا"],
+  ["فردا صبح","fardā sobh","tomorrow morning","فردا + صبح (morning)"],
+  ["فردا شب","fardā shab","tomorrow night","فردا + شب (night)"],
+  ["آینده","āyande","future","آ-ی-ن-د-ه"],
+  ["در آینده","dar āyande","in the future","در (in) + آینده"],
+  ["هفته‌ی آینده","hafte-ye āyande","next week","هفته (week) + آینده"],
+  ["سال آینده","sāl-e āyande","next year","سال (year) + آینده"],
+  ["ماه آینده","māh-e āyande","next month","ماه (month) + آینده"],
+  ["هفته‌ی بعد","hafte-ye baad","next week (neutral/formal)","بعد (after/next)"],
+  ["هفته‌ی دیگه","hafte-ye dige","next week (colloquial)","دیگه as 'next'"],
+  ["دو روز دیگه","do rooz-e dige","in two days","دو (two) + روز (day) + دیگه"],
+  ["دو ساعت دیگه","do sāat-e dige","in two hours","ساعت (hour) + دیگه"],
+  ["سال دیگه","sāl-e dige","next year (colloquial)","سال + دیگه"],
+  ["مدرسه","madrese","school","م-د-ر-س-ه"],
+  ["سر کار","sar-e kār","(to/at) work","سر (head) + کار (work)"],
+  ["رانندگی کردن","rānandegi kardan","to drive","رانندگی (driving) + کردن"],
+  ["به","be","to, toward","preposition, comes before the noun"],
+];
+
+const s28_grammar = [
+  ["می‌رم","miram","I go","می + ر + م"],
+  ["می‌ری","miri","you go","می + ر + ی"],
+  ["می‌ره","mireh","he/she goes","می + ر + ه"],
+  ["می‌ریم","mirim","we go","می + ر + یم"],
+  ["می‌رید","mirid","you (pl) go","می + ر + ید"],
+  ["می‌رن","miran","they go","می + ر + ن"],
+  ["نمی‌رم","nemiram","I don't go","نمی + ر + م"],
+  ["دارم می‌خورم","dāram mikhoram","I am eating (right now)","دارم (I have) + می‌خورم — present continuous"],
+  ["داری می‌خوری","dāri mikhori","you are eating","داری + می‌خوری"],
+  ["داره می‌خوره","dāreh mikhoreh","he/she is eating","داره + می‌خوره"],
+  ["داریم می‌خوریم","dārim mikhorim","we are eating","داریم + می‌خوریم"],
+  ["دارن می‌خورن","dāran mikhoran","they are eating","دارن + می‌خورن"],
+];
+
+const s28_phrases = [
+  ["من الان دارم کتاب می‌خونم","man alān dāram ketāb mikhoonam","I'm reading a book right now","الان (now) + present continuous"],
+  ["اون الان داره غذا می‌خوره","oon alān dāreh ghazā mikhoreh","He/she is eating right now","داره + می‌خوره"],
+  ["تو الان داری غذا می‌خوری؟","to alān dāri ghazā mikhori?","Are you eating right now?","داری + می‌خوری"],
+  ["اون داره رانندگی می‌کنه","oon dāreh rānandegi mikoneh","He/she is driving","داره + رانندگی می‌کنه"],
+  ["یه سوال دیگه دارم","ye soāl-e dige dāram","I have another question","سوالِ دیگه (another question)"],
+  ["یه بستنی دیگه می‌خوای؟","ye bastani-e dige mikhāy?","Do you want another ice cream?","دیگه (another) + می‌خوای (you want)"],
+  ["من یکی دیگه می‌خوام","man yeki dige mikhām","I want another one / one more","یکی (one) + دیگه"],
+  ["من یه چیز دیگه می‌خوام","man ye chiz-e dige mikhām","I want something else","چیزِ دیگه (another thing)"],
+  ["دیگه چی؟","dige chi?","What else?","دیگه (else) + چی (what)"],
+  ["ما همدیگه رو دوست داریم","mā hamdige ro doost dārim","We love each other","همدیگه (each other) + رو (object marker)"],
+  ["ما با همدیگه زندگی می‌کنیم","mā bā hamdige zendegi mikonim","We live together","با همدیگه (with each other)"],
+  ["امشب ما با همدیگه شام می‌خوریم","emshab mā bā hamdige shām mikhorim","Tonight we'll eat dinner together","present tense used for future"],
+  ["فردا من و دوستم با همدیگه ناهار می‌خوریم","fardā man o doostam bā hamdige nāhār mikhorim","Tomorrow my friend and I are having lunch together","present-for-future (planned)"],
+  ["من فردا کار نمی‌کنم","man fardā kār nemikonam","I'm not working tomorrow","فردا + نمی‌کنم"],
+  ["در آینده ما اینجا نیستیم","dar āyande mā injā nistim","In the future, we won't be here","در آینده (in the future)"],
+  ["سال دیگه به ایران سفر می‌کنم","sāl-e dige be Irān safar mikonam","I'll travel to Iran next year","سال دیگه + سفر می‌کنم"],
+  ["من به سینما می‌رم","man be cinemā miram","I'm going to the cinema","به (to) + می‌رم"],
+  ["من به مدرسه نمی‌رم","man be madrese nemiram","I don't go to school","به + نمی‌رم"],
+  ["ما امروز به کتابخونه می‌ریم","mā emrooz be ketāb-khoone mirim","Today we're going to the library","کتابخونه (library)"],
+  ["برو خونه!","boro khoone!","Go home!","برو = imperative of رفتن"],
+  ["امروز نرو سر کار!","emrooz naro sar-e kār!","Don't go to work today!","نرو = negative imperative"],
+  ["لطفاً برید سر کار!","lotfan berid sar-e kār!","Please go to work! (pl)","برید = plural imperative"],
+  ["این کتاب‌ها رو نمی‌خوام","in ketāb-hā ro nemikhām","I don't want these books","این ... ها (these) + رو"],
+  ["این روزها خیلی خسته‌ام","in rooz-hā kheili khasta-am","I'm very tired these days","این روزها (these days)"],
+];
+
+// SESSION 29 DATA — residan, ki/che kasi, māl-e possessives, reflexives, morāgheb
+const s29_vocab = [
+  ["رسیدن","residan","to arrive","present stem: رس (res)"],
+  ["دیر","dir","late","د-ی-ر"],
+  ["زود","zood","early, soon, quick","ز-و-د"],
+  ["سر وقت","sar-e vaght","on time","سر (head) + وقت (time)"],
+  ["کی","ki","who (informal)","ک-ی — careful: kay = when!"],
+  ["چه کسی","che kasi","who (formal)","چه (what) + کسی (person)"],
+  ["کس","kas","person","ک-س"],
+  ["کسی","kasi","someone, anyone","کس + ی"],
+  ["هر کس","har kas","everyone, anyone, whoever","هر (every) + کس"],
+  ["مال","māl","property, belonging","م-ا-ل"],
+  ["مال من","māl-e man","mine","'property of me'"],
+  ["مال تو","māl-e to","yours","مال + تو"],
+  ["مال اون","māl-e oon","his, hers","مال + اون"],
+  ["مال ما","māl-e mā","ours","مال + ما"],
+  ["مال شما","māl-e shomā","yours (pl/formal)","مال + شما"],
+  ["مال اونها","māl-e oonhā","theirs","مال + اونها"],
+  ["مداد","medād","pencil","م-د-ا-د"],
+  ["قلم","ghalam","pen, writing instrument (general)","ق-ل-م"],
+  ["اهل قلم","ahl-e ghalam","writer, person of letters","اهل (people of) + قلم"],
+  ["خود","khod","self","خ-و-د"],
+  ["خودم","khodam","myself","خود + م"],
+  ["خودت","khodet","yourself","خود + ت"],
+  ["خودش","khodesh","himself, herself, itself","خود + ش"],
+  ["خودمون","khodemoon","ourselves","خود + مون"],
+  ["خودتون","khodetoon","yourselves","خود + تون"],
+  ["خودشون","khodeshoon","themselves","خود + شون"],
+  ["مراقب","morāgheb","careful, watchful","م-ر-ا-ق-ب"],
+];
+
+const s29_grammar = [
+  ["می‌رسم","miresam","I arrive","می + رس + م"],
+  ["می‌رسی","miresi","you arrive","می + رس + ی"],
+  ["می‌رسه","mireseh","he/she arrives","می + رس + ه"],
+  ["می‌رسیم","miresim","we arrive","می + رس + یم"],
+  ["می‌رسید","miresid","you (pl) arrive","می + رس + ید"],
+  ["می‌رسن","miresan","they arrive","می + رس + ن"],
+  ["نمی‌رسم","nemiresam","I won't make it / I don't arrive","نمی + رس + م"],
+];
+
+const s29_phrases = [
+  ["ببخشید دیر شد!","bebakhshid dir shod!","Sorry I'm late! (it got late)","دیر (late) + شد (became)"],
+  ["ببخشید، من کمی دیر می‌رسم","bebakhshid, man kami dir miresam","Sorry, I'm running a bit late","کمی (a bit) + دیر می‌رسم"],
+  ["اون الان می‌رسه","oon alān mireseh","He/she is arriving now","الان (now)"],
+  ["من سر وقت نمی‌رسم","man sar-e vaght nemiresam","I won't arrive on time","سر وقت (on time)"],
+  ["کی می‌رسی؟","kay miresi?","When do you arrive?","کی here = when (kay)"],
+  ["ساعت چند می‌رسی؟","sāat-e chand miresi?","What time do you arrive?","ساعت چند (what time)"],
+  ["من همیشه زود می‌رسم","man hamishe zood miresam","I always arrive early","همیشه (always) + زود (early)"],
+  ["من پنج دقیقه دیگه می‌رسم","man panj daghighe-ye dige miresam","I'll arrive in 5 minutes","پنج دقیقه دیگه (in 5 minutes)"],
+  ["زود باش!","zood bāsh!","Hurry up! Be quick!","زود (quick) + باش (be)"],
+  ["تو کی هستی؟","to ki hasti?","Who are you?","کی (who) + هستی"],
+  ["کیه؟","ki-e?","Who is it?","کی + ه (is)"],
+  ["کی اینجا زندگی می‌کنه؟","ki injā zendegi mikoneh?","Who lives here?","کی (who) + زندگی می‌کنه"],
+  ["کی چای می‌خواد؟","ki chāy mikhād?","Who wants tea?","می‌خواد (wants)"],
+  ["شما با کی زندگی می‌کنید؟","shomā bā ki zendegi mikonid?","Who do you live with?","با کی (with whom)"],
+  ["کی مرغ سفارش می‌ده؟","ki morgh sefāresh mideh?","Who is ordering chicken?","سفارش می‌ده (orders)"],
+  ["کسی اینجا هست؟","kasi injā hast?","Is there anyone here?","کسی (anyone) + هست"],
+  ["این کتاب مال منه","in ketāb māl-e man-e","This book is mine","مال من + ه (is)"],
+  ["این کیف مال اونه","in kif māl-e oon-e","This bag is hers/his","کیف (bag)"],
+  ["این خودکار مال توئه؟","in khodkār māl-e to-e?","Is this pen yours?","مال تو + ئه (is)"],
+  ["این مال من نیست","in māl-e man nist","This is not mine","نیست (is not)"],
+  ["این مال کیه؟","in māl-e ki-e?","Whose is this?","مال کی (whose) + ه"],
+  ["من هر روز خودم رو می‌شورم","man har rooz khodam ro mishooram","I wash myself every day","خودم رو (myself) + می‌شورم"],
+  ["گربه‌ام هر روز خودش رو تمیز می‌کنه","gorbe-am har rooz khodesh ro tamiz mikoneh","My cat cleans itself every day","خودش رو (itself)"],
+  ["من خودم شام درست می‌کنم","man khodam shām dorost mikonam","I cook dinner myself","خودم emphasizes 'myself'"],
+  ["مراقب باش!","morāgheb bāsh!","Watch out! Be careful!","مراقب (watchful) + باش"],
+  ["مراقب خودت باش!","morāgheb-e khodet bāsh!","Take care of yourself!","مراقبِ خودت (of yourself)"],
+  ["مراقب خودتون باشید!","morāgheb-e khodetoon bāshid!","Take care of yourselves! (pl/formal)","باشید (be, pl)"],
+  ["اینجا خونه‌ی خودته! راحت باش!","injā khoone-ye khodet-e! rāhat bāsh!","This is your home! Make yourself comfortable!","خونه‌ی خودت (your own home)"],
+  ["من مراقب خودم هستم","man morāgheb-e khodam hastam","I look after myself","مراقبِ خودم"],
+];
+
+// SESSION 30 DATA — counting times (bār), "per" suffix (-i), didan, prepositions, az...tā, walking & driving
+const s30_vocab = [
+  ["دوباره","dobāreh","again","د-و-باره"],
+  ["بار","bār","time, instance (countable)","ب-ا-ر"],
+  ["دو بار","do bār","twice, two times","دو (two) + بار"],
+  ["سه بار","seh bār","three times","سه (three) + بار"],
+  ["ده بار","dah bār","ten times","ده (ten) + بار"],
+  ["صد بار","sad bār","a hundred times","صد (hundred) + بار"],
+  ["هزار بار","hezār bār","a thousand times","هزار (thousand) + بار"],
+  ["روزی","roozi","per day, a day","روز (day) + ی (per)"],
+  ["هفته‌ای","hafte-yi","per week, a week","هفته (week) + ای (per)"],
+  ["ماهی","māhi","per month, a month","ماه (month) + ی (per)"],
+  ["سالی","sāli","per year, a year","سال (year) + ی (per)"],
+  ["دیدن","didan","to see","present stem: بین (bin)"],
+  ["و","va","and","connector"],
+  ["با","bā","with, by","preposition"],
+  ["یا","yā","or","connector"],
+  ["به","be","to, toward","preposition"],
+  ["از","az","from, of","preposition"],
+  ["تا","tā","until, up to, to","preposition"],
+  ["راه","rāh","road, way, path","ر-ا-ه"],
+  ["راه رفتن","rāh raftan","to walk","راه (way) + رفتن (to go)"],
+  ["پیاده","piādeh","on foot","پ-ی-ا-د-ه"],
+  ["پیاده‌رو","piādeh-ro","sidewalk","پیاده (on foot) + رو"],
+  ["پیاده‌روی","piāderavi","a walk, walking (for exercise)","پیاده + روی"],
+  ["پیاده‌روی کردن","piāderavi kardan","to walk (for exercise/leisure)","پیاده‌روی + کردن"],
+  ["راننده","rānande","driver","ران (drive) + نده (-er)"],
+  ["راننده‌ی تاکسی","rānande-ye taxi","taxi driver","راننده + تاکسی"],
+  ["رانندگی","rānandegi","driving","راننده + گی"],
+  ["رانندگی کردن","rānandegi kardan","to drive","رانندگی (driving) + کردن"],
+];
+
+const s30_grammar = [
+  ["می‌بینم","mibinam","I see","می + بین + م"],
+  ["می‌بینی","mibini","you see","می + بین + ی"],
+  ["می‌بینه","mibineh","he/she sees","می + بین + ه"],
+  ["می‌بینیم","mibinim","we see","می + بین + یم"],
+  ["می‌بینید","mibinid","you (pl) see","می + بین + ید"],
+  ["می‌بینن","mibinan","they see","می + بین + ن"],
+  ["نمی‌بینم","nemibinam","I don't see","نمی + بین + م"],
+  ["می‌بینمت","mibinamet","I see you / I'll see you","می‌بینم + ت (you, object)"],
+  ["راه می‌رم","rāh miram","I walk","راه + می‌رم"],
+];
+
+const s30_phrases = [
+  ["من دوباره برگر سفارش می‌دم","man dobāreh burger sefāresh midam","I'll order a burger again","دوباره (again) + سفارش می‌دم"],
+  ["من هزار بار می‌گم عاشقتم","man hezār bār migam āsheghetam","I say a thousand times, I love you","هزار بار + عاشقتم"],
+  ["من دو بار در هفته می‌رم باشگاه","man do bār dar hafte miram bāshgāh","I go to the gym twice a week","دو بار در هفته"],
+  ["من هفته‌ای دو بار می‌رم باشگاه","man hafte-yi do bār miram bāshgāh","I go to the gym twice a week","هفته‌ای (per week)"],
+  ["من روزی سه بار غذا می‌خورم","man roozi seh bār ghazā mikhoram","I eat three times a day","روزی (per day) + سه بار"],
+  ["من ماهی سه بار مامانم رو می‌بینم","man māhi seh bār māmānam ro mibinam","I see my mom three times a month","ماهی (per month)"],
+  ["ببین!","bebin!","Look!","imperative of دیدن"],
+  ["هفته‌ی دیگه می‌بینمت","hafte-ye dige mibinamet","I'll see you next week","می‌بینمت (I'll see you)"],
+  ["هفته‌ی دیگه همدیگه رو می‌بینیم","hafte-ye dige hamdige ro mibinim","We'll see each other next week","همدیگه رو + می‌بینیم"],
+  ["من فردا تو رو نمی‌بینم","man fardā to ro nemibinam","I won't see you tomorrow","نمی‌بینم (won't see)"],
+  ["من فردا شما رو می‌بینم","man fardā shomā ro mibinam","I'll see you (formal) tomorrow","شما رو + می‌بینم"],
+  ["من رو می‌بینی؟","man ro mibini?","Do you see me?","من رو (me) + می‌بینی"],
+  ["من از ساعت دو تا چهار خونه هستم","man az sāat-e do tā chahār khoone hastam","I'm at home from 2 to 4","از ... تا ... (from...to...)"],
+  ["من از دوشنبه تا جمعه کار می‌کنم","man az doshanbe tā jome kār mikonam","I work from Monday to Friday","از دوشنبه تا جمعه"],
+  ["من سه‌شنبه از پنج تا هفت وقت دارم","man seshanbe az panj tā haft vaght dāram","I'm free on Tuesday from 5 to 7","وقت دارم (have time / am free)"],
+  ["من امروز از ساعت هفت صبح تا ساعت دو شب کار می‌کنم","man emrooz az sāat-e haft-e sobh tā sāat-e do-e shab kār mikonam","I work from 7 AM to 2 AM today","صبح (AM) ... شب (night)"],
+  ["اون هر روز از ساعت هفت صبح تا ساعت دو بعد از ظهر کار می‌کنه","oon har rooz az sāat-e haft-e sobh tā sāat-e do baad az zohr kār mikoneh","She works from 7 AM to 2 PM every day","بعد از ظهر (afternoon / PM)"],
+  ["من از دوشنبه تا جمعه دانشگاه هستم","man az doshanbe tā jome dāneshgāh hastam","From Monday to Friday I'm at university","دانشگاه (university)"],
+  ["من از خونه تا سر کار راه می‌رم","man az khoone tā sar-e kār rāh miram","I walk from home to work","راه می‌رم (I walk)"],
+  ["من پیاده‌ام","man piādeh-am","I'm on foot","پیاده + ام (I am)"],
+  ["هوا خوبه، من پیاده می‌رم","havā khoobeh, man piādeh miram","The weather's good, I'm walking","پیاده می‌رم (going on foot)"],
+  ["من به پیاده‌روی می‌رم","man be piāderavi miram","I'm heading out for a walk","به پیاده‌روی (for a walk)"],
+  ["من هر روز یک ساعت پیاده‌روی می‌کنم","man har rooz yek sāat piāderavi mikonam","I walk for an hour every day","پیاده‌روی می‌کنم"],
+  ["من الان دارم رانندگی می‌کنم","man alān dāram rānandegi mikonam","I'm driving right now","present continuous"],
+  ["تو رانندگی رو دوست داری؟","to rānandegi ro doost dāri?","Do you like driving?","رانندگی (driving) as a noun"],
+  ["من از خونه تا سر کار رانندگی می‌کنم","man az khoone tā sar-e kār rānandegi mikonam","I drive from home to work","از ... تا ... + رانندگی می‌کنم"],
+];
+
+// SESSION 31 DATA — transport & savār, place names (-gāh / -khooneh), makeup & ahl-e, buying & selling, -forushi shops, travel, near & far
+const s31_vocab = [
+  ["دوچرخه","docharkheh","bicycle, bike","د-و-چرخه (چرخ = wheel)"],
+  ["موتورسیکلت","motorsiklet","motorcycle","usually shortened to موتور"],
+  ["موتور","motor","motorbike (colloquial)","short for موتورسیکلت"],
+  ["قطار","ghatār","train","ق-ط-ا-ر"],
+  ["اتوبوس","otobus","bus","ا-ت-و-ب-و-س"],
+  ["هواپیما","havāpeymā","airplane","هوا (air) + پیما (traverser)"],
+  ["سوار","savār","mounted, riding, on top of","سوارِ چیزی = on/riding something"],
+  ["دوچرخه‌سواری کردن","docharkheh savāri kardan","to ride a bike, to cycle","دوچرخه + سواری + کردن"],
+  ["اسب‌سواری کردن","asb savāri kardan","to ride a horse","اسب (horse) + سواری + کردن"],
+  ["کارخونه","kārkhooneh","factory","کار (work) + خونه (house)"],
+  ["آشپزخونه","āshpazkhooneh","kitchen","آشپز (cook) + خونه"],
+  ["کتابخونه","ketābkhooneh","library","کتاب (book) + خونه"],
+  ["داروخونه","dārookhooneh","pharmacy, chemist's","دارو (medicine) + خونه"],
+  ["گلخونه","golkhooneh","greenhouse","گل (flower) + خونه"],
+  ["باشگاه","bāshgāh","gym, club","also باشگاه ورزشی (sports club)"],
+  ["فرودگاه","foroudgāh","airport","فرود (landing) + گاه (place)"],
+  ["ورزشگاه","varzeshgāh","stadium","ورزش (sport) + گاه"],
+  ["آرایشگاه","ārāyeshgāh","hair salon, barbershop","آرایش (grooming) + گاه"],
+  ["ایستگاه پلیس","istgāh-e polis","police station","ایست (stop) + گاه"],
+  ["ایستگاه قطار","istgāh-e ghatār","railway station","ایستگاه + قطار"],
+  ["ایستگاه اتوبوس","istgāh-e otobus","bus station, bus stop","ایستگاه + اتوبوس"],
+  ["تعمیرگاه","tamirgāh","repair shop, garage","تعمیر (repair) + گاه"],
+  ["کارگاه","kārgāh","workshop","کار (work) + گاه"],
+  ["جایگاه","jāygāh","position, place; status, rank, role","جای (place) + گاه"],
+  ["پمپ بنزین","pomp-e benzin","gas station, petrol station","also جایگاه سوخت (jāygāh-e sookht)"],
+  ["پارکینگ","pārking","car park, parking lot","loanword"],
+  ["مدرسه","madreseh","school","م-د-ر-س-ه"],
+  ["مغازه","maghāzeh","shop","م-غ-ا-ز-ه"],
+  ["مطب دکتر","matab-e doktor","doctor's office, practice","مطب (practice) + دکتر"],
+  ["مزرعه","mazra'eh","farm","م-ز-ر-ع-ه"],
+  ["آرایش","ārāyesh","makeup","آ-ر-ا-ی-ش"],
+  ["آرایشگر","ārāyeshgar","barber, hairdresser","آرایش + گر (-er, doer)"],
+  ["اهل","ahl-e","into (something), a fan of","اهلِ ورزش = into sports"],
+  ["ایستادن","istādan","to stand, to stop","ا-ی-س-ت-ا-د-ن"],
+  ["تعمیر کردن","tamir kardan","to repair, to service","تعمیر (repair) + کردن"],
+  ["دفتر","daftar","notebook; office; bureau","دفترچه = small notebook"],
+  ["دفتر مشق","daftar-e mashgh","exercise book","دفتر + مشق (homework)"],
+  ["دفتر کار","daftar-e kār","office","دفتر + کار"],
+  ["دفتردار","daftardār","clerk","دفتر + دار (keeper)"],
+  ["دندون‌پزشک","dandoon pezeshk","dentist","دندون (tooth) + پزشک (doctor)"],
+  ["دندون‌پزشکی","dandoon pezeshki","dental clinic, dentistry","دندون‌پزشک + ی"],
+  ["خرید","kharid","shopping, a purchase","from خریدن"],
+  ["خریدار","kharidār","buyer, purchaser","خرید + ار"],
+  ["خریدن","kharidan","to buy","present stem: خر (khar)"],
+  ["خرید کردن","kharid kardan","to shop","خرید + کردن"],
+  ["فروختن","forukhtan","to sell","present stem: فروش (foroosh)"],
+  ["فروش","foroush","sale","from فروختن"],
+  ["فروشی","forushi","for sale","فروش + ی"],
+  ["فروشگاه","forushgāh","store, shop","فروش + گاه"],
+  ["فروشنده","forushande","shop assistant, seller","فروش + نده (-er)"],
+  ["کتاب‌فروش","ketāb-foroush","bookseller","noun + فروش = seller of that thing"],
+  ["شیرفروش","shir-foroush","milkman, milk seller","شیر (milk) + فروش"],
+  ["میوه‌فروش","miveh-foroush","greengrocer, fruit seller","میوه (fruit) + فروش"],
+  ["نونوایی","noonvāyi","bakery, baker's","نون (bread) + وایی"],
+  ["شیرینی‌فروشی","shirini-forushi","patisserie, cake shop","also قنادی (ghannādi)"],
+  ["لباس‌فروشی","lebās-forushi","clothing store","لباس (clothes) + فروشی"],
+  ["کتاب‌فروشی","ketāb-forushi","bookshop","کتاب + فروشی"],
+  ["میوه‌فروشی","miveh-forushi","fruit shop, greengrocer's","also سبزی‌فروشی (sabzi-forushi)"],
+  ["گوشت‌فروشی","goosht-forushi","butcher's","also قصابی (ghassābi)"],
+  ["ماهی‌فروشی","māhi-forushi","fish market, fishmonger's","ماهی (fish) + فروشی"],
+  ["گل‌فروشی","gol-forushi","flower shop, florist's","گل (flower) + فروشی"],
+  ["کفش‌فروشی","kafsh-forushi","shoe store","کفش (shoe) + فروشی"],
+  ["ساعت‌فروشی","sāat-forushi","watchmaker's, watch shop","ساعت (watch) + فروشی"],
+  ["بستنی‌فروشی","bastani-forushi","ice cream shop","بستنی (ice cream) + فروشی"],
+  ["مسافرت","mosāferat","trip","به مسافرت رفتن = to go on a trip"],
+  ["سفر","safar","travel, journey","به سفر رفتن = to go on a trip"],
+  ["سفر کاری","safar-e kāri","work trip, business trip","سفر + کاری"],
+  ["مسافر","mosāfer","passenger, traveler","م-س-ا-ف-ر"],
+  ["مهمون‌خونه","mehmoon khooneh","guesthouse, hotel","مهمون (guest) + خونه"],
+  ["مسافرخونه","mosāfer khooneh","motel, hostel","مسافر + خونه"],
+  ["نزدیک","nazdik","close, near","ن-ز-د-ی-ک"],
+  ["دور","dour","far, away","د-و-ر"],
+];
+
+const s31_grammar = [
+  ["می‌خرم","mikharam","I buy","می + خر + م"],
+  ["می‌خری","mikhari","you buy","می + خر + ی"],
+  ["می‌خره","mikhareh","he/she buys","می + خر + ه"],
+  ["می‌خریم","mikharim","we buy","می + خر + یم"],
+  ["می‌خرید","mikharid","you (pl) buy","می + خر + ید"],
+  ["می‌خرن","mikharan","they buy","می + خر + ن"],
+  ["نمی‌خرم","nemikharam","I don't buy / won't buy","نمی + خر + م"],
+  ["بخر","bekhar","buy! (command)","ب + خر"],
+  ["می‌فروشم","miforusham","I sell","می + فروش + م"],
+  ["می‌فروشی","miforushi","you sell","می + فروش + ی"],
+  ["می‌فروشه","miforousheh","he/she sells","می + فروش + ه"],
+  ["نمی‌فروشم","nemiforusham","I don't sell","نمی + فروش + م"],
+  ["بفروش","beforoush","sell! (command)","ب + فروش"],
+  ["سوارِ ... هستم","savār-e ... hastam","I am on/riding ... (vehicle/animal)","سوار + ezāfe + vehicle"],
+  ["با + vehicle","bā + vehicle","by (train, bus, car...)","با قطار = by train"],
+];
+
+const s31_phrases = [
+  ["من از خونه تا دانشگاه دوچرخه‌سواری می‌کنم","man az khoone tā dāneshgāh docharkheh savāri mikonam","I ride a bicycle from home to university","از ... تا ... + دوچرخه‌سواری"],
+  ["من الان سوار قطار به سمت لندن هستم","man alān savār-e ghatār be samt-e London hastam","I'm on the train to London right now","به سمتِ (toward) — also به طرفِ (be taraf-e)"],
+  ["من سوار اتوبوسم","man savār-e otobusam","I'm on the bus","سوارِ + اتوبوس + م (am)"],
+  ["من سوار قطارم","man savār-e ghatāram","I'm on the train","سوارِ + قطار"],
+  ["من سوار هواپیما هستم","man savār-e havāpeymā hastam","I'm on the plane","سوارِ + هواپیما"],
+  ["من سوار اسبم","man savār-e asbam","I'm on a horse","سوارِ + اسب"],
+  ["من اسب‌سواری می‌کنم","man asb savāri mikonam","I ride a horse / I'm horseriding","اسب‌سواری می‌کنم"],
+  ["دارم دوچرخه‌سواری می‌کنم","dāram docharkheh savāri mikonam","I'm riding a bike right now","present continuous"],
+  ["من سوار ماشینم","man savār-e māshinam","I'm in the car","سوارِ + ماشین"],
+  ["من سوار تاکسی‌ام","man savār-e tāksi-am","I'm in a taxi","سوارِ + تاکسی"],
+  ["من با قطار به دانشگاه می‌رم","man bā ghatār be dāneshgāh miram","I go to the university by train","با (by) + قطار"],
+  ["من با اتوبوس می‌رم","man bā otobus miram","I go by bus","با + اتوبوس"],
+  ["من با ماشین می‌رم","man bā māshin miram","I go by car","با + ماشین"],
+  ["اون توی کارخونه کار می‌کنه","oon tooye kārkhooneh kār mikoneh","He/she works in a factory","توی (in) + کارخونه"],
+  ["اون داره توی کتابخونه درس می‌خونه","oon dāreh tooye ketābkhooneh dars mikhooneh","He/she is studying in the library","داره ... می‌خونه (continuous)"],
+  ["اون داره تو آشپزخونه غذا درست می‌کنه","oon dāreh too āshpazkhooneh ghazā dorost mikoneh","He/she is cooking in the kitchen","غذا درست می‌کنه = آشپزی می‌کنه"],
+  ["من هر ماه به آرایشگاه می‌رم","man har māh be ārāyeshgāh miram","I go to the hairdresser's every month","هر ماه (every month)"],
+  ["من دارم به ایستگاه قطار می‌رسم","man dāram be istgāh-e ghatār miresam","I'm just arriving at the railway station","دارم می‌رسم (arriving now)"],
+  ["قطار داره می‌رسه","ghatār dāreh mireseh","The train is arriving","داره می‌رسه"],
+  ["من توی پارکینگ هستم","man tooye pārking hastam","I'm in the car park","توی + پارکینگ"],
+  ["جایگاه مادر در خانواده بسیار مهم است","jāygāh-e mādar dar khānevādeh besyār mohem ast","The mother's role in a family is very important","جایگاه = role/status here"],
+  ["من آرایش ندارم","man ārāyesh nadāram","I have no makeup on","آرایش + ندارم"],
+  ["من هر روز یک کم آرایش می‌کنم","man har rooz yek kam ārāyesh mikonam","I wear a little makeup every day","یک کم (a little)"],
+  ["من اصلا آرایش نمی‌کنم","man aslan ārāyesh nemikonam","I don't wear makeup at all","اصلا (at all)"],
+  ["اون اهل آرایش نیست","oon ahl-e ārāyesh nist","She's not really into makeup","اهلِ + نیست"],
+  ["اون اهل ورزش هست","oon ahl-e varzesh hast","He/she is into sports","اهلِ ورزش"],
+  ["اون اهل کتاب هست","oon ahl-e ketāb hast","He/she is into books","اهلِ کتاب"],
+  ["آرایشگرم سرش شلوغه","ārāyeshgaram saresh sholough-e","My hairdresser/barber is busy","سرش شلوغه (lit: their head is busy)"],
+  ["من الان تو دفترم هستم","man alān too daftaram hastam","I'm in my office right now","دفتر + م (my)"],
+  ["پدرم مزرعه‌ی پیاز داره!","pedaram mazra'e-ye piāz dāreh!","My dad has an onion farm!","مزرعه‌ی + پیاز (onion)"],
+  ["من مطب دندون‌پزشک هستم","man matab-e dandoon pezeshk hastam","I'm in the dental clinic","مطب + دندون‌پزشک"],
+  ["من می‌رم خرید","man miram kharid","I'm going shopping","می‌رم + خرید"],
+  ["من نون می‌خرم","man noon mikharam","I buy bread","نون + می‌خرم"],
+  ["من این رو نمی‌خرم","man in ro nemikharam","I'm not buying this one","این رو + نمی‌خرم"],
+  ["شیر بخر","shir bekhar","Buy some milk","بخر (imperative)"],
+  ["لطفا نون بخرید","lotfan noon bekharid","Please buy some bread","بخرید (imperative, pl/formal)"],
+  ["من از این مغازه خرید می‌کنم","man az in maghāzeh kharid mikonam","I shop from this store","از (from) + خرید می‌کنم"],
+  ["نون نداریم، لطفا نون بخر!","noon nadārim, lotfan noon bekhar!","We don't have bread, please buy some bread!","نداریم (we don't have)"],
+  ["ما دیگه شیر نداریم، لطفا شیر می‌خری؟","mā dige shir nadārim, lotfan shir mikhari?","We're out of milk, will you buy milk please?","دیگه ... نداریم (no more...)"],
+  ["بابام امسال ماشینش رو می‌فروشه","bābām emsāl māshinesh ro miforousheh","My dad is selling his car this year","امسال (this year) + ماشینش"],
+  ["ماشینت رو به من می‌فروشی؟","māshinet ro be man miforushi?","Will you sell your car to me?","ماشینت رو + به من"],
+  ["ماشینت رو بفروش","māshinet ro beforoush","Sell your car","بفروش (imperative)"],
+  ["من این هفته به مسافرت می‌رم","man in hafteh be mosāferat miram","I'm going on a trip this week","به مسافرت (سفر) می‌رم"],
+  ["ببخشید آقا! ایستگاه اتوبوس به اینجا نزدیکه؟","bebakhshid āghā! istgāh-e otobus be injā nazdik-e?","Excuse me, sir! Is the bus stop near here?","نزدیک + ه (is)"],
+  ["نه، ایستگاه اتوبوس از اینجا خیلی دوره","na, istgāh-e otobus az injā kheili dour-e","No, the bus stop is very far from here","از اینجا (from here) + دور"],
+  ["باشگاهم نزدیک خونه هست","bāshgāham nazdik-e khooneh hast","My gym is near the house","نزدیکِ + خونه"],
+  ["خیلی دور، خیلی نزدیک","kheili dour, kheili nazdik","So far, so close (Iranian film, 2005)","Reza Mirkarimi film title"],
+];
+
+// SESSION 32 DATA — komak, oomadan, THE PAST TENSE, bāz/baste/band, dard + body parts, bidār shodan, khābidan, delam tang shodeh
+const s32_vocab = [
+  ["کمک","komak","help","ک-م-ک"],
+  ["لازم","lāzem","necessary, needed","لازم داشتن = to need"],
+  ["اومدن","oomadan","to come","formal: آمدن (āmadan) — present: میام (miām)"],
+  ["آماده","āmādeh","ready","آ-م-ا-د-ه"],
+  ["همسایه","hamsāyeh","neighbour","هم (co-) + سایه (shade)"],
+  ["تماشا کردن","tamāshā kardan","to watch","تماشا + کردن — used for TV, films, matches"],
+  ["واقعی","vāghe'i","real (adj)","و-ا-ق-ع-ی"],
+  ["واقعاً","vāghean","really (adv)","واقعی + اً (adverb ending)"],
+  ["باهوش","bāhoosh","smart, clever (people)","با (with) + هوش (intelligence)"],
+  ["هوشمند","hooshmand","smart, intelligent (devices)","هوش + مند — گوشی هوشمند = smartphone"],
+  ["گوشی","gooshi","phone, mobile, handset; headphones","گوش (ear) + ی"],
+  ["مربا","morabbā","jam","م-ر-ب-ا"],
+  ["خانگی","khānegi","homemade, domestic","خانه (home) + گی"],
+  ["حیوان خانگی","heyvān-e khānegi","pet","حیوان (animal) + خانگی (domestic)"],
+  ["تلویزیون","televizion","television","loanword"],
+  ["خانواده","khānevādeh","family","خ-ا-ن-و-ا-د-ه"],
+  ["زن و شوهر","zan-o shohar","husband and wife, married couple","زن (woman/wife) + شوهر (husband)"],
+  ["صبحونه","sobhooneh","breakfast","from صبح (morning) — formal: صبحانه"],
+  ["ناهار","nāhār","lunch","ن-ا-ه-ا-ر"],
+  ["پنیر","panir","cheese","پ-ن-ی-ر"],
+  ["تخم مرغ","tokhm-e morgh","egg","تخم (seed/egg) + مرغ (hen)"],
+  ["دیروز","diruz","yesterday","دی (past) + روز (day)"],
+  ["دیشب","dishab","last night","دی + شب (night)"],
+  ["پیش","pish","ago, before","دو سال پیش = two years ago"],
+  ["سال پیش","sāl-e pish","last year","سال + پیش"],
+  ["باز","bāz","open","ب-ا-ز"],
+  ["در","dar","door","also means 'in' — context tells you which"],
+  ["باز کردن","bāz kardan","to open","باز + کردن"],
+  ["بسته","baste","closed, shut, locked; a package, a pack","one word both ways — a 'closed up' thing. From بستن"],
+  ["بستن","bastan","to close, to shut; to tie, to fasten","present stem: بند (band)"],
+  ["بسته‌ی پستی","baste-ye posti","parcel, postal package","بسته + پستی (postal)"],
+  ["پاکت","pākat","packet, envelope","پاکت سیگار = pack of cigarettes"],
+  ["بستگی داشتن","bastegi dāshtan","to depend on","from بستن — 'to be tied to'"],
+  ["بند","band","string, cord, rope, strap","physical ties — from بستن"],
+  ["بند کفش","band-e kafsh","shoelace","بند + کفش (shoe)"],
+  ["بند ساعت","band-e sāat","watch strap","بند + ساعت (watch)"],
+  ["درد","dard","pain, ache","د-ر-د"],
+  ["سردرد","sar-dard","headache","سر (head) + درد"],
+  ["دل‌درد","del-dard","stomachache","دل (stomach) + درد"],
+  ["سر","sar","head","س-ر"],
+  ["دل","del","heart (emotions); stomach (physical)","دلم تنگ شده = I miss / دلم درد می‌کنه = my stomach hurts"],
+  ["پا","pā","leg, foot","پ-ا"],
+  ["پاها","pāhā","legs, feet","پا + ها (plural)"],
+  ["دست","dast","hand","د-س-ت"],
+  ["دست‌ها","dasthā","hands","دست + ها (plural)"],
+  ["شونه","shooneh","shoulder","formal: شانه (shāneh)"],
+  ["پشت","posht","back","پ-ش-ت"],
+  ["کمر","kamar","lower back, waist","ک-م-ر"],
+  ["گوش","goosh","ear","گ-و-ش"],
+  ["دندون","dandoon","tooth","formal: دندان (dandān)"],
+  ["بیدار","bidār","awake","ب-ی-د-ا-ر"],
+  ["بیدار شدن","bidār shodan","to wake up","بیدار (awake) + شدن (to become)"],
+  ["شدن","shodan","to become, to get","present stem: ش (sh) — می‌شم (misham)"],
+  ["خواب","khāb","sleep, dream","خ-و-ا-ب"],
+  ["خوابیدن","khābidan","to sleep","present stem: خواب (khāb)"],
+  ["تخت خواب","takht-e khāb","bed","تخت (platform) + خواب"],
+  ["چراغ خواب","cherāgh-e khāb","bedside lamp, night light","چراغ (lamp) + خواب"],
+  ["اتاق خواب","otāgh-e khāb","bedroom","اتاق (room) + خواب"],
+  ["ساعت چند","sāat-e chand","what time","ساعت (hour) + چند (how many)"],
+  ["چه ساعتی","che sāati","what time (formal)","چه (what) + ساعتی"],
+  ["تنگ","tang","tight, narrow","دلم تنگ شده = my heart has become tight"],
+];
+
+const s32_grammar = [
+  ["گذشته‌ی ساده","past stem = infinitive − ن","THE SIMPLE PAST: drop the final ن, add the endings","رفتن → رفت / دیدن → دید / کردن → کرد"],
+  ["ـم، ـی، ـ، ـیم، ـید، ـن","-am, -i, —, -im, -id, -an","past endings (3rd person singular takes NO ending)","رفتم، رفتی، رفت، رفتیم، رفتید، رفتن"],
+  ["بودم","boodam","I was","بود + م"],
+  ["بودی","boodi","you were","بود + ی"],
+  ["بود","bood","he/she was","bare past stem — no ending"],
+  ["بودیم","boodim","we were","بود + یم"],
+  ["بودید","boodid","you (pl) were","بود + ید"],
+  ["بودند","boodand / boodan","they were","formal بودند, colloquial بودن"],
+  ["نبودم","naboodam","I wasn't","نـ (not) + بودم"],
+  ["نبود","nabood","he/she wasn't","نـ + بود"],
+  ["داشتم","dāshtam","I had","داشت + م"],
+  ["داشت","dāsht","he/she had","bare past stem"],
+  ["داشتیم","dāshtim","we had","داشت + یم"],
+  ["نداشتم","nadāshtam","I didn't have","نـ + داشتم"],
+  ["دوست داشتم","doost dāshtam","I liked, I loved","دوست + داشتم"],
+  ["دوست نداشتم","doost nadāshtam","I didn't like","دوست + نداشتم"],
+  ["کردم","kardam","I did","کرد + م"],
+  ["رفتم","raftam","I went","رفت + م"],
+  ["خوردم","khordam","I ate, I drank","خورد + م"],
+  ["دیدم","didam","I saw","دید + م"],
+  ["اومدم","oomadam","I came","اومد + م"],
+  ["شدم","shodam","I became, I got","شد + م"],
+  ["خوابیدم","khābidam","I slept","خوابید + م"],
+  ["زندگی کردم","zendegi kardam","I lived","زندگی + کردم — compare زندگی می‌کنم (I live)"],
+  ["می‌خوام","mikhām","I want","colloquial of می‌خواهم"],
+  ["می‌خوای","mikhāy","you want","می + خوا + ی"],
+  ["می‌خواد","mikhād","he/she wants","می + خوا + د"],
+  ["می‌خوایم","mikhāym","we want","می + خوا + یم"],
+  ["می‌خواید","mikhāyd","you (pl) want","می + خوا + ید"],
+  ["می‌خوان","mikhān","they want","می + خوا + ن"],
+  ["میام","miām","I come","می + ا + م (stem of اومدن)"],
+  ["میای","miāy","you come","می + ا + ی"],
+  ["میاد","miād","he/she comes","می + ا + د"],
+  ["میایم","miāym","we come","می + ا + یم"],
+  ["میاید","miāyd","you (pl) come","می + ا + ید"],
+  ["میان","miān","they come","می + ا + ن"],
+  ["نمیام","nemiām","I don't come","نمی + ام"],
+  ["دارم میام","dāram miām","I'm coming (right now)","دارم + میام"],
+  ["بیا","biā","come! (imperative)","imperative of اومدن"],
+  ["می‌شم","misham","I become, I get","می + ش + م"],
+  ["می‌شه","misheh","he/she/it becomes, gets","می + ش + ه"],
+  ["بیدار می‌شم","bidār misham","I wake up","بیدار + می‌شم — formal: بیدار می‌شوم"],
+  ["بیدار شو","bidār sho","wake up! (imperative)","بیدار + شو"],
+  ["می‌خوابم","mikhābam","I sleep, I go to bed","می + خواب + م"],
+  ["می‌بندم","mibandam","I close, I'll close","می + بند + م (stem of بستن)"],
+  ["ببند","beband","close it! (imperative)","ب + بند"],
+  ["باز کن","bāz kon","open it! (imperative)","باز + کن"],
+  ["باز نکن","bāz nakon","don't open it!","باز + نکن"],
+];
+
+const s32_phrases = [
+  ["من کمک لازم دارم","man komak lāzem dāram","I need help","کمک + لازم دارم"],
+  ["من کمک می‌خوام","man komak mikhām","I want help","کمک + می‌خوام"],
+  ["تو کمک می‌خوای؟","to komak mikhāy?","Do you want help?","کمک + می‌خوای"],
+  ["من دارم میام","man dāram miām","I'm coming","present continuous of اومدن"],
+  ["تو داری میای؟","to dāri miāy?","Are you coming?","داری + میای"],
+  ["اون داره میاد","oon dāreh miād","He/she is coming","داره + میاد"],
+  ["من یه سیب می‌خوام","man ye sib mikhām","I want an apple","یه سیب (an apple)"],
+  ["من نمیام","man nemiām","I'm not coming","نمیام (negative)"],
+  ["اون همسایه‌ی ماست","oon hamsāye-ye māst","He/she is our neighbour","همسایه + ی + ما + ست"],
+  ["اونها دارن تلویزیون تماشا می‌کنن","oonhā dāran televizion tamāshā mikonan","They're watching TV","تماشا کردن for TV"],
+  ["اون واقعاً باهوشه","oon vāghean bāhoosh-e","He/she is really smart","واقعاً (really) + باهوش + ه"],
+  ["گوشیم کجاست؟","gooshim kojāst?","Where's my phone?","گوشی + م (my) + کجاست"],
+  ["بودن یا نبودن، مسئله این است!","boodan yā naboodan, mas'ale in ast!","To be or not to be, that is the question!","the two infinitives contrasted"],
+  ["من دیروز خونه بودم","man diruz khoone boodam","I was at home yesterday","دیروز + بودم (past of بودن)"],
+  ["دیشب کجا بودی؟","dishab kojā boodi?","Where were you last night?","دیشب + کجا + بودی"],
+  ["ما سال پیش گربه نداشتیم ولی الان دو تا گربه داریم","mā sāl-e pish gorbeh nadāshtim vali alān do tā gorbeh dārim","Last year we didn't have a cat but now we have two cats","نداشتیم (past) vs داریم (present)"],
+  ["سام دو سال پیش ماشین داشت ولی الان ماشین نداره","Sam do sāl-e pish māshin dāsht vali alān māshin nadāreh","Two years ago Sam had a car but now he doesn't","داشت (past) vs نداره (present)"],
+  ["من ماهی دوست نداشتم ولی الان دوست دارم","man māhi doost nadāshtam vali alān doost dāram","I didn't like fish but now I do","دوست نداشتم → دوست دارم"],
+  ["من سگ‌ها رو دوست نداشتم ولی الان سگ‌ها رو دوست دارم","man sag-hā ro doost nadāshtam vali alān sag-hā ro doost dāram","I didn't like dogs but now I like dogs","سگ‌ها رو (dogs, object)"],
+  ["من پنیر دوست نداشتم، اما الان پنیر خیلی دوست دارم","man panir doost nadāshtam, ammā alān panir kheili doost dāram","I didn't like cheese, but now I like cheese a lot","اما (but) = ولی"],
+  ["من دو سال در آلمان زندگی کردم","man do sāl dar Ālmān zendegi kardam","I lived in Germany for two years","زندگی کردم (past)"],
+  ["من الان در منچستر زندگی می‌کنم","man alān dar Manchester zendegi mikonam","I live in Manchester now","زندگی می‌کنم (present)"],
+  ["در باز هست","dar bāz hast","The door is open","در (door) + باز (open)"],
+  ["اونها ساعت هشت صبح باز می‌کنن","oonhā sāat-e hasht-e sobh bāz mikonan","They open at 8 AM","باز می‌کنن (they open something)"],
+  ["اونها ساعت هشت صبح باز هستن","oonhā sāat-e hasht-e sobh bāz hastan","They are open at 8 AM","باز هستن (they are open)"],
+  ["لطفاً در رو باز کن!","lotfan dar ro bāz kon!","Open the door please!","در رو + باز کن"],
+  ["لطفاً در رو باز نکن!","lotfan dar ro bāz nakon!","Don't open the door please!","باز نکن (negative imperative)"],
+  ["امروز باز هستید؟","emrooz bāz hastid?","Are you open today?","باز هستید (formal/plural)"],
+  ["در بسته هست","dar baste hast","The door is closed","بسته (closed)"],
+  ["یک بسته سیگار","yek baste sigār","a pack of cigarettes","also یک پاکت سیگار"],
+  ["یک بسته‌ی شکلات","yek baste-ye shokolāt","a packet of chocolates","بسته‌ی + شکلات"],
+  ["بستگی داره!","bastegi dāreh!","It depends!","lit. 'it has a tie to it'"],
+  ["در رو ببند!","dar ro beband!","Close the door!","ببند (imperative of بستن)"],
+  ["من در رو می‌بندم","man dar ro mibandam","I'll close the door","می‌بندم (present = near future)"],
+  ["من درد دارم","man dard dāram","I'm in pain","درد + دارم"],
+  ["من سردرد دارم","man sar-dard dāram","I have a headache","سردرد + دارم"],
+  ["من دل‌درد دارم","man del-dard dāram","I have a stomachache","دل‌درد + دارم"],
+  ["سرم درد می‌کنه","saram dard mikoneh","My head hurts","سر + م (my) + درد می‌کنه"],
+  ["پام درد می‌کنه","pām dard mikoneh","My leg hurts","پا + م (my)"],
+  ["پاهام درد می‌کنه","pāhām dard mikoneh","My legs hurt","پاها + م (my)"],
+  ["دستم درد می‌کنه","dastam dard mikoneh","My hand hurts","دست + م (my)"],
+  ["دلم درد می‌کنه","delam dard mikoneh","My stomach hurts","دل + م (my)"],
+  ["خیلی درد می‌کنه","kheili dard mikoneh","It really hurts","خیلی (very) + درد می‌کنه"],
+  ["شونه‌ام درد می‌کنه","shoone-am dard mikoneh","My shoulder hurts","شونه + ام (my)"],
+  ["پشتم درد می‌کنه","poshtam dard mikoneh","My back hurts","پشت + م (my)"],
+  ["کمرم درد می‌کنه","kamaram dard mikoneh","My lower back hurts","کمر + م (my)"],
+  ["گوشم درد می‌کنه","goosham dard mikoneh","My ear hurts","گوش + م (my)"],
+  ["دندونم درد می‌کنه","dandoonam dard mikoneh","My tooth hurts","دندون + م (my)"],
+  ["دستت درد نکنه!","dastet dard nakoneh!","Thank you! (lit. may your hand not hurt)","a wish that your effort cost you no pain"],
+  ["من بیدار هستم","man bidār hastam","I am awake","بیدار + هستم"],
+  ["بیدار شو!","bidār sho!","Wake up!","بیدار + شو (imperative)"],
+  ["من هر روز ساعت شیش از خواب بیدار می‌شم","man har rooz sāat-e shish az khāb bidār misham","I wake up at six every day","از خواب بیدار شدن = to wake from sleep"],
+  ["شما کی از خواب بیدار می‌شید؟","shomā key az khāb bidār mishid?","What time do you wake up?","کی (when) + بیدار می‌شید"],
+  ["هوا داره سرد می‌شه","havā dāreh sard misheh","The weather is getting cold","داره + سرد می‌شه (becoming)"],
+  ["هوا داره خیلی گرم می‌شه","havā dāreh kheili garm misheh","The weather is getting very hot","گرم می‌شه (getting hot)"],
+  ["اون خوابه","oon khāb-e","He/she is asleep","خواب + ه — also اون خوابیده"],
+  ["تو کی می‌خوابی؟","to key mikhābi?","What time do you go to sleep?","کی (when) + می‌خوابی"],
+  ["من ساعت ده شب می‌خوابم","man sāat-e dah-e shab mikhābam","I go to bed at 10 PM","ساعت ده شب + می‌خوابم"],
+  ["برادرم ساعت یازده می‌خوابه","barādaram sāat-e yāzdah mikhābeh","My brother goes to bed at eleven","برادرم (my brother)"],
+  ["من ساعت نه و ربع می‌خوابم","man sāat-e noh-o rob mikhābam","I go to bed at quarter past nine","نه و ربع (9:15)"],
+  ["تو ساعت چند صبحونه می‌خوری؟","to sāat-e chand sobhooneh mikhori?","What time do you eat breakfast?","ساعت چند (what time)"],
+  ["تو ساعت چند ناهار می‌خوری؟","to sāat-e chand nāhār mikhori?","What time do you eat lunch?","ناهار (lunch)"],
+  ["تو هر شب ساعت چند می‌خوابی؟","to har shab sāat-e chand mikhābi?","What time do you go to sleep every night?","هر شب (every night)"],
+  ["تو ساعت چند به باشگاه می‌ری؟","to sāat-e chand be bāshgāh miri?","What time do you go to the gym?","به باشگاه می‌ری"],
+  ["دلم برای تو تنگ شده!","delam barāye to tang shodeh!","I miss you!","lit. my heart has become tight for you"],
+  ["دلم برات خیلی تنگ شده!","delam barāt kheili tang shodeh!","I miss you so much!","برات = برای تو"],
+  ["من هم دلم برات تنگ شده!","man ham delam barāt tang shodeh!","I miss you too!","من هم (me too)"],
+  ["من هم همین‌طور!","man ham hamintor!","Me too! Same here!","همین‌طور (likewise)"],
+];
+
+// SESSION 32 STORY — the lesson's translation exercise, sentence by sentence
+const s32_story = [
+  ["یه خانواده‌ی خوشحال","ye khānevāde-ye khoshhāl","A happy family","خانواده + ی + خوشحال (ezāfe)"],
+  ["سعید و میترا همسایه‌های ما هستن.","Saeed-o Mitrā hamsāye-hā-ye mā hastan.","Saeed and Mitra are our neighbours.","همسایه‌ها + ی + ما"],
+  ["اونها زن و شوهرن و سه تا بچه دارن.","oonhā zan-o shohar-an va se tā bache dāran.","They are husband and wife and have three children.","سه تا بچه (three children)"],
+  ["اونها ساعت شیش از خواب بیدار می‌شن.","oonhā sāat-e shish az khāb bidār mishan.","They wake up at six o'clock.","بیدار می‌شن (they wake up)"],
+  ["و ساعت هفت صبح تو آشپزخونه صبحونه می‌خورن: نون خانگی، پنیر، مربا، تخم مرغ و چای شیرین.","va sāat-e haft-e sobh too āshpazkhooneh sobhooneh mikhoran: noon-e khānegi, panir, morabbā, tokhm-e morgh va chāy-e shirin.","And at seven in the morning they have breakfast in the kitchen: homemade bread, cheese, jam, eggs and sweet tea.","صبحونه خوردن = to have breakfast"],
+  ["بعد بچه‌ها می‌رن مدرسه و پدر و مادر می‌رن سر کار.","baad bache-hā miran madreseh va pedar-o mādar miran sar-e kār.","Then the children go to school and the parents go to work.","سر کار (to work)"],
+  ["سعید تو یه مغازه کار می‌کنه و میترا تو یه آرایشگاه کار می‌کنه.","Saeed too ye maghāzeh kār mikoneh va Mitrā too ye ārāyeshgāh kār mikoneh.","Saeed works at a shop and Mitra works at a hair salon.","مغازه / آرایشگاه (session 31)"],
+  ["اون آرایشگره.","oon ārāyeshgar-e.","She is a hairdresser.","آرایشگر + ه (is)"],
+  ["میترا ساعت چهار بعد از خرید میاد خونه و یه غذای گرم درست می‌کنه.","Mitrā sāat-e chahār baad az kharid miād khooneh va ye ghazā-ye garm dorost mikoneh.","Mitra comes home at four after shopping and cooks a warm meal.","میاد خونه (comes home)"],
+  ["بچه‌ها تا ساعت هفت با همدیگه بازی می‌کنن.","bache-hā tā sāat-e haft bā hamdige bāzi mikonan.","The children play with each other until seven.","تا (until) + با همدیگه (with each other)"],
+  ["سعید ساعت هفت و نیم میاد خونه.","Saeed sāat-e haft-o nim miād khooneh.","Saeed comes home at half past seven.","هفت و نیم (7:30)"],
+  ["خانواده ساعت هشت تو آشپزخونه شام می‌خورن.","khānevādeh sāat-e hasht too āshpazkhooneh shām mikhoran.","The family eats dinner in the kitchen at eight.","شام خوردن = to have dinner"],
+  ["بچه‌ها ساعت نه می‌خوابن.","bache-hā sāat-e noh mikhāban.","The children go to bed at nine.","می‌خوابن (they sleep)"],
+  ["و سعید و میترا یک ساعت تلویزیون تماشا می‌کنن و ساعت ده می‌خوابن.","va Saeed-o Mitrā yek sāat televizion tamāshā mikonan va sāat-e dah mikhāban.","And Saeed and Mitra watch TV for an hour and go to bed at ten.","یک ساعت (for one hour)"],
+  ["ولی دیشب...","vali dishab...","But last night...","دیشب (last night) — the past tense is coming!"],
+];
+
+// SESSION 33 DATA — cheshm/chashm, time-ago (pish/ghabl), hame, ZADAN and its compounds
+const s33_vocab = [
+  ["چشم","cheshm / chashm","eye; (as a reply) yes, gladly / as you wish","چشم = I'll do it, it's on my eyes. چَشم is more formal/poetic; چِشم is everyday"],
+  ["پریروز","pariruz","the day before yesterday","پری (before last) + روز"],
+  ["پریشب","parishab","the night before last","پری + شب"],
+  ["گذشته","gozashteh","last, past","هفته‌ی گذشته = last week"],
+  ["قبل","ghabl","previous, ago, before","قبل از = before"],
+  ["بعد از","baad az","after","also پس از (pas az) — a bit more formal"],
+  ["پس از","pas az","after (slightly formal)","پس + از"],
+  ["قبل از","ghabl az","before","قبل + از — also پیش از (pish az)"],
+  ["پیش از","pish az","before","پیش + از"],
+  ["همه","hameh","all, every, everyone, everything","همه‌ی + noun = all the X; alone = everyone"],
+  ["همه‌چیز","hameh-chiz","everything","همه + چیز (thing)"],
+  ["همه‌جا","hameh-jā","everywhere","همه + جا (place)"],
+  ["زدن","zadan","to hit, to strike","present stem: زن (zan) — the base of a huge family of verbs"],
+  ["توپ","toop","ball","ت-و-پ"],
+  ["دست زدن به","dast zadan be","to touch","دست + زدن + به (to)"],
+  ["دست زدن برای","dast zadan barāye","to clap for, to applaud","دست + زدن + برای (for)"],
+  ["برام","barām","for me","short for برای من"],
+  ["برات","barāt","for you","short for برای تو"],
+  ["براش","barāsh","for him, for her","short for برای اون"],
+  ["برامون","barāmoon","for us","short for برای ما"],
+  ["براتون","barātoon","for you (pl/formal)","short for برای شما"],
+  ["براشون","barāshoon","for them","short for برای اونا"],
+  ["برای","barāye","for","preposition — contracted as برام، برات، براش..."],
+  ["در زدن","dar zadan","to knock (on the door)","در (door) + زدن"],
+  ["زنگ","zang","bell","ز-ن-گ"],
+  ["زنگ در","zang-e dar","doorbell","زنگ + در"],
+  ["زنگ زدن","zang zadan","to call, to ring","زنگ + زدن — also تلفن زدن"],
+  ["تلفن زدن","telefon zadan","to call (on the phone)","تلفن + زدن + به (to someone)"],
+  ["حرف","harf","word, saying, speech","ح-ر-ف"],
+  ["حرف زدن","harf zadan","to talk","حرف + زدن + با (with) — also صحبت کردن"],
+  ["صحبت کردن","sohbat kardan","to talk, to speak","صحبت + کردن — synonym of حرف زدن"],
+  ["ساز","sāz","musical instrument","س-ا-ز"],
+  ["ساز زدن","sāz zadan","to play an instrument","ساز + زدن"],
+  ["پیانو زدن","piāno zadan","to play the piano","پیانو + زدن"],
+  ["کتک زدن","kotak zadan","to beat, to hit (a person)","کتک + زدن"],
+  ["چشمک","cheshmak","a wink","چشم + ک (diminutive)"],
+  ["چشمک زدن","cheshmak zadan","to wink","چشمک + زدن"],
+  ["خمیر دندون","khamir-e dandoon","toothpaste","خمیر (paste) + دندون"],
+  ["خلال دندون","khalāl-e dandoon","toothpick","خلال + دندون"],
+  ["مسواک زدن","mesvāk zadan","to brush one's teeth","also مسواک کردن"],
+  ["مو","moo","hair","م-و"],
+  ["شونه","shooneh","comb; shoulder","شانه زدن = to comb — same word as shoulder (session 32)"],
+  ["شونه زدن","shooneh zadan","to comb (hair)","شونه + زدن — also شونه کردن"],
+  ["رنگ زدن","rang zadan","to paint","رنگ + زدن — also رنگ کردن"],
+  ["گپ زدن","gap zadan","to chat","گپ + زدن"],
+  ["صدا زدن","sedā zadan","to call someone (by name or voice)","صدا + زدن — also صدا کردن"],
+  ["سوت زدن","soot zadan","to whistle","سوت + زدن"],
+];
+
+const s33_grammar = [
+  ["می‌زنم","mizanam","I hit / I strike","می + زن + م — present of زدن"],
+  ["می‌زنی","mizani","you hit","می + زن + ی"],
+  ["می‌زنه","mizaneh","he/she hits","می + زن + ه"],
+  ["می‌زنیم","mizanim","we hit","می + زن + یم"],
+  ["می‌زنید","mizanid","you (pl) hit","می + زن + ید"],
+  ["می‌زنن","mizanan","they hit","می + زن + ن"],
+  ["نمی‌زنم","nemizanam","I don't hit / I won't hit","نمی + زن + م"],
+  ["زدم","zadam","I hit (past)","زد + م — past stem of زدن"],
+  ["زدی","zadi","you hit (past)","زد + ی"],
+  ["زد","zad","he/she hit (past)","bare past stem — no ending"],
+  ["زدیم","zadim","we hit (past)","زد + یم"],
+  ["زدید","zadid","you (pl) hit (past)","زد + ید"],
+  ["زدن","zadan","they hit (past)","زد + ن — same spelling as the infinitive"],
+  ["بزن","bezan","hit! / do it! (imperative of زدن)","ب + زن"],
+  ["نزن","nazan","don't hit!","ن + زن"],
+  ["همه‌ی + noun","hameh-ye + noun","all the... / every...","همه + ezāfe + noun: همه‌ی پول = all the money"],
+  ["[time] + پیش","[time] + pish","[time] ago","یک ساعت پیش، دو روز پیش، هفته‌ی پیش"],
+];
+
+const s33_phrases = [
+  ["چشم!","cheshm!","Yes, gladly! / As you wish!","polite, warm yes — 'it's on my eyes'"],
+  ["یک ساعت پیش","yek sāat-e pish","one hour ago","ساعت + پیش"],
+  ["هفته‌ی پیش","hafte-ye pish","last week","also هفته‌ی گذشته"],
+  ["سال پیش","sāl-e pish","last year","سال + پیش"],
+  ["دو روز پیش","do rooz-e pish","two days ago","دو روز + پیش"],
+  ["بعد از شام","baad az shām","after dinner","بعد از / پس از"],
+  ["قبل از ناهار","ghabl az nāhār","before lunch","قبل از / پیش از"],
+  ["همه‌ی پول","hameh-ye pool","all the money","همه + ی + پول"],
+  ["همه‌ی مردم","hameh-ye mardom","all the people","also همه‌ی آدم‌ها"],
+  ["من همه‌ی ساندویچم رو می‌خورم","man hameh-ye sāndevich-am ro mikhoram","I eat all of my sandwich","همه‌ی + ساندویچم رو"],
+  ["همه‌ی دانشجوها اینجا هستن","hameh-ye dāneshjoo-hā injā hastan","All the students are here","همه‌ی + دانشجوها"],
+  ["همه‌ی خانواده اینجا بودن","hameh-ye khānevādeh injā boodan","The whole family was here","بودن (they were)"],
+  ["همه می‌دونن","hameh midoonan","Everyone knows","همه standing alone = everyone"],
+  ["به همه سلام برسون","be hameh salām beresoon","Say hello to everyone!","به همه (to everyone)"],
+  ["همه‌چیز خوبه","hameh-chiz khoob-e","Everything is good","همه‌چیز + ه"],
+  ["همه‌چیز خوب بود","hameh-chiz khoob bood","Everything was good","بود (was)"],
+  ["همه‌چیز عالی بود، خیلی ممنون!","hameh-chiz āli bood, kheili mamnoon!","Everything was great! Thank you!","عالی (excellent)"],
+  ["من توپ رو می‌زنم","man toop ro mizanam","I'll hit the ball","توپ رو + می‌زنم"],
+  ["من توپ رو زدم","man toop ro zadam","I hit the ball","زدم (past)"],
+  ["من به کامپیوترت دست نمی‌زنم","man be kāmpiooteret dast nemizanam","I'm not touching your computer","دست زدن به = to touch"],
+  ["من به غذا‌ت دست نمی‌زنم","man be ghazāt dast nemizanam","I won't touch your food","غذات (your food)"],
+  ["ما داریم برات دست می‌زنیم","mā dārim barāt dast mizanim","We're clapping for you","دست زدن برای = to applaud"],
+  ["ما داریم برای تو دست می‌زنیم","mā dārim barāye to dast mizanim","We're applauding you","برای تو = برات"],
+  ["در خونه رو بزن","dar-e khoone ro bezan","Knock on the door","در زدن"],
+  ["زنگ در رو بزن","zang-e dar ro bezan","Ring the doorbell","زنگ در + زدن"],
+  ["امروز به مامانم زنگ می‌زنم","emrooz be māmānam zang mizanam","I'll call my mum today","زنگ زدن به = to call"],
+  ["مامانم هر هفته به من زنگ نمی‌زنه","māmānam har hafteh be man zang nemizaneh","My mum doesn't call me every week","زنگ نمی‌زنه"],
+  ["من به تو تلفن می‌زنم","man be to telefon mizanam","I'll call you","تلفن زدن به"],
+  ["تلفن زنگ می‌زنه","telefon zang mizaneh","The phone is ringing","زنگ می‌زنه = is ringing"],
+  ["موبایلت زنگ می‌زنه","mobāilet zang mizaneh","Your mobile is ringing","موبایل + ت"],
+  ["ما فردا حرف می‌زنیم","mā fardā harf mizanim","We'll talk tomorrow","حرف زدن"],
+  ["اون با من حرف نمی‌زنه","oon bā man harf nemizaneh","She doesn't talk to me","حرف زدن با = to talk with"],
+  ["من یه کم پیانو می‌زنم","man ye kam piāno mizanam","I play a little piano","ساز زدن = to play an instrument"],
+  ["شوهرم یه کم گیتار می‌زنه","shoharam ye kam gitār mizaneh","My husband plays a little guitar","گیتار + می‌زنه"],
+  ["ساز مورد علاقه‌ی تو چیه؟","sāz-e mored-e alāghe-ye to chi-e?","What's your favourite instrument?","مورد علاقه = favourite"],
+  ["ساز مورد علاقه‌ی من ویولن هست","sāz-e mored-e alāghe-ye man violon hast","My favourite instrument is the violin","ویولن"],
+  ["اون بچه‌ش رو کتک می‌زنه","oon bache-sh ro kotak mizaneh","He/she hits their child","کتک زدن — a harsh verb"],
+  ["من به تو چشمک می‌زنم","man be to cheshmak mizanam","I wink at you","چشمک زدن به"],
+  ["دندون‌ها رو مسواک بزن","dandoon-hā ro mesvāk bezan","Brush your teeth","مسواک زدن / مسواک کردن"],
+  ["موها رو شونه بزن","moo-hā ro shooneh bezan","Comb your hair","شونه زدن / شونه کردن"],
+  ["اتاق رو رنگ بزن","otāgh ro rang bezan","Paint the room","رنگ زدن / رنگ کردن"],
+];
+
+for (const c of s27_vocab)   { addCards('27','vocabulary',  [c], 'farsi-to-english'); addCards('27','vocabulary',  [c], 'english-to-farsi'); }
+for (const c of s27_grammar) { addCards('27','grammar',     [c], 'farsi-to-english'); }
+for (const c of s27_phrases) { addCards('27','phrases',     [c], 'farsi-to-english'); }
+for (const c of s28_vocab)   { addCards('28','vocabulary',  [c], 'farsi-to-english'); addCards('28','vocabulary',  [c], 'english-to-farsi'); }
+for (const c of s28_grammar) { addCards('28','grammar',     [c], 'farsi-to-english'); }
+for (const c of s28_phrases) { addCards('28','phrases',     [c], 'farsi-to-english'); }
+for (const c of s29_vocab)   { addCards('29','vocabulary',  [c], 'farsi-to-english'); addCards('29','vocabulary',  [c], 'english-to-farsi'); }
+for (const c of s29_grammar) { addCards('29','grammar',     [c], 'farsi-to-english'); }
+for (const c of s29_phrases) { addCards('29','phrases',     [c], 'farsi-to-english'); }
+for (const c of s30_vocab)   { addCards('30','vocabulary',  [c], 'farsi-to-english'); addCards('30','vocabulary',  [c], 'english-to-farsi'); }
+for (const c of s30_grammar) { addCards('30','grammar',     [c], 'farsi-to-english'); }
+for (const c of s30_phrases) { addCards('30','phrases',     [c], 'farsi-to-english'); }
+for (const c of s31_vocab)   { addCards('31','vocabulary',  [c], 'farsi-to-english'); addCards('31','vocabulary',  [c], 'english-to-farsi'); }
+for (const c of s31_grammar) { addCards('31','grammar',     [c], 'farsi-to-english'); }
+for (const c of s31_phrases) { addCards('31','phrases',     [c], 'farsi-to-english'); }
+for (const c of s32_vocab)   { addCards('32','vocabulary',  [c], 'farsi-to-english'); addCards('32','vocabulary',  [c], 'english-to-farsi'); }
+for (const c of s32_grammar) { addCards('32','grammar',     [c], 'farsi-to-english'); }
+for (const c of s32_phrases) { addCards('32','phrases',     [c], 'farsi-to-english'); }
+for (const c of s32_story)   { addCards('32','story',       [c], 'farsi-to-english'); }
+for (const c of s33_vocab)   { addCards('33','vocabulary',  [c], 'farsi-to-english'); addCards('33','vocabulary',  [c], 'english-to-farsi'); }
+for (const c of s33_grammar) { addCards('33','grammar',     [c], 'farsi-to-english'); }
+for (const c of s33_phrases) { addCards('33','phrases',     [c], 'farsi-to-english'); }
+
+for (const c of alphabet) { addCards('alphabet','alphabet', [c], 'letter'); }
+
+// State
+let activeSessions = new Set(['22','23','24-25','26','27','28','29','30','31','32','33','alphabet']);
+let activeTypes = new Set(['vocabulary','grammar','phrases','story','alphabet']);
+let activeDirection = 'farsi-to-english';
+let frontMode = 'farsi';
+let queue = [];
+let idx = 0;
+let flipped = false;
+let shuffled = false;
+let reviewedCount = 0;
+let hideMastered = false;
+let studyMode = 'due';
+let newPerDay = 20;
+let typedMode = false;
+let typedResult = null;
+let typedValue = '';
+let filtersExpanded = false;
+let tab = 'cards';
+let vtMode = 'browse';
+let vIdx = 0;
+let drillPrompt = null;
+let drillRight = 0;
+let drillWrong = 0;
+
+const sessions = [{id:'22',label:'Session 22'},{id:'23',label:'Session 23'},{id:'24-25',label:'Sessions 24-25'},{id:'26',label:'Session 26'},{id:'27',label:'Session 27'},{id:'28',label:'Session 28'},{id:'29',label:'Session 29'},{id:'30',label:'Session 30'},{id:'31',label:'Session 31'},{id:'32',label:'Session 32'},{id:'33',label:'Session 33'},{id:'alphabet',label:'Alphabet'}];
+const types = [{id:'vocabulary',label:'Vocabulary'},{id:'grammar',label:'Grammar'},{id:'phrases',label:'Phrases'},{id:'story',label:'Story'},{id:'alphabet',label:'Alphabet'}];
+const frontModes = [{id:'farsi',label:'Farsi Script'},{id:'pinglish',label:'Pinglish'}];
+const studyModes = [{id:'due',label:'Due & new'},{id:'all',label:'All cards'}];
+const directions = [{id:'farsi-to-english',label:'Farsi \u2192 English'},{id:'english-to-farsi',label:'English \u2192 Farsi'}];
+
+function buildPills() {
+  const mp = document.getElementById('mode-pills');
+  mp.innerHTML = '';
+  for (const m of studyModes) {
+    const b = document.createElement('button');
+    b.className = 'pill' + (studyMode === m.id ? ' active' : '');
+    b.textContent = m.label;
+    b.onclick = () => { studyMode = m.id; buildPills(); applyFilters(); };
+    mp.appendChild(b);
+  }
+  const sp = document.getElementById('session-pills');
+  sp.innerHTML = '';
+  for (const s of sessions) {
+    const b = document.createElement('button');
+    b.className = 'pill' + (activeSessions.has(s.id) ? ' active' : '');
+    b.textContent = s.label;
+    b.onclick = () => { toggleSet(activeSessions, s.id); buildPills(); applyFilters(); };
+    sp.appendChild(b);
+  }
+  const tp = document.getElementById('type-pills');
+  tp.innerHTML = '';
+  for (const t of types) {
+    const b = document.createElement('button');
+    b.className = 'pill' + (activeTypes.has(t.id) ? ' active' : '');
+    b.textContent = t.label;
+    b.onclick = () => { toggleSet(activeTypes, t.id); buildPills(); applyFilters(); };
+    tp.appendChild(b);
+  }
+  const fp = document.getElementById('front-pills');
+  fp.innerHTML = '';
+  for (const f of frontModes) {
+    const b = document.createElement('button');
+    b.className = 'pill' + (frontMode === f.id ? ' active' : '');
+    b.textContent = f.label;
+    b.onclick = () => { frontMode = f.id; buildPills(); render(); };
+    fp.appendChild(b);
+  }
+  const dp = document.getElementById('dir-pills');
+  dp.innerHTML = '';
+  for (const d of directions) {
+    const b = document.createElement('button');
+    b.className = 'pill' + (activeDirection === d.id ? ' active' : '');
+    b.textContent = d.label;
+    b.onclick = () => { activeDirection = d.id; buildPills(); applyFilters(); };
+    dp.appendChild(b);
+  }
+}
+
+function toggleSet(set, val) {
+  if (set.has(val)) set.delete(val); else set.add(val);
+}
+
+function inScope(c) {
+  if (!activeSessions.has(c.session)) return false;
+  if (!activeTypes.has(c.type)) return false;
+  if (c.type === 'vocabulary' && c.direction !== activeDirection) return false;
+  if (hideMastered && isMastered(c)) return false;
+  return true;
+}
+
+// Spreads the day's new cards evenly through the due cards (interleaving beats blocking)
+function interleave(due, fresh) {
+  if (!fresh.length) return due.slice();
+  if (!due.length) return fresh.slice();
+  const out = [];
+  const gap = due.length / fresh.length;
+  let n = 0;
+  for (let i = 0; i < due.length; i++) {
+    out.push(due[i]);
+    while (n < fresh.length && (n + 1) * gap <= i + 1) out.push(fresh[n++]);
+  }
+  while (n < fresh.length) out.push(fresh[n++]);
+  return out;
+}
+
+function scopeStats() {
+  const now = Date.now();
+  let due = 0, fresh = 0, later = 0;
+  for (const c of CARDS) {
+    if (!inScope(c)) continue;
+    const st = srsOf(c);
+    if (!st) fresh++;
+    else if (st.due <= now) due++;
+    else later++;
+  }
+  return { due, fresh, later };
+}
+
+function applyFilters() {
+  const base = CARDS.filter(inScope);
+  const now = Date.now();
+  if (studyMode === 'all') {
+    queue = base.slice();
+    if (shuffled) shuffle(queue);
+  } else {
+    const due = [], fresh = [];
+    for (const c of base) {
+      const st = srsOf(c);
+      if (!st) fresh.push(c);
+      else if (st.due <= now) due.push(c);
+    }
+    due.sort((a, b) => srsOf(a).due - srsOf(b).due);
+    if (shuffled) { shuffle(due); shuffle(fresh); }
+    const allowance = Math.max(0, newPerDay - newToday());
+    queue = interleave(due, fresh.slice(0, allowance));
+  }
+  reviewedCount = 0;
+  idx = 0;
+  flipped = false;
+  typedResult = null;
+  typedValue = '';
+  render();
+}
+
+function shuffle(arr) {
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+
+function nextDueLabel() {
+  const now = Date.now();
+  let min = Infinity;
+  for (const c of CARDS) {
+    if (!inScope(c)) continue;
+    const st = srsOf(c);
+    if (st && st.due > now && st.due < min) min = st.due;
+  }
+  return min === Infinity ? null : fmtIvl(min - now);
+}
+
+function statsLine() {
+  const s = scopeStats();
+  return `<strong>${queue.length}</strong> left &middot; ${s.due} due &middot; ${s.fresh} new &middot; `
+    + `<span style="color:var(--notice-success-text)">${masteredTotal()} mastered</span>`;
+}
+
+function escAttr(s) {
+  return String(s).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+function renderCards() {
+  const area = document.getElementById('card-area');
+  if (queue.length === 0) {
+    const s = scopeStats();
+    let msg;
+    if (reviewedCount > 0) {
+      const nd = nextDueLabel();
+      msg = `<div class="empty-state"><h2>Done for now</h2><p>${reviewedCount} card${reviewedCount === 1 ? '' : 's'} reviewed.`
+        + (s.fresh ? ` ${s.fresh} new card${s.fresh === 1 ? '' : 's'} waiting behind today's limit of ${newPerDay}.` : '')
+        + (nd ? ` Next review in ${nd}.` : '') + '</p></div>';
+    } else if (s.fresh || s.later) {
+      const nd = nextDueLabel();
+      msg = `<div class="empty-state"><h2>All caught up</h2><p>Nothing is due right now.`
+        + (nd ? ` Next review in ${nd}.` : '')
+        + (s.fresh ? ` ${s.fresh} unseen card${s.fresh === 1 ? '' : 's'} left — raise New/day or switch to All cards to get ahead.` : '')
+        + '</p></div>';
+    } else {
+      msg = '<div class="empty-state"><h2>No cards match</h2><p>Adjust the filters above</p></div>';
+    }
+    area.innerHTML = msg;
+    document.getElementById('nav-pos').textContent = '0 / 0';
+    document.getElementById('card-count').innerHTML = statsLine();
+    document.getElementById('progress-fill').style.width = reviewedCount > 0 ? '100%' : '0%';
+    document.getElementById('progress-text').textContent = `${reviewedCount}`;
+    return;
+  }
+  if (idx >= queue.length) idx = queue.length - 1;
+  if (idx < 0) idx = 0;
+  area.innerHTML = `<div class="card-wrapper" onclick="flipCard()"><div class="card${flipped?' flipped':''}" id="card"><div class="card-face card-front" id="card-front"></div><div class="card-face card-back" id="card-back"></div></div></div>`;
+
+  const c = queue[idx];
+  const front = document.getElementById('card-front');
+  const back = document.getElementById('card-back');
+
+  if (c.type === 'alphabet') {
+    const tag = 'ALPHABET';
+    if (frontMode === 'pinglish') {
+      front.innerHTML = `<span class="card-tag">${tag}</span><div class="front-content"><div class="english-big">${c.name}</div><div class="pinglish" style="margin-top:8px">Sound: ${c.sound}</div></div><span class="tap-hint">tap to reveal</span>`;
+    } else {
+      front.innerHTML = `<span class="card-tag">${tag}</span><div class="front-content"><div class="farsi-big" style="font-size:5rem">${c.isolated}</div></div><span class="tap-hint">tap to reveal</span>`;
+    }
+    back.innerHTML = `<span class="card-tag">${tag}</span><div class="back-content"><div class="meaning">${c.name}</div><div class="pinglish">Sound: ${c.sound}</div><div class="letter-forms"><div class="letter-form-cell"><div class="form-label">Isolated</div><div class="form-char">${c.isolated}</div></div><div class="letter-form-cell"><div class="form-label">Initial</div><div class="form-char">${c.initial}</div></div><div class="letter-form-cell"><div class="form-label">Medial</div><div class="form-char">${c.medial}</div></div><div class="letter-form-cell"><div class="form-label">Final</div><div class="form-char">${c.final}</div></div></div><div class="breakdown">${c.notes}</div></div>`;
+  } else if (c.direction === 'english-to-farsi') {
+    const tag = `${c.session} / ${c.type} / EN\u2192FA`;
+    front.innerHTML = `<span class="card-tag">${tag}</span><div class="front-content"><div class="english-big">${c.english}</div></div><span class="tap-hint">tap to reveal</span>`;
+    back.innerHTML = `<span class="card-tag">${tag}</span><div class="back-content"><div class="farsi-answer">${c.farsi}</div><div class="pinglish">${c.pinglish}</div><div class="breakdown">${c.breakdown}</div></div>`;
+  } else {
+    const tag = `${c.session} / ${c.type}`;
+    if (frontMode === 'pinglish') {
+      front.innerHTML = `<span class="card-tag">${tag}</span><div class="front-content"><div class="english-big" style="font-size:1.8rem;font-style:italic;color:var(--blue)">${c.pinglish}</div></div><span class="tap-hint">tap to reveal</span>`;
+      back.innerHTML = `<span class="card-tag">${tag}</span><div class="back-content"><div class="farsi-answer">${c.farsi}</div><div class="meaning">${c.english}</div><div class="breakdown">${c.breakdown}</div></div>`;
+    } else {
+      front.innerHTML = `<span class="card-tag">${tag}</span><div class="front-content"><div class="farsi-big">${c.farsi}</div></div><span class="tap-hint">tap to reveal</span>`;
+      back.innerHTML = `<span class="card-tag">${tag}</span><div class="back-content"><div class="farsi-answer">${c.farsi}</div><div class="pinglish">${c.pinglish}</div><div class="meaning">${c.english}</div><div class="breakdown">${c.breakdown}</div></div>`;
+    }
+  }
+
+  if (typedRecallActive(c)) {
+    const hint = c.direction === 'english-to-farsi' ? 'type it in pinglish\u2026' : 'read it aloud, then type the pinglish\u2026';
+    front.insertAdjacentHTML('beforeend',
+      `<input id="typed-input" class="typed-input" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false"`
+      + ` placeholder="${hint}" value="${escAttr(typedValue)}" onclick="event.stopPropagation()" onkeydown="typedKey(event)">`);
+    if (typedResult) {
+      const ok = typedResult === 'right';
+      back.insertAdjacentHTML('beforeend',
+        `<div class="typed-banner ${typedResult}">${ok ? '\u2713 correct' : '\u2717 you typed \u201C' + escAttr(typedValue || '\u2014') + '\u201D'}</div>`);
+    }
+  }
+
+  if (isMastered(c)) {
+    front.insertAdjacentHTML('beforeend', '<span class="mastered-badge">mastered</span>');
+    back.insertAdjacentHTML('beforeend', '<span class="mastered-badge">mastered</span>');
+  }
+
+  const st = srsOf(c);
+  document.getElementById('nav-pos').textContent = st
+    ? `seen ${st.reps}\u00D7`
+    : 'new card';
+  document.getElementById('prev-btn').disabled = idx === 0;
+  document.getElementById('next-btn').disabled = idx >= queue.length - 1;
+  document.getElementById('card-count').innerHTML = statsLine();
+
+  const total = reviewedCount + queue.length;
+  const pct = total > 0 ? Math.round((reviewedCount / total) * 100) : 0;
+  document.getElementById('progress-fill').style.width = pct + '%';
+  document.getElementById('progress-text').textContent = `${reviewedCount}/${total}`;
+
+  const input = document.getElementById('typed-input');
+  if (input && !flipped) input.focus();
+}
+
+function typedRecallActive(c) {
+  if (!typedMode || !c || c.type === 'alphabet' || frontMode === 'pinglish') return false;
+  // Skip rule-of-thumb cards whose "pinglish" is an explanation rather than a word to type
+  return !/[=\u0600-\u06FF]/.test(c.pinglish);
+}
+
+// Tolerant match: ignores case, macrons, punctuation and the usual oo/u, ee/i, q/gh swaps
+function normalizePin(s) {
+  return String(s || '')
+    .toLowerCase()
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9]/g, '')
+    .replace(/ou|oo/g, 'u')
+    .replace(/ee/g, 'i')
+    .replace(/ey/g, 'ei')
+    .replace(/q/g, 'gh');
+}
+function pinMatches(input, answer) {
+  const t = normalizePin(input);
+  if (!t) return false;
+  if (normalizePin(answer) === t) return true;
+  return String(answer).split(/[\/,;]/).some(a => normalizePin(a) === t);
+}
+
+function typedKey(e) {
+  e.stopPropagation();
+  if (e.key !== 'Enter') return;
+  e.preventDefault();
+  typedValue = e.target.value;
+  typedResult = pinMatches(typedValue, queue[idx].pinglish) ? 'right' : 'wrong';
+  flipped = true;
+  render();
+}
+
+function flipCard() {
+  if (!flipped && tab === 'cards' && queue.length && typedRecallActive(queue[idx])) {
+    const el = document.getElementById('typed-input');
+    if (el && el.value.trim()) {
+      typedValue = el.value;
+      typedResult = pinMatches(typedValue, queue[idx].pinglish) ? 'right' : 'wrong';
+      flipped = true;
+      render();
+      return;
+    }
+  }
+  flipped = !flipped;
+  const card = document.getElementById('card');
+  if (card) card.classList.toggle('flipped', flipped);
+  renderScoreRow();
+}
+
+function next() {
+  if (tab === 'verbs') {
+    if (vtMode === 'browse') {
+      if (vIdx < browseVerbs().length - 1) { vIdx++; flipped = false; render(); }
+    } else {
+      newDrillPrompt(); flipped = false; render();
+    }
+    return;
+  }
+  if (idx < queue.length - 1) { idx++; flipped = false; typedResult = null; typedValue = ''; render(); }
+}
+function prev() {
+  if (tab === 'verbs') {
+    if (vtMode === 'browse' && vIdx > 0) { vIdx--; flipped = false; render(); }
+    return;
+  }
+  if (idx > 0) { idx--; flipped = false; typedResult = null; typedValue = ''; render(); }
+}
+
+function toggleShuffle() {
+  shuffled = !shuffled;
+  document.getElementById('shuffle-btn').classList.toggle('active', shuffled);
+  applyFilters();
+}
+
+function resetProgress() {
+  const base = CARDS.filter(c => {
+    if (!activeSessions.has(c.session)) return false;
+    if (!activeTypes.has(c.type)) return false;
+    if (c.type === 'vocabulary' && c.direction !== activeDirection) return false;
+    return true;
+  });
+  const hasSaved = base.some(c => store.srs[cardKey(c)]);
+  if (hasSaved && !confirm('Reset the review schedule for the cards in this view? They go back to being brand new.')) return;
+  for (const c of base) { delete store.srs[cardKey(c)]; delete store.mastery[cardKey(c)]; }
+  applyFilters();
+}
+
+// Cards tab: FSRS grading. 1 again, 2 hard, 3 good, 4 easy.
+function gradeCard(g) {
+  if (tab !== 'cards' || !queue.length) return;
+  if (!flipped) { flipCard(); return; }
+  const c = queue[idx];
+  const k = cardKey(c);
+  const prev = store.srs[k];
+  const now = Date.now();
+  if (!prev) bumpNewToday();
+  const st = fsrsReview(prev, g, now);
+  store.srs[k] = st;
+  reviewedCount++;
+  queue.splice(idx, 1);
+  if (st.due - now <= SITTING_MS) {
+    const pos = Math.min(queue.length, idx + 3 + Math.floor(Math.random() * 4));
+    queue.splice(pos, 0, c);
+  }
+  if (idx >= queue.length) idx = 0;
+  flipped = false;
+  typedResult = null;
+  typedValue = '';
+  render();
+}
+
+// Verb drill keeps the simple right/wrong scoring
+function markCard(known) {
+  if (tab !== 'verbs' || vtMode !== 'drill' || !drillPrompt) return;
+  if (!flipped) flipCard();
+  setTimeout(() => {
+    const k = drillKey(drillPrompt);
+    const st = store.drill[k] || { r: 0, w: 0 };
+    if (known) { st.r++; drillRight++; } else { st.w++; drillWrong++; }
+    store.drill[k] = st;
+    newDrillPrompt();
+    flipped = false;
+    render();
+  }, 200);
+}
+
+const GRADES = [
+  { g: 1, label: 'Again', cls: 'again' },
+  { g: 2, label: 'Hard', cls: 'hard' },
+  { g: 3, label: 'Good', cls: 'know' },
+  { g: 4, label: 'Easy', cls: 'easy' },
+];
+
+function renderScoreRow() {
+  const row = document.getElementById('score-row');
+  if (!row) return;
+  if (tab === 'verbs') {
+    row.innerHTML = vtMode === 'drill'
+      ? '<button class="score-btn again" onclick="markCard(false)">Again</button>'
+        + '<button class="score-btn know" onclick="markCard(true)">Got it</button>'
+      : '';
+    return;
+  }
+  if (!queue.length) { row.innerHTML = ''; return; }
+  if (!flipped) {
+    row.innerHTML = '<button class="score-btn show" onclick="flipCard()">Show answer</button>';
+    return;
+  }
+  const prev = store.srs[cardKey(queue[idx])];
+  const now = Date.now();
+  row.innerHTML = GRADES.map(({ g, label, cls }) => {
+    const st = fsrsReview(prev, g, now, true);
+    const suggest = typedResult === 'wrong' && g === 1 ? ' suggest' : '';
+    return `<button class="score-btn ${cls}${suggest}" onclick="gradeCard(${g})">`
+      + `<span>${label}</span><span class="score-sub">${fmtIvl(st.due - now)}</span></button>`;
+  }).join('');
+}
+
+document.addEventListener('keydown', e => {
+  const t = e.target;
+  if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA')) return;
+  if (e.key === ' ' || e.key === 'Spacebar') { e.preventDefault(); flipCard(); }
+  if (e.key === 'ArrowRight') next();
+  if (e.key === 'ArrowLeft') prev();
+  if (tab === 'verbs') {
+    if (e.key === '1') markCard(false);
+    if (e.key === '2') markCard(true);
+  } else if (e.key >= '1' && e.key <= '4') {
+    gradeCard(Number(e.key));
+  }
+});
+
+// ===== Local storage persistence =====
+const LS_KEY = 'farsi-flashcards-v1';
+let store = { prefs: {}, mastery: {}, drill: {}, srs: {}, newLog: {}, migratedV2: false };
+try {
+  const saved = JSON.parse(localStorage.getItem(LS_KEY));
+  if (saved && typeof saved === 'object') {
+    store.prefs = saved.prefs || {};
+    store.mastery = saved.mastery || {};
+    store.drill = saved.drill || {};
+    store.srs = saved.srs || {};
+    store.newLog = saved.newLog || {};
+    store.migratedV2 = !!saved.migratedV2;
+  }
+} catch (e) {}
+
+function persistStore() {
+  store.prefs = {
+    sessions: [...activeSessions],
+    knownSessions: sessions.map(s => s.id),
+    types: [...activeTypes],
+    knownTypes: types.map(t => t.id),
+    direction: activeDirection,
+    frontMode: frontMode,
+    shuffled: shuffled,
+    hideMastered: hideMastered,
+    studyMode: studyMode,
+    newPerDay: newPerDay,
+    typedMode: typedMode,
+    filtersExpanded: filtersExpanded,
+    tab: tab,
+    vtMode: vtMode,
+    tenses: [...activeTenses],
+    knownTenses: TENSES.map(t => t.id),
+    verbsOff: VERBS.filter(v => !activeVerbs.has(v.id)).map(v => v.id),
+  };
+  try { localStorage.setItem(LS_KEY, JSON.stringify(store)); } catch (e) {}
+}
+
+function cardKey(c) {
+  return c.type === 'alphabet' ? `alpha|${c.name}` : `${c.session}|${c.type}|${c.direction}|${c.farsi}`;
+}
+
+// ===== FSRS-6 scheduler (default parameters from open-spaced-repetition/py-fsrs) =====
+const FSRS_W = [0.212, 1.2931, 2.3065, 8.2956, 6.4133, 0.8334, 3.0194, 0.001, 1.8722,
+                0.1666, 0.796, 1.4835, 0.0614, 0.2629, 1.6483, 0.6014, 1.8729, 0.5425,
+                0.0912, 0.0658, 0.1542];
+const FSRS_DECAY = -FSRS_W[20];
+const FSRS_FACTOR = Math.pow(0.9, 1 / FSRS_DECAY) - 1;
+const DESIRED_RETENTION = 0.9;   // 90% — the standard target; higher means more reviews
+const LEARN_STEPS = [1, 10];     // minutes, same-day steps for a brand new card
+const RELEARN_STEPS = [10];      // minutes, after a lapse
+const MAX_INTERVAL = 36500;      // days
+const MIN_MS = 60000;
+const DAY_MS = 86400000;
+const MATURE_DAYS = 21;          // a card counts as "mastered" once it survives 3 weeks
+const SITTING_MS = 20 * MIN_MS;  // cards due sooner than this come back in this session
+
+const clampD = d => Math.min(Math.max(d, 1), 10);
+const clampS = s => Math.max(s, 0.001);
+
+function fsrsRetrievability(s, elapsedDays) {
+  return Math.pow(1 + FSRS_FACTOR * elapsedDays / s, FSRS_DECAY);
+}
+function fsrsInitDifficulty(g) { return FSRS_W[4] - Math.exp(FSRS_W[5] * (g - 1)) + 1; }
+function fsrsNextDifficulty(d, g) {
+  const delta = -(FSRS_W[6] * (g - 3));
+  const damped = d + (10 - d) * delta / 9;
+  return clampD(FSRS_W[7] * fsrsInitDifficulty(4) + (1 - FSRS_W[7]) * damped);
+}
+function fsrsShortTermStability(s, g) {
+  let inc = Math.exp(FSRS_W[17] * (g - 3 + FSRS_W[18])) * Math.pow(s, -FSRS_W[19]);
+  if (g >= 2) inc = Math.max(inc, 1);
+  return clampS(s * inc);
+}
+function fsrsRecallStability(d, s, r, g) {
+  const hard = g === 2 ? FSRS_W[15] : 1;
+  const easy = g === 4 ? FSRS_W[16] : 1;
+  return clampS(s * (1 + Math.exp(FSRS_W[8]) * (11 - d) * Math.pow(s, -FSRS_W[9])
+    * (Math.exp((1 - r) * FSRS_W[10]) - 1) * hard * easy));
+}
+function fsrsForgetStability(d, s, r) {
+  const long = FSRS_W[11] * Math.pow(d, -FSRS_W[12]) * (Math.pow(s + 1, FSRS_W[13]) - 1)
+    * Math.exp((1 - r) * FSRS_W[14]);
+  const short = s / Math.exp(FSRS_W[17] * FSRS_W[18]);
+  return clampS(Math.min(long, short));
+}
+function fsrsInterval(s) {
+  const days = (s / FSRS_FACTOR) * (Math.pow(DESIRED_RETENTION, 1 / FSRS_DECAY) - 1);
+  return Math.min(Math.max(Math.round(days), 1), MAX_INTERVAL);
+}
+// Spreads same-day piles apart so reviews don't clump on one date
+function fuzzInterval(days) {
+  if (days < 2.5) return days;
+  let delta = 1;
+  delta += 0.15 * Math.max(Math.min(days, 7) - 2.5, 0);
+  delta += 0.10 * Math.max(Math.min(days, 20) - 7, 0);
+  delta += 0.05 * Math.max(days - 20, 0);
+  const lo = Math.max(2, Math.round(days - delta));
+  const hi = Math.min(MAX_INTERVAL, Math.max(lo, Math.round(days + delta)));
+  return lo + Math.floor(Math.random() * (hi - lo + 1));
+}
+
+// Grades: 1 again, 2 hard, 3 good, 4 easy. Returns the new memory state (pure).
+function fsrsReview(prev, g, now, noFuzz) {
+  const st = prev
+    ? { d: prev.d, s: prev.s, due: prev.due, last: prev.last, state: prev.state, step: prev.step || 0, reps: prev.reps || 0, lapses: prev.lapses || 0 }
+    : { d: 0, s: 0, due: now, last: now, state: 'learning', step: 0, reps: 0, lapses: 0 };
+  const graduate = () => {
+    const days = fsrsInterval(st.s);
+    return (noFuzz ? days : fuzzInterval(days)) * DAY_MS;
+  };
+  if (!prev) {
+    st.s = clampS(FSRS_W[g - 1]);
+    st.d = clampD(fsrsInitDifficulty(g));
+  } else {
+    const elapsed = Math.max(0, (now - st.last) / DAY_MS);
+    if (elapsed < 1) {
+      st.s = fsrsShortTermStability(st.s, g);
+    } else {
+      const r = fsrsRetrievability(st.s, elapsed);
+      st.s = g === 1 ? fsrsForgetStability(st.d, st.s, r) : fsrsRecallStability(st.d, st.s, r, g);
+    }
+    st.d = fsrsNextDifficulty(st.d, g);
+  }
+
+  let interval;
+  if (st.state === 'review') {
+    if (g === 1) { st.lapses++; st.state = 'relearning'; st.step = 0; interval = RELEARN_STEPS[0] * MIN_MS; }
+    else interval = graduate();
+  } else {
+    const steps = st.state === 'relearning' ? RELEARN_STEPS : LEARN_STEPS;
+    if (g === 1) { st.step = 0; interval = steps[0] * MIN_MS; }
+    else if (g === 2) {
+      const next = st.step + 1 < steps.length ? (steps[st.step] + steps[st.step + 1]) / 2 : steps[st.step] * 1.5;
+      interval = next * MIN_MS;
+    } else if (g === 3) {
+      st.step++;
+      if (st.step >= steps.length) { st.state = 'review'; st.step = 0; interval = graduate(); }
+      else interval = steps[st.step] * MIN_MS;
+    } else {
+      st.state = 'review'; st.step = 0; interval = graduate();
+    }
+  }
+  st.reps++;
+  st.last = now;
+  st.due = now + interval;
+  return st;
+}
+
+function fmtIvl(ms) {
+  const mins = ms / MIN_MS;
+  if (mins < 60) return Math.max(1, Math.round(mins)) + 'm';
+  const hours = mins / 60;
+  if (hours < 24) return Math.round(hours) + 'h';
+  const days = hours / 24;
+  if (days < 30) return Math.round(days) + 'd';
+  const months = days / 30.44;
+  if (months < 12) return (months < 2 ? months.toFixed(1) : Math.round(months)) + 'mo';
+  return (days / 365.25).toFixed(1) + 'y';
+}
+
+function srsOf(c) { return store.srs[cardKey(c)]; }
+function isMastered(c) {
+  const st = srsOf(c);
+  return !!st && st.state === 'review' && st.s >= MATURE_DAYS;
+}
+function masteredTotal() {
+  let n = 0;
+  for (const c of CARDS) if (isMastered(c)) n++;
+  return n;
+}
+
+function todayKey() {
+  const d = new Date();
+  return `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`;
+}
+function newToday() { return store.newLog[todayKey()] || 0; }
+function bumpNewToday() { store.newLog[todayKey()] = newToday() + 1; }
+
+// Carries pre-SRS streak progress over instead of throwing it away
+function migrateLegacyMastery() {
+  if (store.migratedV2 || !store.mastery) { store.migratedV2 = true; return; }
+  const now = Date.now();
+  for (const k of Object.keys(store.mastery)) {
+    if (store.srs[k]) continue;
+    const m = store.mastery[k] || {};
+    const streak = Math.max(0, m.s || 0);
+    if (!streak && !m.a) continue;
+    const s = clampS(1 + 3 * streak);
+    store.srs[k] = {
+      d: clampD(6 - streak + 0.5 * (m.a || 0)),
+      s,
+      last: now,
+      due: now + (0.25 + Math.random() * 0.6) * s * DAY_MS,
+      state: streak > 0 ? 'review' : 'learning',
+      step: 0,
+      reps: streak + (m.a || 0),
+      lapses: m.a || 0,
+    };
+  }
+  store.migratedV2 = true;
+}
+
+// ===== Verb dataset =====
+const PERSONS = [
+  { pin: 'man', fa: '\u0645\u0646', en: 'I' },
+  { pin: 'to', fa: '\u062A\u0648', en: 'you' },
+  { pin: 'oon', fa: '\u0627\u0648\u0646', en: 'he/she' },
+  { pin: 'm\u0101', fa: '\u0645\u0627', en: 'we' },
+  { pin: 'shom\u0101', fa: '\u0634\u0645\u0627', en: 'you (pl/formal)' },
+  { pin: 'oon\u0101', fa: '\u0627\u0648\u0646\u0627', en: 'they' },
+];
+const END_PIN = ['am', 'i', 'eh', 'im', 'id', 'an'];
+const END_FA = ['\u0645', '\u06CC', '\u0647', '\u06CC\u0645', '\u06CC\u062F', '\u0646'];
+const END_PIN_V = ['m', 'y', 'd', 'ym', 'yd', 'n'];
+const END_FA_V = ['\u0645', '\u06CC', '\u062F', '\u06CC\u0645', '\u06CC\u062F', '\u0646'];
+const DARAM_PIN = ['d\u0101ram', 'd\u0101ri', 'd\u0101reh', 'd\u0101rim', 'd\u0101rid', 'd\u0101ran'];
+const DARAM_FA = ['دارم', 'داری', 'داره', 'داریم', 'دارید', 'دارن'];
+// Simple past: 3rd person singular takes no ending at all
+const PAST_END_PIN = ['am', 'i', '', 'im', 'id', 'an'];
+const PAST_END_FA = ['\u0645', '\u06CC', '', '\u06CC\u0645', '\u06CC\u062F', '\u0646'];
+
+function kardanVerb(id, faP, pinP, en) {
+  return { id, fa: faP + ' کردن', pin: pinP + ' kardan', en,
+    pre: { fa: faP, pin: pinP }, stem: 'kon', stemFa: 'کن',
+    imp: { sg: pinP + ' kon', sgFa: faP + ' کن', pl: pinP + ' konid', plFa: faP + ' کنید',
+           negSg: pinP + ' nakon', negSgFa: faP + ' نکن', negPl: pinP + ' nakonid', negPlFa: faP + ' نکنید' } };
+}
+function dadanVerb(id, faP, pinP, en) {
+  return { id, fa: faP + ' دادن', pin: pinP + ' d\u0101dan', en,
+    pre: { fa: faP, pin: pinP }, stem: 'd', stemFa: 'د',
+    imp: { sg: pinP + ' bedeh', sgFa: faP + ' بده', pl: pinP + ' bedid', plFa: faP + ' بدید',
+           negSg: pinP + ' nadeh', negSgFa: faP + ' نده', negPl: pinP + ' nadid', negPlFa: faP + ' ندید' } };
+}
+function zadanVerb(id, faP, pinP, en) {
+  return { id, fa: faP + ' زدن', pin: pinP + ' zadan', en,
+    pre: { fa: faP, pin: pinP }, stem: 'zan', stemFa: 'زن',
+    imp: { sg: pinP + ' bezan', sgFa: faP + ' بزن', pl: pinP + ' bezanid', plFa: faP + ' بزنید',
+           negSg: pinP + ' nazan', negSgFa: faP + ' نزن', negPl: pinP + ' nazanid', negPlFa: faP + ' نزنید' } };
+}
+
+const VERBS = [
+  { id: 'boodan', fa: 'بودن', pin: 'boodan', en: 'to be', noCont: true,
+    irregular: {
+      pres: ['hastam','hasti','hast','hastim','hastid','hastan'],
+      presFa: ['هستم','هستی','هست','هستیم','هستید','هستن'],
+      neg: ['nistam','nisti','nist','nistim','nistid','nistan'],
+      negFa: ['نیستم','نیستی','نیست','نیستیم','نیستید','نیستن'] },
+    imp: { sg:'b\u0101sh', sgFa:'باش', pl:'b\u0101shid', plFa:'باشید', negSg:'nab\u0101sh', negSgFa:'نباش', negPl:'nab\u0101shid', negPlFa:'نباشید' } },
+  { id: 'dashtan', fa: 'داشتن', pin: 'd\u0101shtan', en: 'to have, to own', stem: 'd\u0101r', stemFa: 'دار', noMi: true, noCont: true,
+    imp: { sg:'d\u0101shte b\u0101sh', sgFa:'داشته باش', pl:'d\u0101shte b\u0101shid', plFa:'داشته باشید', negSg:'nad\u0101shte b\u0101sh', negSgFa:'نداشته باش', negPl:'nad\u0101shte b\u0101shid', negPlFa:'نداشته باشید' } },
+  { id: 'doost-dashtan', fa: 'دوست داشتن', pin: 'doost d\u0101shtan', en: 'to like, to love', pre: { fa:'دوست', pin:'doost' }, stem: 'd\u0101r', stemFa: 'دار', noMi: true, noCont: true,
+    imp: { sg:'doost d\u0101shte b\u0101sh', sgFa:'دوست داشته باش', pl:'doost d\u0101shte b\u0101shid', plFa:'دوست داشته باشید', negSg:'doost nad\u0101shte b\u0101sh', negSgFa:'دوست نداشته باش', negPl:'doost nad\u0101shte b\u0101shid', negPlFa:'دوست نداشته باشید' } },
+  { id: 'alaghe-dashtan', fa: 'علاقه داشتن', pin: 'al\u0101ghe d\u0101shtan (be)', en: 'to be interested (in)', pre: { fa:'علاقه', pin:'al\u0101ghe' }, stem: 'd\u0101r', stemFa: 'دار', noMi: true, noCont: true },
+  { id: 'khastan', fa: 'خواستن', pin: 'kh\u0101stan', en: 'to want', stem: 'kh\u0101', stemFa: 'خوا', vowel: true, noCont: true,
+    imp: { sg:'bekh\u0101h', sgFa:'بخواه', pl:'bekh\u0101hid', plFa:'بخواهید', negSg:'nakh\u0101h', negSgFa:'نخواه', negPl:'nakh\u0101hid', negPlFa:'نخواهید' } },
+  { id: 'raftan', fa: 'رفتن', pin: 'raftan', en: 'to go', stem: 'r', stemFa: 'ر',
+    imp: { sg:'boro', sgFa:'برو', pl:'berid', plFa:'برید', negSg:'naro', negSgFa:'نرو', negPl:'narid', negPlFa:'نرید' } },
+  { id: 'oomadan', fa: 'اومدن', pin: 'oomadan', en: 'to come',
+    irregular: {
+      pres: ['mi\u0101m','mi\u0101y','mi\u0101d','mi\u0101ym','mi\u0101yd','mi\u0101n'],
+      presFa: ['میام','میای','میاد','میایم','میاید','میان'],
+      neg: ['nemi\u0101m','nemi\u0101y','nemi\u0101d','nemi\u0101ym','nemi\u0101yd','nemi\u0101n'],
+      negFa: ['نمیام','نمیای','نمیاد','نمیایم','نمیاید','نمیان'] },
+    negPast: 'nayoomad', negPastFa: 'نیومد',
+    imp: { sg:'bi\u0101', sgFa:'بیا', pl:'bi\u0101yd', plFa:'بیاید', negSg:'nay\u0101', negSgFa:'نیا', negPl:'nay\u0101yd', negPlFa:'نیاید' } },
+  { id: 'residan', fa: 'رسیدن', pin: 'residan', en: 'to arrive', stem: 'res', stemFa: 'رس',
+    imp: { sg:'beres', sgFa:'برس', pl:'beresid', plFa:'برسید', negSg:'nares', negSgFa:'نرس', negPl:'naresid', negPlFa:'نرسید' } },
+  { id: 'khordan', fa: 'خوردن', pin: 'khordan', en: 'to eat, to drink', stem: 'khor', stemFa: 'خور',
+    imp: { sg:'bokhor', sgFa:'بخور', pl:'bokhorid', plFa:'بخورید', negSg:'nakhor', negSgFa:'نخور', negPl:'nakhorid', negPlFa:'نخورید' } },
+  { id: 'nooshidan', fa: 'نوشیدن', pin: 'nooshidan', en: 'to drink', stem: 'noosh', stemFa: 'نوش',
+    imp: { sg:'benoosh', sgFa:'بنوش', pl:'benooshid', plFa:'بنوشید', negSg:'nanoosh', negSgFa:'ننوش', negPl:'nanooshid', negPlFa:'ننوشید' } },
+  { id: 'goftan', fa: 'گفتن', pin: 'goftan', en: 'to say, to tell', stem: 'g', stemFa: 'گ',
+    imp: { sg:'begoo', sgFa:'بگو', pl:'begid', plFa:'بگید', negSg:'nagoo', negSgFa:'نگو', negPl:'nagid', negPlFa:'نگید' } },
+  { id: 'dadan', fa: 'دادن', pin: 'd\u0101dan', en: 'to give', stem: 'd', stemFa: 'د',
+    imp: { sg:'bedeh', sgFa:'بده', pl:'bedid', plFa:'بدید', negSg:'nadeh', negSgFa:'نده', negPl:'nadid', negPlFa:'ندید' } },
+  dadanVerb('sefaresh-dadan', 'سفارش', 'sef\u0101resh', 'to order'),
+  dadanVerb('goosh-dadan', 'گوش', 'goosh', 'to listen'),
+  dadanVerb('dars-dadan', 'درس', 'dars', 'to teach'),
+  dadanVerb('ghaza-dadan', 'غذا', 'ghaz\u0101', 'to feed'),
+  dadanVerb('ab-dadan', 'آب', '\u0101b', 'to water (plants)'),
+  { id: 'khoondan', fa: 'خوندن', pin: 'khoondan', en: 'to read', stem: 'khoon', stemFa: 'خون',
+    imp: { sg:'bekhoon', sgFa:'بخون', pl:'bekhoonid', plFa:'بخونید', negSg:'nakhoon', negSgFa:'نخون', negPl:'nakhoonid', negPlFa:'نخونید' } },
+  { id: 'dars-khoondan', fa: 'درس خوندن', pin: 'dars khoondan', en: 'to study', pre: { fa:'درس', pin:'dars' }, stem: 'khoon', stemFa: 'خون',
+    imp: { sg:'dars bekhoon', sgFa:'درس بخون', pl:'dars bekhoonid', plFa:'درس بخونید', negSg:'dars nakhoon', negSgFa:'درس نخون', negPl:'dars nakhoonid', negPlFa:'درس نخونید' } },
+  { id: 'avaz-khoondan', fa: 'آواز خوندن', pin: '\u0101v\u0101z khoondan', en: 'to sing', pre: { fa:'آواز', pin:'\u0101v\u0101z' }, stem: 'khoon', stemFa: 'خون',
+    imp: { sg:'\u0101v\u0101z bekhoon', sgFa:'آواز بخون', pl:'\u0101v\u0101z bekhoonid', plFa:'آواز بخونید', negSg:'\u0101v\u0101z nakhoon', negSgFa:'آواز نخون', negPl:'\u0101v\u0101z nakhoonid', negPlFa:'آواز نخونید' } },
+  { id: 'doonestan', fa: 'دونستن', pin: 'doonestan', en: 'to know', stem: 'doon', stemFa: 'دون', noCont: true },
+  { id: 'khandidan', fa: 'خندیدن', pin: 'khandidan', en: 'to laugh', stem: 'khand', stemFa: 'خند',
+    imp: { sg:'bekhand', sgFa:'بخند', pl:'bekhandid', plFa:'بخندید', negSg:'nakhand', negSgFa:'نخند', negPl:'nakhandid', negPlFa:'نخندید' } },
+  { id: 'tarsidan', fa: 'ترسیدن', pin: 'tarsidan (az)', en: 'to fear, to be afraid (of)', stem: 'tars', stemFa: 'ترس',
+    imp: { sg:'betars', sgFa:'بترس', pl:'betarsid', plFa:'بترسید', negSg:'natars', negSgFa:'نترس', negPl:'natarsid', negPlFa:'نترسید' } },
+  { id: 'neshastan', fa: 'نشستن', pin: 'neshastan', en: 'to sit', stem: 'shin', stemFa: 'شین',
+    imp: { sg:'beshin', sgFa:'بشین', pl:'beshinid', plFa:'بشینید', negSg:'nashin', negSgFa:'نشین', negPl:'nashinid', negPlFa:'نشینید' } },
+  { id: 'shostan', fa: 'شستن', pin: 'shostan', en: 'to wash', stem: 'shoor', stemFa: 'شور',
+    imp: { sg:'beshoor', sgFa:'بشور', pl:'beshoorid', plFa:'بشورید', negSg:'nashoor', negSgFa:'نشور', negPl:'nashoorid', negPlFa:'نشورید' } },
+  { id: 'pokhtan', fa: 'پختن', pin: 'pokhtan', en: 'to cook, to bake', stem: 'paz', stemFa: 'پز',
+    imp: { sg:'bepaz', sgFa:'بپز', pl:'bepazid', plFa:'بپزید', negSg:'napaz', negSgFa:'نپز', negPl:'napazid', negPlFa:'نپزید' } },
+  { id: 'mordan', fa: 'مردن', pin: 'mordan', en: 'to die', stem: 'mir', stemFa: 'میر' },
+  { id: 'didan', fa: 'دیدن', pin: 'didan', en: 'to see', stem: 'bin', stemFa: 'بین',
+    imp: { sg:'bebin', sgFa:'ببین', pl:'bebinid', plFa:'ببینید', negSg:'nabin', negSgFa:'نبین', negPl:'nabinid', negPlFa:'نبینید' } },
+  { id: 'rah-raftan', fa: 'راه رفتن', pin: 'r\u0101h raftan', en: 'to walk', pre: { fa:'راه', pin:'r\u0101h' }, stem: 'r', stemFa: 'ر',
+    imp: { sg:'r\u0101h boro', sgFa:'راه برو', pl:'r\u0101h berid', plFa:'راه برید', negSg:'r\u0101h naro', negSgFa:'راه نرو', negPl:'r\u0101h narid', negPlFa:'راه نرید' } },
+  { id: 'kharidan', fa: 'خریدن', pin: 'kharidan', en: 'to buy', stem: 'khar', stemFa: 'خر',
+    imp: { sg:'bekhar', sgFa:'بخر', pl:'bekharid', plFa:'بخرید', negSg:'nakhar', negSgFa:'نخر', negPl:'nakharid', negPlFa:'نخرید' } },
+  { id: 'forukhtan', fa: 'فروختن', pin: 'forukhtan', en: 'to sell', stem: 'foroush', stemFa: 'فروش',
+    imp: { sg:'beforoush', sgFa:'بفروش', pl:'beforushid', plFa:'بفروشید', negSg:'naforoush', negSgFa:'نفروش', negPl:'naforushid', negPlFa:'نفروشید' } },
+  { id: 'khabidan', fa: 'خوابیدن', pin: 'kh\u0101bidan', en: 'to sleep, to go to bed', stem: 'kh\u0101b', stemFa: 'خواب',
+    imp: { sg:'bekh\u0101b', sgFa:'بخواب', pl:'bekh\u0101bid', plFa:'بخوابید', negSg:'nakh\u0101b', negSgFa:'نخواب', negPl:'nakh\u0101bid', negPlFa:'نخوابید' } },
+  { id: 'shodan', fa: 'شدن', pin: 'shodan', en: 'to become, to get', stem: 'sh', stemFa: 'ش',
+    imp: { sg:'sho', sgFa:'شو', pl:'beshid', plFa:'بشید', negSg:'nasho', negSgFa:'نشو', negPl:'nashid', negPlFa:'نشید' } },
+  { id: 'bidar-shodan', fa: 'بیدار شدن', pin: 'bid\u0101r shodan', en: 'to wake up', pre: { fa:'بیدار', pin:'bid\u0101r' }, stem: 'sh', stemFa: 'ش',
+    imp: { sg:'bid\u0101r sho', sgFa:'بیدار شو', pl:'bid\u0101r beshid', plFa:'بیدار بشید', negSg:'bid\u0101r nasho', negSgFa:'بیدار نشو', negPl:'bid\u0101r nashid', negPlFa:'بیدار نشید' } },
+  { id: 'bastan', fa: 'بستن', pin: 'bastan', en: 'to close, to tie', stem: 'band', stemFa: 'بند',
+    imp: { sg:'beband', sgFa:'ببند', pl:'bebandid', plFa:'ببندید', negSg:'naband', negSgFa:'نبند', negPl:'nabandid', negPlFa:'نبندید' } },
+  { id: 'kardan', fa: 'کردن', pin: 'kardan', en: 'to do', stem: 'kon', stemFa: 'کن',
+    imp: { sg:'bokon', sgFa:'بکن', pl:'bokonid', plFa:'بکنید', negSg:'nakon', negSgFa:'نکن', negPl:'nakonid', negPlFa:'نکنید' } },
+  kardanVerb('fekr-kardan', 'فکر', 'fekr', 'to think'),
+  kardanVerb('safar-kardan', 'سفر', 'safar', 'to travel'),
+  kardanVerb('zendegi-kardan', 'زندگی', 'zendegi', 'to live'),
+  kardanVerb('kar-kardan', 'کار', 'k\u0101r', 'to work'),
+  kardanVerb('varzesh-kardan', 'ورزش', 'varzesh', 'to exercise'),
+  kardanVerb('bazi-kardan', 'بازی', 'b\u0101zi', 'to play'),
+  kardanVerb('ashpazi-kardan', 'آشپزی', '\u0101shpazi', 'to cook'),
+  kardanVerb('dorost-kardan', 'درست', 'dorost', 'to make, to fix'),
+  kardanVerb('tamiz-kardan', 'تمیز', 'tamiz', 'to clean'),
+  kardanVerb('amade-kardan', 'آماده', '\u0101m\u0101de', 'to prepare'),
+  kardanVerb('ejare-kardan', 'اجاره', 'ej\u0101re', 'to rent'),
+  kardanVerb('ranandegi-kardan', 'رانندگی', 'r\u0101nandegi', 'to drive'),
+  kardanVerb('piaderavi-kardan', 'پیاده‌روی', 'pi\u0101deravi', 'to walk (for exercise)'),
+  kardanVerb('kharid-kardan', 'خرید', 'kharid', 'to shop'),
+  kardanVerb('baz-kardan', 'باز', 'b\u0101z', 'to open'),
+  kardanVerb('tamasha-kardan', 'تماشا', 'tam\u0101sh\u0101', 'to watch'),
+  kardanVerb('komak-kardan', 'کمک', 'komak', 'to help'),
+  kardanVerb('dard-kardan', 'درد', 'dard', 'to hurt, to ache'),
+  kardanVerb('tamir-kardan', 'تعمیر', 'tamir', 'to repair, to service'),
+  kardanVerb('arayesh-kardan', 'آرایش', '\u0101r\u0101yesh', 'to put on makeup'),
+  kardanVerb('docharkheh-savari-kardan', 'دوچرخه‌سواری', 'docharkheh sav\u0101ri', 'to ride a bike, to cycle'),
+  kardanVerb('asb-savari-kardan', 'اسب‌سواری', 'asb sav\u0101ri', 'to ride a horse'),
+  kardanVerb('sohbat-kardan', 'صحبت', 'sohbat', 'to talk, to speak'),
+  { id: 'zadan', fa: 'زدن', pin: 'zadan', en: 'to hit, to strike', stem: 'zan', stemFa: 'زن',
+    imp: { sg:'bezan', sgFa:'بزن', pl:'bezanid', plFa:'بزنید', negSg:'nazan', negSgFa:'نزن', negPl:'nazanid', negPlFa:'نزنید' } },
+  zadanVerb('dast-zadan', 'دست', 'dast', 'to clap; to touch (with be)'),
+  zadanVerb('dar-zadan', 'در', 'dar', 'to knock'),
+  zadanVerb('zang-zadan', 'زنگ', 'zang', 'to call, to ring'),
+  zadanVerb('telefon-zadan', 'تلفن', 'telefon', 'to call (on the phone)'),
+  zadanVerb('harf-zadan', 'حرف', 'harf', 'to talk'),
+  zadanVerb('saz-zadan', 'ساز', 's\u0101z', 'to play an instrument'),
+  zadanVerb('piano-zadan', 'پیانو', 'pi\u0101no', 'to play the piano'),
+  zadanVerb('cheshmak-zadan', 'چشمک', 'cheshmak', 'to wink'),
+  zadanVerb('mesvak-zadan', 'مسواک', 'mesv\u0101k', 'to brush one\'s teeth'),
+  zadanVerb('shaneh-zadan', 'شونه', 'shooneh', 'to comb'),
+  zadanVerb('rang-zadan', 'رنگ', 'rang', 'to paint'),
+  zadanVerb('gap-zadan', 'گپ', 'gap', 'to chat'),
+  zadanVerb('seda-zadan', 'صدا', 'sed\u0101', 'to call someone (by name)'),
+  zadanVerb('sut-zadan', 'سوت', 'soot', 'to whistle'),
+  zadanVerb('kotak-zadan', 'کتک', 'kotak', 'to beat, to hit (a person)'),
+];
+
+const TENSES = [
+  { id: 'present', label: 'Present', desc: 'present \u2014 does / will do' },
+  { id: 'negative', label: 'Negative', desc: "negative \u2014 doesn't" },
+  { id: 'past', label: 'Past', desc: 'simple past \u2014 did' },
+  { id: 'pastneg', label: 'Neg. past', desc: "simple past \u2014 didn't" },
+  { id: 'continuous', label: 'Continuous (d\u0101ram...)', desc: 'right now \u2014 d\u0101ram + mi...' },
+  { id: 'imperative', label: 'Imperative', desc: 'command \u2014 do it!' },
+  { id: 'impneg', label: 'Neg. imperative', desc: "command \u2014 don't!" },
+];
+
+let activeTenses = new Set(TENSES.map(t => t.id));
+let activeVerbs = new Set(VERBS.map(v => v.id));
+
+// ===== Conjugation engine (colloquial Tehrani forms) =====
+// Past stem = infinitive minus the final -an / -ن (true for every Persian verb)
+function pastStem(v) {
+  if (v.pastStem) return { pin: v.pastStem, fa: v.pastStemFa };
+  const pinTok = v.pin.replace(/\s*\([^)]*\)\s*/g, ' ').trim().split(/\s+/).pop();
+  const faTok = v.fa.trim().split(/\s+/).pop();
+  return { pin: pinTok.replace(/an$/, ''), fa: faTok.replace(/\u0646$/, '') };
+}
+
+function conj(v, tense, pi) {
+  if (tense === 'continuous') {
+    if (v.noCont) return null;
+    const base = conj(v, 'present', pi);
+    return { pin: DARAM_PIN[pi] + ' ' + base.pin, fa: DARAM_FA[pi] + ' ' + base.fa };
+  }
+  if (tense === 'past' || tense === 'pastneg') {
+    const neg = tense === 'pastneg';
+    const ps = pastStem(v);
+    const sPin = neg ? (v.negPast || ('na' + ps.pin)) : ps.pin;
+    const sFa = neg ? (v.negPastFa || ('\u0646' + ps.fa)) : ps.fa;
+    return {
+      pin: (v.pre ? v.pre.pin + ' ' : '') + sPin + PAST_END_PIN[pi],
+      fa: (v.pre ? v.pre.fa + ' ' : '') + sFa + PAST_END_FA[pi],
+    };
+  }
+  if (v.irregular) {
+    const p = tense === 'present' ? v.irregular.pres : v.irregular.neg;
+    const f = tense === 'present' ? v.irregular.presFa : v.irregular.negFa;
+    return { pin: p[pi], fa: f[pi] };
+  }
+  const end = (v.vowel ? END_PIN_V : END_PIN)[pi];
+  const endFa = (v.vowel ? END_FA_V : END_FA)[pi];
+  let core, coreFa;
+  if (v.noMi) {
+    core = (tense === 'negative' ? 'na' : '') + v.stem + end;
+    coreFa = (tense === 'negative' ? '\u0646' : '') + v.stemFa + endFa;
+  } else {
+    core = (tense === 'negative' ? 'nemi' : 'mi') + v.stem + end;
+    coreFa = (tense === 'negative' ? '\u0646\u0645\u06CC\u200C' : '\u0645\u06CC\u200C') + v.stemFa + endFa;
+  }
+  return {
+    pin: (v.pre ? v.pre.pin + ' ' : '') + core,
+    fa: (v.pre ? v.pre.fa + ' ' : '') + coreFa,
+  };
+}
+
+function drillKey(d) { return `${d.v.id}|${d.tense}|${d.pi}`; }
+
+function drillAnswer(d) {
+  const v = d.v;
+  if (d.tense === 'imperative' || d.tense === 'impneg') {
+    const neg = d.tense === 'impneg';
+    const pl = d.pi === 4;
+    return {
+      pin: neg ? (pl ? v.imp.negPl : v.imp.negSg) : (pl ? v.imp.pl : v.imp.sg),
+      fa: neg ? (pl ? v.imp.negPlFa : v.imp.negSgFa) : (pl ? v.imp.plFa : v.imp.sgFa),
+    };
+  }
+  return conj(v, d.tense, d.pi);
+}
+
+function drillBreakdown(d) {
+  const v = d.v;
+  if (d.tense === 'imperative') return 'imperative of ' + v.pin;
+  if (d.tense === 'impneg') return 'negative imperative of ' + v.pin;
+  if (d.tense === 'past' || d.tense === 'pastneg') {
+    const ps = pastStem(v);
+    const neg = d.tense === 'pastneg';
+    const stem = neg ? (v.negPast || ('na + ' + ps.pin)) : ps.pin;
+    const e = PAST_END_PIN[d.pi];
+    let s = stem + (e ? ' + ' + e : ' + nothing (3rd person sing.)');
+    if (v.pre) s = v.pre.pin + ' + ' + s;
+    return s + '  \u2014  past stem: ' + ps.pin;
+  }
+  if (v.irregular) return v.pin + ' is irregular \u2014 memorize it!';
+  const end = (v.vowel ? END_PIN_V : END_PIN)[d.pi];
+  let s = v.noMi
+    ? (d.tense === 'negative' ? 'na + ' : '') + v.stem + ' + ' + end
+    : (d.tense === 'negative' ? 'nemi' : 'mi') + ' + ' + v.stem + ' + ' + end;
+  if (v.pre) s = v.pre.pin + ' + ' + s;
+  if (d.tense === 'continuous') s = DARAM_PIN[d.pi] + ' + ' + s;
+  return s;
+}
+
+function browseVerbs() { return VERBS.filter(v => activeVerbs.has(v.id)); }
+
+function newDrillPrompt() {
+  const combos = [];
+  for (const v of browseVerbs()) {
+    for (const t of TENSES) {
+      if (!activeTenses.has(t.id)) continue;
+      if (t.id === 'continuous' && v.noCont) continue;
+      if ((t.id === 'imperative' || t.id === 'impneg') && !v.imp) continue;
+      const pis = (t.id === 'imperative' || t.id === 'impneg') ? [1, 4] : [0, 1, 2, 3, 4, 5];
+      for (const pi of pis) combos.push({ v, tense: t.id, pi });
+    }
+  }
+  if (!combos.length) { drillPrompt = null; return; }
+  let total = 0;
+  const weights = combos.map(c => {
+    const st = store.drill[drillKey(c)] || { r: 0, w: 0 };
+    let wgt = (1 + 2 * st.w) / (1 + st.r);
+    if (drillPrompt && drillKey(c) === drillKey(drillPrompt)) wgt *= 0.05;
+    total += wgt;
+    return wgt;
+  });
+  let r = Math.random() * total;
+  drillPrompt = combos[combos.length - 1];
+  for (let i = 0; i < combos.length; i++) {
+    r -= weights[i];
+    if (r <= 0) { drillPrompt = combos[i]; break; }
+  }
+}
+
+// ===== Verb trainer rendering =====
+function conjCell(f) {
+  return f
+    ? `<span class="fa">${f.fa}</span><span class="pin">${f.pin}</span>`
+    : '<span class="pin" style="opacity:.3">\u2014</span>';
+}
+
+function conjTableHTML(v) {
+  let rows = '';
+  for (let i = 0; i < 6; i++) {
+    rows += `<tr><td class="person">${PERSONS[i].pin}</td><td>${conjCell(conj(v, 'present', i))}</td><td>${conjCell(conj(v, 'negative', i))}</td><td>${conjCell(conj(v, 'continuous', i))}</td></tr>`;
+  }
+  return `<table class="conj-table"><thead><tr><th></th><th>Present</th><th>Negative</th><th>Right now</th></tr></thead><tbody>${rows}</tbody></table>`;
+}
+
+function pastTableHTML(v) {
+  let rows = '';
+  for (let i = 0; i < 6; i++) {
+    rows += `<tr><td class="person">${PERSONS[i].pin}</td><td>${conjCell(conj(v, 'past', i))}</td><td>${conjCell(conj(v, 'pastneg', i))}</td></tr>`;
+  }
+  const ps = pastStem(v);
+  return `<table class="conj-table" style="margin-top:14px"><thead><tr><th>past stem: ${ps.pin}</th><th>Past</th><th>Neg. past</th></tr></thead><tbody>${rows}</tbody></table>`;
+}
+
+function impHTML(v) {
+  if (!v.imp) return '';
+  return `<div class="conj-imp">Do it! <strong>${v.imp.sg}</strong> <span class="fa-inline">${v.imp.sgFa}</span> &middot; <strong>${v.imp.pl}</strong> <span class="fa-inline">${v.imp.plFa}</span><br>Don't! <strong>${v.imp.negSg}</strong> <span class="fa-inline">${v.imp.negSgFa}</span> &middot; <strong>${v.imp.negPl}</strong> <span class="fa-inline">${v.imp.negPlFa}</span></div>`;
+}
+
+function renderBrowse() {
+  const area = document.getElementById('card-area');
+  const list = browseVerbs();
+  if (!list.length) {
+    area.innerHTML = '<div class="empty-state"><h2>No verbs selected</h2><p>Pick some verbs above</p></div>';
+    document.getElementById('nav-pos').textContent = '0 / 0';
+    document.getElementById('prev-btn').disabled = true;
+    document.getElementById('next-btn').disabled = true;
+    document.getElementById('card-count').innerHTML = '<strong>0</strong> verbs';
+    document.getElementById('progress-fill').style.width = '0%';
+    document.getElementById('progress-text').textContent = '0/0';
+    return;
+  }
+  if (vIdx >= list.length) vIdx = list.length - 1;
+  if (vIdx < 0) vIdx = 0;
+  const v = list[vIdx];
+  area.innerHTML = `<div class="card-wrapper" style="min-height:800px" onclick="flipCard()"><div class="card${flipped ? ' flipped' : ''}" id="card" style="min-height:800px">
+    <div class="card-face card-front">
+      <span class="card-tag">VERB</span>
+      <div class="front-content">
+        <div class="farsi-big">${v.fa}</div>
+        <div class="drill-verb-pin">${v.pin}</div>
+        <div class="drill-verb-en">${v.en}</div>
+      </div>
+      <span class="tap-hint">tap for conjugations</span>
+    </div>
+    <div class="card-face card-back" style="justify-content:flex-start">
+      <span class="card-tag">VERB</span>
+      <div class="back-content" style="margin-top:16px">
+        <div class="pinglish" style="margin-bottom:0">${v.pin} \u2014 ${v.en}</div>
+        ${conjTableHTML(v)}
+        ${pastTableHTML(v)}
+        ${impHTML(v)}
+      </div>
+    </div>
+  </div></div>`;
+  document.getElementById('nav-pos').textContent = `${vIdx + 1} / ${list.length}`;
+  document.getElementById('prev-btn').disabled = vIdx === 0;
+  document.getElementById('next-btn').disabled = vIdx >= list.length - 1;
+  document.getElementById('card-count').innerHTML = `<strong>${list.length}</strong> verbs`;
+  document.getElementById('progress-fill').style.width = ((vIdx + 1) / list.length * 100) + '%';
+  document.getElementById('progress-text').textContent = `${vIdx + 1}/${list.length}`;
+}
+
+function renderDrill() {
+  const area = document.getElementById('card-area');
+  if (!drillPrompt) newDrillPrompt();
+  if (!drillPrompt) {
+    area.innerHTML = '<div class="empty-state"><h2>Nothing to drill</h2><p>Select at least one verb and one tense above</p></div>';
+    document.getElementById('nav-pos').textContent = '\u2014';
+    document.getElementById('prev-btn').disabled = true;
+    document.getElementById('next-btn').disabled = true;
+    document.getElementById('card-count').innerHTML = '';
+    document.getElementById('progress-fill').style.width = '0%';
+    document.getElementById('progress-text').textContent = '\u2014';
+    return;
+  }
+  const d = drillPrompt, v = d.v;
+  const t = TENSES.find(x => x.id === d.tense);
+  const isImp = d.tense === 'imperative' || d.tense === 'impneg';
+  const personLabel = isImp
+    ? (d.pi === 4 ? 'shom\u0101 \u2014 you (pl/formal)' : 'to \u2014 you')
+    : `${PERSONS[d.pi].pin} \u2014 ${PERSONS[d.pi].en}`;
+  const ans = drillAnswer(d);
+  area.innerHTML = `<div class="card-wrapper" onclick="flipCard()"><div class="card${flipped ? ' flipped' : ''}" id="card">
+    <div class="card-face card-front">
+      <span class="card-tag">VERB DRILL</span>
+      <div class="front-content">
+        <div class="farsi-big" style="font-size:2.4rem">${v.fa}</div>
+        <div class="drill-verb-pin">${v.pin}</div>
+        <div class="drill-verb-en">${v.en}</div>
+        <div class="drill-chips">
+          <span class="chip person">${personLabel}</span>
+          <span class="chip tense">${t.desc}</span>
+        </div>
+      </div>
+      <span class="tap-hint">tap for answer</span>
+    </div>
+    <div class="card-face card-back">
+      <span class="card-tag">VERB DRILL</span>
+      <div class="back-content">
+        <div class="farsi-answer">${ans.fa}</div>
+        <div class="pinglish">${ans.pin}</div>
+        <div class="meaning" style="font-size:1rem;color:var(--text-dim);font-weight:400">${personLabel} &middot; ${t.desc}</div>
+        <div class="breakdown">${drillBreakdown(d)}</div>
+      </div>
+    </div>
+  </div></div>`;
+  document.getElementById('nav-pos').textContent = 'skip \u2192';
+  document.getElementById('prev-btn').disabled = true;
+  document.getElementById('next-btn').disabled = false;
+  document.getElementById('card-count').innerHTML = `<strong>${drillRight}</strong> right &middot; <span style="color:var(--red)">${drillWrong} again</span>`;
+  const tot = drillRight + drillWrong;
+  const pct = tot ? Math.round(drillRight / tot * 100) : 0;
+  document.getElementById('progress-fill').style.width = pct + '%';
+  document.getElementById('progress-text').textContent = tot ? pct + '%' : '\u2014';
+}
+
+// ===== Tabs, dispatch, init =====
+function syncChrome() {
+  document.getElementById('tab-cards').classList.toggle('active', tab === 'cards');
+  document.getElementById('tab-verbs').classList.toggle('active', tab === 'verbs');
+  document.getElementById('fc-filters').style.display = tab === 'cards' ? '' : 'none';
+  document.getElementById('vt-filters').style.display = tab === 'verbs' ? '' : 'none';
+  document.querySelector('.bottom-actions').style.display = tab === 'cards' ? '' : 'none';
+  document.getElementById('score-row').style.display = (tab === 'cards' || vtMode === 'drill') ? '' : 'none';
+  document.body.classList.toggle('filters-collapsed', !filtersExpanded);
+  const ft = document.getElementById('filter-toggle');
+  if (ft) ft.textContent = filtersExpanded ? 'Hide filters' : 'Filters';
+  const hint = document.getElementById('phone-hint');
+  if (hint) {
+    const standalone = window.navigator.standalone === true || window.matchMedia('(display-mode: standalone)').matches;
+    hint.hidden = standalone || window.innerWidth > 720;
+  }
+  document.getElementById('shortcuts').innerHTML = tab === 'cards'
+    ? '<span><kbd>Space</kbd> show answer &nbsp; <kbd>1</kbd> again &nbsp; <kbd>2</kbd> hard &nbsp; <kbd>3</kbd> good &nbsp; <kbd>4</kbd> easy &nbsp; <kbd>&#8594;</kbd> skip</span>'
+    : '<span><kbd>Space</kbd> flip &nbsp; <kbd>&#8592;</kbd><kbd>&#8594;</kbd> navigate &nbsp; <kbd>1</kbd> again &nbsp; <kbd>2</kbd> got it</span>';
+}
+
+function toggleFilters() {
+  filtersExpanded = !filtersExpanded;
+  render();
+}
+
+function render() {
+  syncChrome();
+  if (tab === 'cards') renderCards();
+  else if (vtMode === 'browse') renderBrowse();
+  else renderDrill();
+  renderScoreRow();
+  persistStore();
+}
+
+function setTab(t) {
+  tab = t;
+  flipped = false;
+  if (t === 'verbs' && vtMode === 'drill' && !drillPrompt) newDrillPrompt();
+  render();
+}
+
+function toggleHideMastered() {
+  hideMastered = !hideMastered;
+  document.getElementById('mastered-btn').classList.toggle('active', hideMastered);
+  applyFilters();
+}
+
+function toggleTyped() {
+  typedMode = !typedMode;
+  document.getElementById('typed-btn').classList.toggle('active', typedMode);
+  typedResult = null;
+  typedValue = '';
+  flipped = false;
+  render();
+}
+
+const NEW_LIMITS = [5, 10, 20, 40, 80];
+function cycleNewLimit() {
+  const i = NEW_LIMITS.indexOf(newPerDay);
+  newPerDay = NEW_LIMITS[(i + 1) % NEW_LIMITS.length];
+  syncNewLimitBtn();
+  applyFilters();
+}
+function syncNewLimitBtn() {
+  document.getElementById('newlimit-btn').textContent = `New/day: ${newPerDay}`;
+}
+
+function buildVtPills() {
+  const mp = document.getElementById('vt-mode-pills');
+  mp.innerHTML = '';
+  for (const m of [{ id: 'browse', label: 'Browse Verbs' }, { id: 'drill', label: 'Conjugation Drill' }]) {
+    const b = document.createElement('button');
+    b.className = 'pill' + (vtMode === m.id ? ' active' : '');
+    b.textContent = m.label;
+    b.onclick = () => { vtMode = m.id; flipped = false; if (m.id === 'drill' && !drillPrompt) newDrillPrompt(); buildVtPills(); render(); };
+    mp.appendChild(b);
+  }
+  document.getElementById('vt-tense-group').style.display = vtMode === 'drill' ? '' : 'none';
+  const tp = document.getElementById('vt-tense-pills');
+  tp.innerHTML = '';
+  for (const t of TENSES) {
+    const b = document.createElement('button');
+    b.className = 'pill' + (activeTenses.has(t.id) ? ' active' : '');
+    b.textContent = t.label;
+    b.onclick = () => { toggleSet(activeTenses, t.id); drillPrompt = null; newDrillPrompt(); buildVtPills(); render(); };
+    tp.appendChild(b);
+  }
+  const vp = document.getElementById('vt-verb-pills');
+  vp.innerHTML = '';
+  const allBtn = document.createElement('button');
+  allBtn.className = 'pill';
+  allBtn.style.borderStyle = 'dashed';
+  allBtn.textContent = activeVerbs.size === VERBS.length ? 'Select none' : 'Select all';
+  allBtn.onclick = () => {
+    if (activeVerbs.size === VERBS.length) activeVerbs.clear();
+    else for (const v of VERBS) activeVerbs.add(v.id);
+    vIdx = 0; drillPrompt = null; newDrillPrompt(); buildVtPills(); render();
+  };
+  vp.appendChild(allBtn);
+  for (const v of VERBS) {
+    const b = document.createElement('button');
+    b.className = 'pill' + (activeVerbs.has(v.id) ? ' active' : '');
+    b.textContent = v.pin;
+    b.onclick = () => { toggleSet(activeVerbs, v.id); vIdx = 0; drillPrompt = null; newDrillPrompt(); buildVtPills(); render(); };
+    vp.appendChild(b);
+  }
+}
+
+(function init() {
+  const p = store.prefs || {};
+  if (Array.isArray(p.sessions)) {
+    activeSessions = new Set(p.sessions.filter(s => sessions.some(x => x.id === s)));
+    const known = new Set(p.knownSessions || []);
+    for (const s of sessions) if (!known.has(s.id)) activeSessions.add(s.id);
+  }
+  if (Array.isArray(p.types) && p.types.length) {
+    activeTypes = new Set(p.types);
+    const knownT = new Set(p.knownTypes || []);
+    for (const t of types) if (!knownT.has(t.id)) activeTypes.add(t.id);
+  }
+  if (p.direction) activeDirection = p.direction;
+  if (p.frontMode) frontMode = p.frontMode;
+  if (typeof p.shuffled === 'boolean') shuffled = p.shuffled;
+  if (typeof p.hideMastered === 'boolean') hideMastered = p.hideMastered;
+  if (typeof p.typedMode === 'boolean') typedMode = p.typedMode;
+  if (typeof p.filtersExpanded === 'boolean') filtersExpanded = p.filtersExpanded;
+  if (p.studyMode === 'all' || p.studyMode === 'due') studyMode = p.studyMode;
+  if (NEW_LIMITS.includes(p.newPerDay)) newPerDay = p.newPerDay;
+  if (p.tab === 'verbs') tab = 'verbs';
+  if (p.vtMode === 'drill') vtMode = 'drill';
+  if (Array.isArray(p.tenses)) {
+    const valid = p.tenses.filter(t => TENSES.some(x => x.id === t));
+    if (valid.length) {
+      activeTenses = new Set(valid);
+      const knownT = new Set(p.knownTenses || []);
+      for (const t of TENSES) if (!knownT.has(t.id)) activeTenses.add(t.id);
+    }
+  }
+  if (Array.isArray(p.verbsOff)) for (const id of p.verbsOff) activeVerbs.delete(id);
+
+  migrateLegacyMastery();
+
+  document.getElementById('shuffle-btn').classList.toggle('active', shuffled);
+  document.getElementById('mastered-btn').classList.toggle('active', hideMastered);
+  document.getElementById('typed-btn').classList.toggle('active', typedMode);
+  syncNewLimitBtn();
+  if (tab === 'verbs' && vtMode === 'drill') newDrillPrompt();
+  buildPills();
+  buildVtPills();
+  applyFilters();
+})();
+</script>
+</body>
+</html>

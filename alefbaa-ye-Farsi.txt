@@ -1,0 +1,32 @@
+alefbaa-ye-Farsi (Persian Alphabet)
+
+VOWELS:
+Ā - آ (long a)
+A - (short a, fatheh)
+E - (short e, kasreh)
+O - (short o, dammeh)
+Ī - ی (long i)
+I - ایی، یی، ای
+U - او، و
+
+CONSONANTS:
+B - ب ب
+D - د
+R - ر
+X/Z - ز
+N - ن ن
+M - م م
+S - س س
+SH - ش ش
+T - ت ت
+L - ل ل
+P - پ پ
+KH - خ خ
+K - ک ک
+G - گ گ
+Y - یی
+V - و
+H - ه
+J - ج
+F - ف
+CH - چ
