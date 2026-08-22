@@ -7,11 +7,13 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="Farsi">
-<meta name="theme-color" content="#f9fafb">
+<meta name="theme-color" content="#faf9f7" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0c0c0d" media="(prefers-color-scheme: dark)">
+<meta name="color-scheme" content="light dark">
 <title>Farsi Flashcards</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;450;500;600&family=JetBrains+Mono:wght@400;500&family=Vazirmatn:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
 :root {
   /* Ink palette + tokens adapted from ../weekly */
@@ -549,436 +551,621 @@ kbd {
 </style>
 <style>
 /* ============================================================
-   Theme adapted from ../weekly — Neue Haas Grotesk (body),
-   Saans (titles), ink text palette, white cards on gray-50,
-   Intercom-style notice colors as the only accents.
+   DESIGN SYSTEM — 2026 refresh
+   Warm paper light mode, deep neutral dark mode, one terracotta
+   accent, hairline borders, layered micro-shadows, Inter + Vazirmatn.
+   This block is the theme layer: it overrides the structural
+   block above and is the only place colours are decided.
    ============================================================ */
 
-@font-face {
-  font-family: "Neue Haas Grotesk";
-  src: url("fonts/NeueHaasGrotesk/NeueHaasDisplay-Roman.woff") format("woff"),
-       url("fonts/NeueHaasGrotesk/NeueHaasDisplay-Roman.ttf") format("truetype");
-  font-weight: normal;
-  font-style: normal;
-}
-@font-face {
-  font-family: "Neue Haas Grotesk";
-  src: url("fonts/NeueHaasGrotesk/NeueHaasDisplay-Mediu.woff") format("woff"),
-       url("fonts/NeueHaasGrotesk/NeueHaasDisplay-Mediu.ttf") format("truetype");
-  font-weight: 500;
-  font-style: normal;
-}
-@font-face {
-  font-family: "Neue Haas Grotesk";
-  src: url("fonts/NeueHaasGrotesk/NeueHaasDisplay-Bold.woff") format("woff"),
-       url("fonts/NeueHaasGrotesk/NeueHaasDisplay-Bold.ttf") format("truetype");
-  font-weight: bold;
-  font-style: normal;
-}
-@font-face {
-  font-family: "Neue Haas Grotesk";
-  src: url("fonts/NeueHaasGrotesk/NeueHaasDisplay-Light.woff") format("woff"),
-       url("fonts/NeueHaasGrotesk/NeueHaasDisplay-Light.ttf") format("truetype");
-  font-weight: 300;
-  font-style: normal;
-}
-@font-face {
-  font-family: "Saans";
-  src: url("fonts/Saans/Saans-Bold.woff2") format("woff2"),
-       url("fonts/Saans/Saans-Bold.woff") format("woff");
-  font-weight: bold;
-  font-style: normal;
-}
-@font-face {
-  font-family: "Saans Heavy";
-  src: url("fonts/Saans/Saans-Heavy.woff2") format("woff2"),
-       url("fonts/Saans/Saans-Heavy.woff") format("woff");
-  font-weight: normal;
-  font-style: normal;
-}
-
 :root {
-  --font-sans: "Neue Haas Grotesk", ui-sans-serif, system-ui, -apple-system, sans-serif;
-  --font-title: "Saans", ui-sans-serif, system-ui, -apple-system, sans-serif;
-  --font-hero: "Saans Heavy", ui-sans-serif, system-ui, -apple-system, sans-serif;
-  --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, monospace;
-  --font-farsi: "Vazirmatn", "SF Arabic", "Geeza Pro", "Tahoma", sans-serif;
+  color-scheme: light dark;
 
-  --ink: #26251e;
-  --ink-muted: #5a5954;
-  --ink-light: #a3a29c;
-  --gray-100: #f3f4f6;
-  --gray-150: #ebecef;
-  --gray-200: #e5e7eb;
+  --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-title: var(--font-sans);
+  --font-hero: var(--font-sans);
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, "SF Mono", Menlo, monospace;
+  --font-farsi: "Vazirmatn", "SF Arabic", "Geeza Pro", Tahoma, sans-serif;
 
-  --notice: #e0daf2;
-  --notice-border: #b3a8d8;
-  --notice-text: #5b21b6;
-  --notice-error: #ffdbdb;
-  --notice-error-border: #ef4444;
-  --notice-error-text: #dc2626;
-  --notice-success: #c7f1c6;
-  --notice-success-border: #69cc66;
-  --notice-success-text: #117010;
-  --notice-info: #d7e7fe;
-  --notice-info-border: #89b6f6;
-  --notice-info-text: #165fc6;
+  /* Surfaces — warm paper */
+  --bg: #faf9f7;
+  --bg-tint: #f4f2ee;
+  --surface: #ffffff;
+  --surface-2: #f4f2ee;
+  --surface-3: #edeae4;
 
-  --shadow-around-sm: 0 0 10px -3px rgba(0, 0, 0, 0.1), 0 0 4px -2px rgba(0, 0, 0, 0.05);
-  --shadow-around-md: 0 0 15px -3px rgba(0, 0, 0, 0.1), 0 0 6px -2px rgba(0, 0, 0, 0.05);
+  /* Ink */
+  --text: #1a1917;
+  --text-dim: #6b6862;
+  --ink: #1a1917;
+  --ink-muted: #55524c;
+  --ink-light: #93908a;
+
+  /* Lines */
+  --line: rgba(24, 23, 20, 0.09);
+  --line-strong: rgba(24, 23, 20, 0.16);
+  --gray-100: #f4f2ee;
+  --gray-150: #edeae4;
+  --gray-200: rgba(24, 23, 20, 0.09);
+
+  /* Accent — terracotta */
+  --accent: #c15f3c;
+  --accent-soft: rgba(193, 95, 60, 0.10);
+  --accent-line: rgba(193, 95, 60, 0.28);
+  --accent-contrast: #ffffff;
+
+  /* Semantic */
+  --ok: #2f7d4f;
+  --ok-soft: rgba(47, 125, 79, 0.10);
+  --ok-line: rgba(47, 125, 79, 0.26);
+  --warn: #99631a;
+  --warn-soft: rgba(153, 99, 26, 0.10);
+  --warn-line: rgba(153, 99, 26, 0.26);
+  --bad: #c0392f;
+  --bad-soft: rgba(192, 57, 47, 0.10);
+  --bad-line: rgba(192, 57, 47, 0.26);
+  --info: #2f5fa8;
+  --info-soft: rgba(47, 95, 168, 0.10);
+  --info-line: rgba(47, 95, 168, 0.26);
+
+  /* Legacy aliases kept so the structural block still resolves */
+  --gold: var(--accent);
+  --gold-dim: var(--ink-light);
+  --gold-bright: var(--accent);
+  --green: var(--ok);
+  --red: var(--bad);
+  --blue: var(--info);
+
+  --shadow-xs: 0 1px 1px rgba(24, 23, 20, 0.04);
+  --shadow-sm: 0 1px 2px rgba(24, 23, 20, 0.05), 0 1px 1px rgba(24, 23, 20, 0.03);
+  --shadow-md: 0 1px 2px rgba(24, 23, 20, 0.05), 0 8px 24px -12px rgba(24, 23, 20, 0.18);
+  --shadow-lg: 0 1px 2px rgba(24, 23, 20, 0.05), 0 20px 48px -24px rgba(24, 23, 20, 0.28);
+
+  --r-sm: 8px;
+  --r-md: 12px;
+  --r-lg: 18px;
+  --radius: 18px;
+  --ease: cubic-bezier(0.2, 0, 0, 1);
+  --dur: 140ms;
 }
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0c0c0d;
+    --bg-tint: #131315;
+    --surface: #151517;
+    --surface-2: #1c1c1f;
+    --surface-3: #232326;
+
+    --text: #ececea;
+    --text-dim: #94918c;
+    --ink: #ececea;
+    --ink-muted: #b3afa8;
+    --ink-light: #7c7974;
+
+    --line: rgba(255, 255, 255, 0.09);
+    --line-strong: rgba(255, 255, 255, 0.16);
+    --gray-100: #1c1c1f;
+    --gray-150: #232326;
+    --gray-200: rgba(255, 255, 255, 0.09);
+
+    --accent: #e08056;
+    --accent-soft: rgba(224, 128, 86, 0.13);
+    --accent-line: rgba(224, 128, 86, 0.32);
+    --accent-contrast: #14100d;
+
+    --ok: #5fc98a;
+    --ok-soft: rgba(95, 201, 138, 0.13);
+    --ok-line: rgba(95, 201, 138, 0.30);
+    --warn: #dfa451;
+    --warn-soft: rgba(223, 164, 81, 0.13);
+    --warn-line: rgba(223, 164, 81, 0.30);
+    --bad: #f0736a;
+    --bad-soft: rgba(240, 115, 106, 0.13);
+    --bad-line: rgba(240, 115, 106, 0.30);
+    --info: #7aa8f0;
+    --info-soft: rgba(122, 168, 240, 0.13);
+    --info-line: rgba(122, 168, 240, 0.30);
+
+    --shadow-xs: 0 1px 1px rgba(0, 0, 0, 0.3);
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+    --shadow-md: 0 1px 2px rgba(0, 0, 0, 0.4), 0 8px 24px -12px rgba(0, 0, 0, 0.6);
+    --shadow-lg: 0 1px 2px rgba(0, 0, 0, 0.4), 0 20px 48px -24px rgba(0, 0, 0, 0.75);
+  }
+}
+
+/* ---------- Base ---------- */
 
 body {
   font-family: var(--font-sans);
   background: var(--bg);
+  color: var(--text);
   -webkit-font-smoothing: antialiased;
-  font-feature-settings: "rlig" 1, "calt" 1;
+  -moz-osx-font-smoothing: grayscale;
+  font-feature-settings: "cv05" 1, "ss03" 1, "calt" 1;
+  letter-spacing: -0.005em;
 }
-::selection { background: var(--ink); color: #fff; }
+::selection { background: var(--accent-soft); color: var(--text); }
 
-/* Header */
-header { padding: 44px 20px 4px; }
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: var(--r-sm);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+  .card { transition: none !important; }
+}
+
+/* ---------- Header ---------- */
+
+header {
+  padding: 0;
+  text-align: left;
+  border-bottom: 1px solid var(--line);
+  background: color-mix(in srgb, var(--bg) 94%, transparent);
+  backdrop-filter: saturate(180%) blur(14px);
+  -webkit-backdrop-filter: saturate(180%) blur(14px);
+  position: sticky;
+  top: 0;
+  z-index: 20;
+}
+.header-inner {
+  max-width: 740px;
+  margin: 0 auto;
+  padding: 14px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+.wordmark {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+.wordmark .mark {
+  width: 26px;
+  height: 26px;
+  flex: none;
+  border-radius: 7px;
+  background: var(--accent);
+  color: var(--accent-contrast);
+  font-family: var(--font-farsi);
+  font-size: 0.95rem;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--shadow-sm);
+}
 header h1 {
-  font-family: var(--font-hero);
-  font-size: 1.9rem;
-  font-weight: normal;
-  letter-spacing: -0.025em;
-  color: var(--ink);
-  font-variant-ligatures: no-contextual;
+  font-family: var(--font-sans);
+  font-size: 0.98rem;
+  font-weight: 600;
+  letter-spacing: -0.015em;
+  color: var(--text);
+  line-height: 1.2;
 }
 header .subtitle {
   font-family: var(--font-farsi);
-  font-size: 0.95rem;
+  font-size: 0.86rem;
   font-weight: 400;
   color: var(--ink-light);
-  margin-top: 6px;
+  margin-top: 0;
+  direction: rtl;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-/* Tabs */
-.tabs { padding: 22px 20px 26px; gap: 6px; }
+/* ---------- Tabs — segmented control ---------- */
+
+.tabs {
+  padding: 20px 20px 18px;
+  gap: 0;
+}
+.segmented {
+  display: inline-flex;
+  gap: 2px;
+  padding: 3px;
+  border-radius: 11px;
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+}
 .tab-btn {
-  font-family: var(--font-title);
-  background: var(--surface);
-  border: 1px solid var(--gray-200);
+  font-family: var(--font-sans);
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 8px;
   color: var(--ink-muted);
   font-weight: 500;
-  font-size: 0.88rem;
-  padding: 9px 24px;
-  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-  transition: all 0.15s ease;
-  font-variant-ligatures: no-contextual;
+  font-size: 0.85rem;
+  letter-spacing: -0.005em;
+  padding: 7px 18px;
+  box-shadow: none;
+  transition: color var(--dur) var(--ease), background var(--dur) var(--ease);
 }
-.tab-btn:hover { background: var(--gray-150); color: var(--ink); border-color: var(--gray-200); }
+.tab-btn:hover { background: transparent; color: var(--text); border-color: transparent; }
 .tab-btn.active {
-  background: var(--ink);
-  border-color: var(--ink);
-  color: #fff;
+  background: var(--surface);
+  border-color: var(--line);
+  color: var(--text);
+  box-shadow: var(--shadow-sm);
+  font-weight: 560;
 }
 
-/* Filters */
-.filter-group { margin-bottom: 14px; }
+/* ---------- Filters ---------- */
+
+.filters { max-width: 740px; }
+.filter-group { margin-bottom: 16px; }
 .filter-group label {
   font-family: var(--font-mono);
-  font-size: 0.62rem;
-  letter-spacing: 0.1em;
-  color: var(--ink-muted);
+  font-size: 0.63rem;
+  text-transform: uppercase;
+  letter-spacing: 0.09em;
+  color: var(--ink-light);
   font-weight: 500;
+  margin-bottom: 8px;
 }
+.pills { gap: 5px; }
 .pill {
   background: var(--surface);
-  border: 1px solid var(--gray-200);
+  border: 1px solid var(--line);
+  border-radius: 7px;
   color: var(--ink-muted);
-  font-weight: 500;
+  font-weight: 470;
   font-size: 0.79rem;
-  padding: 6px 15px;
-  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.04);
-  transition: all 0.15s ease;
+  letter-spacing: -0.005em;
+  padding: 5px 11px;
+  box-shadow: var(--shadow-xs);
+  transition: background var(--dur) var(--ease), color var(--dur) var(--ease), border-color var(--dur) var(--ease);
 }
-.pill:hover { background: var(--gray-150); color: var(--ink); border-color: var(--gray-200); }
+.pill:hover { background: var(--surface-2); color: var(--text); border-color: var(--line-strong); }
 .pill.active {
-  background: var(--ink);
-  border-color: var(--ink);
-  color: #fff;
+  background: var(--text);
+  border-color: var(--text);
+  color: var(--bg);
   font-weight: 500;
+  box-shadow: var(--shadow-xs);
 }
+.pill.active:hover { background: var(--text); border-color: var(--text); color: var(--bg); filter: brightness(1.15); }
 
-/* Stats bar */
-.card-count { font-size: 0.82rem; color: var(--ink-muted); }
-.card-count strong { color: var(--ink); }
+/* ---------- Stats bar ---------- */
+
+.stats-bar { max-width: 740px; margin-bottom: 20px; }
+.card-count { font-size: 0.8rem; color: var(--ink-light); letter-spacing: -0.003em; }
+.card-count strong { color: var(--text); font-weight: 560; }
 .progress-track {
-  height: 5px;
-  background: var(--gray-200);
+  height: 4px;
+  width: 120px;
+  background: var(--surface-3);
   border: none;
+  border-radius: 99px;
 }
-.progress-fill { background: var(--ink); }
-.progress-text { font-size: 0.78rem; color: var(--ink-light); }
+.progress-fill { background: var(--accent); transition: width 400ms var(--ease); }
+.progress-text {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: var(--ink-light);
+  font-variant-numeric: tabular-nums;
+}
 
-/* Cards */
+/* ---------- Card ---------- */
+
+.card-area { max-width: 600px; }
 .card-face {
   background: var(--surface);
-  border: 1px solid var(--gray-200);
-  border-radius: 16px;
-  box-shadow: var(--shadow-around-md);
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow-md);
+  padding: 44px 32px;
 }
 .card-front { background: var(--surface); }
 .card-back {
-  background: var(--gray-100);
-  border-color: var(--gray-200);
+  background: var(--surface);
+  border-color: var(--line);
+  box-shadow: var(--shadow-lg);
 }
-.farsi-big { font-family: var(--font-farsi); font-weight: 500; color: var(--ink); }
-.english-big { color: var(--ink); }
-.back-content .farsi-answer { font-family: var(--font-farsi); font-weight: 500; color: var(--ink); }
-.back-content .pinglish { color: var(--notice-info-text); }
-.back-content .meaning { color: var(--ink); }
-.back-content .breakdown { color: var(--ink-muted); border-top: 1px solid var(--gray-200); }
+.card-wrapper:hover .card-face { border-color: var(--line-strong); }
+
+.farsi-big {
+  font-family: var(--font-farsi);
+  font-weight: 500;
+  color: var(--text);
+  letter-spacing: 0;
+  line-height: 1.55;
+}
+.english-big {
+  color: var(--text);
+  font-weight: 560;
+  letter-spacing: -0.02em;
+  line-height: 1.3;
+}
+.back-content .farsi-answer {
+  font-family: var(--font-farsi);
+  font-weight: 500;
+  color: var(--text);
+  line-height: 1.55;
+}
+.back-content .pinglish {
+  color: var(--accent);
+  font-style: normal;
+  font-weight: 450;
+  letter-spacing: -0.005em;
+}
+.back-content .meaning { color: var(--text); font-weight: 560; letter-spacing: -0.015em; }
+.back-content .breakdown {
+  color: var(--ink-muted);
+  border-top: 1px solid var(--line);
+  font-size: 0.85rem;
+  padding-top: 14px;
+}
+
 .card-tag {
   font-family: var(--font-mono);
-  background: var(--gray-100);
-  border: 1px solid var(--gray-200);
-  color: var(--ink-muted);
-  font-weight: 500;
-  letter-spacing: 0.08em;
-  font-size: 0.6rem;
-}
-.tap-hint { font-size: 0.7rem; color: var(--ink-light); opacity: 1; }
-.letter-form-cell {
-  background: var(--surface);
-  border: 1px solid var(--gray-200);
-  border-radius: 10px;
-}
-.letter-form-cell .form-label { color: var(--ink-light); }
-.letter-form-cell .form-char { font-family: var(--font-farsi); color: var(--ink); }
-
-/* Nav + actions */
-.nav-btn {
-  background: var(--surface);
-  border: 1px solid var(--gray-200);
-  color: var(--ink-muted);
-  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-  transition: all 0.15s ease;
-}
-.nav-btn:hover { background: var(--gray-150); color: var(--ink); border-color: var(--gray-200); }
-.nav-btn:disabled { background: var(--surface); color: var(--ink-light); }
-.nav-pos { font-size: 0.84rem; color: var(--ink-muted); }
-.action-btn {
-  font-family: var(--font-title);
-  background: var(--surface);
-  border: 1px solid var(--gray-200);
-  color: var(--ink-muted);
-  font-weight: 500;
-  font-size: 0.78rem;
-  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.04);
-  transition: all 0.15s ease;
-  font-variant-ligatures: no-contextual;
-}
-.action-btn:hover { background: var(--gray-150); color: var(--ink); border-color: var(--gray-200); }
-.action-btn.active {
-  background: var(--notice);
-  border-color: var(--notice-border);
-  color: var(--notice-text);
-}
-
-/* Score buttons */
-.score-btn {
-  font-family: var(--font-title);
-  border-radius: 12px;
-  padding: 11px 32px;
-  font-size: 0.88rem;
-  font-weight: 500;
-  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-  transition: all 0.15s ease;
-  font-variant-ligatures: no-contextual;
-}
-.score-btn.know {
-  background: var(--notice-success);
-  border: 1px solid var(--notice-success-border);
-  color: var(--notice-success-text);
-}
-.score-btn.know:hover { filter: brightness(0.97); transform: translateY(-1px); }
-.score-btn.dunno {
-  background: var(--notice-error);
-  border: 1px solid var(--notice-error-border);
-  color: var(--notice-error-text);
-}
-.score-btn.dunno:hover { filter: brightness(0.97); transform: translateY(-1px); }
-
-/* Shortcuts */
-.shortcuts span { color: var(--ink-light); opacity: 1; }
-kbd {
-  font-family: var(--font-mono);
-  background: var(--surface);
-  border: 1px solid var(--gray-200);
-  border-bottom-width: 2px;
-  border-radius: 5px;
-  font-size: 0.64rem;
-  color: var(--ink-muted);
-}
-
-/* Empty state */
-.empty-state { color: var(--ink-muted); }
-.empty-state h2 {
-  font-family: var(--font-title);
-  font-weight: bold;
-  color: var(--ink);
-  letter-spacing: -0.01em;
-  font-variant-ligatures: no-contextual;
-}
-
-/* Verb trainer */
-.conj-table th {
-  font-family: var(--font-mono);
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  border-radius: 6px;
   color: var(--ink-light);
-  border-bottom: 1px solid var(--gray-200);
-  letter-spacing: 0.08em;
   font-weight: 500;
+  letter-spacing: 0.04em;
+  font-size: 0.58rem;
+  padding: 3px 8px;
+  text-transform: none;
 }
-.conj-table td { border-bottom: 1px solid var(--gray-150); }
-.conj-table td.person { color: var(--ink-light); }
-.conj-table td .fa { font-family: var(--font-farsi); color: var(--ink); }
-.conj-table td .pin { color: var(--ink-muted); }
-.conj-imp { color: var(--ink-muted); border-top: 1px solid var(--gray-200); }
-.conj-imp strong { color: var(--notice-info-text); }
-.conj-imp .fa-inline { font-family: var(--font-farsi); color: var(--ink); }
-.chip {
-  font-weight: 500;
-  font-size: 0.8rem;
-  padding: 6px 16px;
-  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+.tap-hint {
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  letter-spacing: 0.04em;
+  color: var(--ink-light);
+  opacity: 1;
 }
-.chip.person {
-  background: var(--notice-info);
-  border: 1px solid var(--notice-info-border);
-  color: var(--notice-info-text);
-}
-.chip.tense {
-  background: var(--notice);
-  border: 1px solid var(--notice-border);
-  color: var(--notice-text);
-}
-.drill-verb-pin { color: var(--notice-info-text); }
-.drill-verb-en { color: var(--ink-muted); }
 .mastered-badge {
   font-family: var(--font-mono);
-  background: var(--notice-success);
-  border: 1px solid var(--notice-success-border);
-  color: var(--notice-success-text);
-  letter-spacing: 0.08em;
-  font-size: 0.56rem;
-  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  background: var(--ok-soft);
+  border: 1px solid var(--ok-line);
+  border-radius: 6px;
+  color: var(--ok);
+  letter-spacing: 0.05em;
+  font-size: 0.55rem;
+  font-weight: 500;
+  box-shadow: none;
+  padding: 3px 8px;
 }
 
-/* Grading row (4-button FSRS scale) */
-.score-row { gap: 10px; flex-wrap: wrap; }
+.letter-form-cell {
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+}
+.letter-form-cell .form-label {
+  font-family: var(--font-mono);
+  font-size: 0.55rem;
+  letter-spacing: 0.06em;
+  color: var(--ink-light);
+}
+.letter-form-cell .form-char { font-family: var(--font-farsi); color: var(--text); }
+
+/* ---------- Nav + actions ---------- */
+
+.nav-btn {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  width: 36px;
+  height: 36px;
+  font-size: 0.95rem;
+  color: var(--ink-muted);
+  box-shadow: var(--shadow-xs);
+  transition: background var(--dur) var(--ease), border-color var(--dur) var(--ease), color var(--dur) var(--ease);
+}
+.nav-btn:hover { background: var(--surface-2); color: var(--text); border-color: var(--line-strong); }
+.nav-btn:disabled { background: var(--surface); color: var(--ink-light); opacity: 0.4; }
+.nav-pos {
+  font-family: var(--font-mono);
+  font-size: 0.74rem;
+  color: var(--ink-light);
+  letter-spacing: 0.02em;
+}
+
+.bottom-actions { gap: 6px; }
+.action-btn {
+  font-family: var(--font-sans);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  color: var(--ink-muted);
+  font-weight: 470;
+  font-size: 0.775rem;
+  letter-spacing: -0.005em;
+  padding: 6px 13px;
+  box-shadow: var(--shadow-xs);
+  transition: background var(--dur) var(--ease), border-color var(--dur) var(--ease), color var(--dur) var(--ease);
+}
+.action-btn:hover { background: var(--surface-2); color: var(--text); border-color: var(--line-strong); }
+.action-btn.active {
+  background: var(--accent-soft);
+  border-color: var(--accent-line);
+  color: var(--accent);
+  font-weight: 550;
+}
+
+/* ---------- Grading row ---------- */
+
+.score-row { gap: 8px; flex-wrap: wrap; }
 .score-btn {
+  font-family: var(--font-sans);
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 2px;
-  padding: 9px 20px;
+  gap: 1px;
+  border-radius: var(--r-md);
+  padding: 9px 18px;
   min-width: 92px;
+  font-size: 0.84rem;
+  font-weight: 520;
+  letter-spacing: -0.008em;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  color: var(--ink-muted);
+  box-shadow: var(--shadow-sm);
+  transition: background var(--dur) var(--ease), border-color var(--dur) var(--ease), transform var(--dur) var(--ease);
 }
 .score-sub {
   font-family: var(--font-mono);
-  font-size: 0.62rem;
-  opacity: 0.75;
+  font-size: 0.6rem;
+  letter-spacing: 0.02em;
+  opacity: 0.7;
   font-weight: 400;
 }
-.score-btn.again {
-  background: var(--notice-error);
-  border: 1px solid var(--notice-error-border);
-  color: var(--notice-error-text);
-}
-.score-btn.hard {
-  background: #fdf0d5;
-  border: 1px solid #e0b877;
-  color: #8a5a09;
-}
-.score-btn.easy {
-  background: var(--notice-info);
-  border: 1px solid var(--notice-info-border);
-  color: var(--notice-info-text);
-}
+.score-btn.again { background: var(--bad-soft);  border-color: var(--bad-line);  color: var(--bad); }
+.score-btn.hard  { background: var(--warn-soft); border-color: var(--warn-line); color: var(--warn); }
+.score-btn.know  { background: var(--ok-soft);   border-color: var(--ok-line);   color: var(--ok); }
+.score-btn.dunno { background: var(--bad-soft);  border-color: var(--bad-line);  color: var(--bad); }
+.score-btn.easy  { background: var(--info-soft); border-color: var(--info-line); color: var(--info); }
 .score-btn.show {
-  background: var(--ink);
-  border: 1px solid var(--ink);
-  color: #fff;
-  min-width: 240px;
-  padding: 12px 28px;
+  background: var(--text);
+  border-color: var(--text);
+  color: var(--bg);
+  min-width: 250px;
+  padding: 11px 28px;
+  font-weight: 550;
+  box-shadow: var(--shadow-md);
 }
-.score-btn.again:hover, .score-btn.hard:hover, .score-btn.easy:hover, .score-btn.show:hover {
-  filter: brightness(0.97);
+.score-btn.again:hover, .score-btn.hard:hover, .score-btn.easy:hover,
+.score-btn.know:hover, .score-btn.dunno:hover, .score-btn.show:hover {
   transform: translateY(-1px);
+  border-color: currentColor;
 }
-.score-btn.suggest { box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.18); }
+.score-btn.show:hover { border-color: var(--text); filter: brightness(1.12); }
+.score-btn.suggest { box-shadow: 0 0 0 3px var(--bad-soft), var(--shadow-sm); }
 
-/* Typed recall */
-.typed-input {
-  width: 100%;
-  max-width: 340px;
-  margin-top: 18px;
-  padding: 10px 14px;
-  border-radius: 10px;
-  border: 1px solid var(--gray-200);
-  background: var(--surface);
-  font-family: var(--font-sans);
-  font-size: 1rem;
-  color: var(--ink);
-  text-align: center;
-  outline: none;
+/* ---------- Shortcuts ---------- */
+
+.shortcuts span {
+  font-family: var(--font-mono);
+  font-size: 0.66rem;
+  letter-spacing: 0.01em;
+  color: var(--ink-light);
+  opacity: 1;
 }
-.typed-input:focus { border-color: var(--ink-light); box-shadow: var(--shadow-around-sm); }
-.typed-banner {
-  margin-top: 14px;
-  padding: 7px 14px;
-  border-radius: 10px;
-  font-size: 0.82rem;
+kbd {
+  font-family: var(--font-mono);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-bottom: 2px solid var(--line-strong);
+  border-radius: 5px;
+  font-size: 0.63rem;
+  padding: 1px 5px;
+  color: var(--ink-muted);
+}
+
+/* ---------- Empty state ---------- */
+
+.empty-state { color: var(--ink-light); }
+.empty-state h2 {
+  font-family: var(--font-sans);
+  font-weight: 580;
+  font-size: 1.15rem;
+  color: var(--text);
+  letter-spacing: -0.02em;
+}
+
+/* ---------- Verb trainer ---------- */
+
+.conj-table th {
+  font-family: var(--font-mono);
+  font-size: 0.57rem;
+  letter-spacing: 0.07em;
+  color: var(--ink-light);
+  border-bottom: 1px solid var(--line);
   font-weight: 500;
 }
-.typed-banner.right {
-  background: var(--notice-success);
-  border: 1px solid var(--notice-success-border);
-  color: var(--notice-success-text);
+.conj-table td { border-bottom: 1px solid var(--line); }
+.conj-table td.person { color: var(--ink-light); font-weight: 450; }
+.conj-table td .fa { font-family: var(--font-farsi); color: var(--text); }
+.conj-table td .pin { color: var(--ink-muted); font-style: normal; }
+.conj-imp { color: var(--ink-muted); border-top: 1px solid var(--line); }
+.conj-imp strong { color: var(--accent); font-style: normal; font-weight: 550; }
+.conj-imp .fa-inline { font-family: var(--font-farsi); color: var(--text); }
+
+.chip {
+  border-radius: 7px;
+  font-weight: 500;
+  font-size: 0.78rem;
+  letter-spacing: -0.005em;
+  padding: 5px 13px;
+  box-shadow: none;
 }
-.typed-banner.wrong {
-  background: var(--notice-error);
-  border: 1px solid var(--notice-error-border);
-  color: var(--notice-error-text);
+.chip.person { background: var(--info-soft); border: 1px solid var(--info-line); color: var(--info); }
+.chip.tense  { background: var(--accent-soft); border: 1px solid var(--accent-line); color: var(--accent); }
+.drill-verb-pin { color: var(--accent); font-style: normal; }
+.drill-verb-en { color: var(--ink-light); }
+
+/* ---------- Typed recall ---------- */
+
+.typed-input {
+  border-radius: 10px;
+  border: 1px solid var(--line);
+  background: var(--surface-2);
+  font-family: var(--font-sans);
+  color: var(--text);
+  transition: border-color var(--dur) var(--ease), box-shadow var(--dur) var(--ease);
 }
+.typed-input::placeholder { color: var(--ink-light); }
+.typed-input:focus {
+  border-color: var(--accent-line);
+  background: var(--surface);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+  outline: none;
+}
+.typed-banner { border-radius: 9px; font-weight: 500; font-size: 0.8rem; }
+.typed-banner.right { background: var(--ok-soft);  border: 1px solid var(--ok-line);  color: var(--ok); }
+.typed-banner.wrong { background: var(--bad-soft); border: 1px solid var(--bad-line); color: var(--bad); }
+
 .due-chip {
   font-family: var(--font-mono);
-  font-size: 0.62rem;
-  letter-spacing: 0.06em;
+  font-size: 0.6rem;
+  letter-spacing: 0.04em;
   color: var(--ink-light);
 }
 
 .filter-toggle { display: none; }
 .phone-hint { display: none; }
 
-/* Phone: one AirDropped file, no extra fonts needed, usable with a thumb */
+/* ---------- Phone ---------- */
+
 @media (max-width: 720px) {
   html, body { -webkit-text-size-adjust: 100%; }
-  body {
-    padding-bottom: calc(18px + env(safe-area-inset-bottom));
-  }
-  header { padding: 16px 16px 0; }
-  header h1 { font-size: 1.45rem; }
-  .tabs { padding: 12px 16px 10px; }
-  .tab-btn { padding: 10px 18px; min-height: 44px; }
+  body { padding-bottom: calc(18px + env(safe-area-inset-bottom)); }
+
+  header { padding: 0; }
+  .header-inner { padding: 11px 16px calc(11px); }
+  header h1 { font-size: 0.92rem; }
+  header .subtitle { font-size: 0.78rem; }
+
+  .tabs { padding: 14px 16px 12px; }
+  .tab-btn { padding: 9px 16px; min-height: 40px; font-size: 0.84rem; }
+
   .filters { padding: 0 16px; }
-  .stats-bar { padding: 0 16px 10px; flex-wrap: wrap; gap: 8px; }
+  .stats-bar { padding: 0 16px; margin-bottom: 14px; flex-wrap: wrap; gap: 8px; }
   .progress-track { width: 88px; }
+
   .card-area { padding: 0 16px 12px; }
-  .card-wrapper, .card { min-height: 260px; }
-  .card-face { padding: 28px 16px; }
-  .farsi-big { font-size: 2rem; }
+  .card-wrapper, .card { min-height: 270px; }
+  .card-face { padding: 30px 20px; border-radius: 16px; }
+  .farsi-big { font-size: 2.05rem; }
+
   .nav-row { padding: 0 16px 8px; }
-  .nav-btn { width: 44px; height: 44px; }
-  .bottom-actions {
-    padding: 0 16px 10px;
-    flex-wrap: wrap;
-  }
-  .action-btn { min-height: 40px; }
+  .nav-btn { width: 40px; height: 40px; }
+
+  .bottom-actions { padding: 0 16px 10px; flex-wrap: wrap; }
+  .action-btn { min-height: 38px; }
   .shortcuts { display: none; }
+
   .score-row {
     position: sticky;
     bottom: 0;
@@ -986,44 +1173,57 @@ kbd {
     max-width: none;
     margin: 0;
     padding: 10px 12px calc(10px + env(safe-area-inset-bottom));
-    gap: 8px;
-    background: color-mix(in srgb, var(--bg) 88%, transparent);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
+    gap: 7px;
+    background: color-mix(in srgb, var(--bg) 86%, transparent);
+    backdrop-filter: saturate(180%) blur(14px);
+    -webkit-backdrop-filter: saturate(180%) blur(14px);
+    border-top: 1px solid var(--line);
   }
-  .score-btn { min-width: 0; flex: 1; padding: 10px 8px; }
+  .score-btn { min-width: 0; flex: 1; padding: 10px 6px; }
   .score-btn.show { min-width: 0; width: 100%; }
+
   .typed-input { font-size: 16px; max-width: none; }
+
   .filter-toggle {
     display: block;
-    margin: 0 16px 10px;
+    margin: 0 16px 12px;
     width: calc(100% - 32px);
-    min-height: 44px;
-    border-radius: 12px;
-    border: 1px solid var(--gray-200);
+    min-height: 42px;
+    border-radius: 10px;
+    border: 1px solid var(--line);
     background: var(--surface);
-    color: var(--ink);
-    font-family: var(--font-title);
-    font-size: 0.88rem;
+    color: var(--ink-muted);
+    font-family: var(--font-sans);
+    font-size: 0.83rem;
     font-weight: 500;
+    box-shadow: var(--shadow-xs);
   }
-  body.filters-collapsed #fc-filters,
-  body.filters-collapsed #vt-filters { display: none !important; }
   .phone-hint {
     display: block;
     max-width: 580px;
-    margin: 0 auto 8px;
+    margin: 0 auto 10px;
     padding: 0 16px;
     font-size: 0.72rem;
     color: var(--ink-light);
     text-align: center;
-    line-height: 1.4;
+    line-height: 1.5;
   }
   .phone-hint[hidden] { display: none; }
+  body.filters-collapsed #fc-filters,
+  body.filters-collapsed #vt-filters { display: none !important; }
 }
+
 @media (hover: none) {
-  .pill:hover, .tab-btn:hover, .action-btn:hover, .nav-btn:hover { background: inherit; }
+  .pill:hover, .tab-btn:hover, .action-btn:hover, .nav-btn:hover {
+    background: inherit;
+    border-color: var(--line);
+    color: inherit;
+  }
+  .pill.active:hover { background: var(--text); border-color: var(--text); color: var(--bg); filter: none; }
+  .tab-btn.active:hover { background: var(--surface); border-color: var(--line); }
+  .card-wrapper:hover .card-face { border-color: var(--line); }
 }
+
 button, .pill, .tab-btn, .action-btn, .score-btn, .nav-btn {
   touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
@@ -1033,13 +1233,20 @@ button, .pill, .tab-btn, .action-btn, .score-btn, .nav-btn {
 <body>
 
 <header>
-  <h1>Farsi Flashcards</h1>
-  <div class="subtitle">پارسی را پاس بداریم</div>
+  <div class="header-inner">
+    <div class="wordmark">
+      <span class="mark" aria-hidden="true">ف</span>
+      <h1>Farsi Flashcards</h1>
+    </div>
+    <div class="subtitle">پارسی را پاس بداریم</div>
+  </div>
 </header>
 
 <div class="tabs">
-  <button class="tab-btn active" id="tab-cards" onclick="setTab('cards')">Flashcards</button>
-  <button class="tab-btn" id="tab-verbs" onclick="setTab('verbs')">Verb Trainer</button>
+  <div class="segmented" role="tablist">
+    <button class="tab-btn active" id="tab-cards" role="tab" onclick="setTab('cards')">Flashcards</button>
+    <button class="tab-btn" id="tab-verbs" role="tab" onclick="setTab('verbs')">Verb Trainer</button>
+  </div>
 </div>
 
 <p class="phone-hint" id="phone-hint" hidden>On iPhone: open this file in Safari, then Share → Add to Home Screen. Progress stays on this phone.</p>
@@ -2314,6 +2521,198 @@ const s33_phrases = [
   ["اتاق رو رنگ بزن","otāgh ro rang bezan","Paint the room","رنگ زدن / رنگ کردن"],
 ];
 
+// SESSION 34 DATA — prepositions of place, the kitchen, geography, gharār / gharār dāshtan
+const s34_vocab = [
+  ["بالا","bālā","up, above, upstairs","ب-ا-ل-ا"],
+  ["پایین","pāyin","down, below, downstairs","پ-ا-ی-ی-ن"],
+  ["راست","rāst","right","ر-ا-س-ت"],
+  ["چپ","chap","left","چ-پ"],
+  ["سمت","samt","side, direction","س-م-ت"],
+  ["سمت چپ","samt-e chap","left side","سمت + ezāfe + چپ"],
+  ["سمت راست","samt-e rāst","right side","سمت + ezāfe + راست"],
+  ["زندگی","zendegi","life","ز-ن-د-گ-ی"],
+  ["غذا","ghazā","food","غ-ذ-ا"],
+  ["یخ","yakh","ice","ی-خ"],
+  ["یخچال","yakhchāl","fridge, refrigerator","یخ (ice) + چال (pit) — literally 'ice pit'"],
+  ["تو","tu","in, inside (bare form)","becomes توی before a noun"],
+  ["توی","tuye","in, inside","تو + ezāfe — the spoken 'in'"],
+  ["تخم مرغ","tokhm-e morgh","egg","تخم (seed, egg) + مرغ (hen)"],
+  ["میوه","miveh","fruit","م-ی-و-ه"],
+  ["کیف","kif","bag","ک-ی-ف"],
+  ["ماشین","māshin","car","م-ا-ش-ی-ن"],
+  ["جوراب","joorāb","sock","ج-و-ر-ا-ب"],
+  ["کمد","komod","wardrobe, closet","ک-م-د"],
+  ["کلید","kelid / kilid","key","ک-ل-ی-د — both pronunciations are heard"],
+  ["دسته","dasteh","handle, bunch","د-س-ت-ه"],
+  ["دسته کلید","dasteh kelid","keychain","دسته (bunch) + کلید (key)"],
+  ["دسته گل","dasteh gol","bouquet","دسته (bunch) + گل (flower)"],
+  ["رو","ru","on, on top of (bare form)","becomes روی before a noun"],
+  ["روی","ruye / rooye","on, on top of","رو + ezāfe"],
+  ["میز","miz","table","م-ی-ز"],
+  ["لباس","lebās","clothes, clothing","ل-ب-ا-س"],
+  ["تخت","takht","bed","ت-خ-ت"],
+  ["صندلی","sandali","chair","ص-ن-د-ل-ی"],
+  ["موبایل","mobāil","mobile phone","م-و-ب-ا-ی-ل"],
+  ["ببین","bebin","look! (imperative)","imperative of دیدن (to see)"],
+  ["قابلمه","ghāblameh","pot, saucepan","ق-ا-ب-ل-م-ه"],
+  ["اجاق","ojāgh","stove","ا-ج-ا-ق"],
+  ["گاز","gāz","gas; the stove","گ-ا-ز — غذا روی گازه = the food is on the stove"],
+  ["کتاب","ketāb","book","ک-ت-ا-ب"],
+  ["زیر","zir / zire","under, beneath","زیرِ + noun"],
+  ["گربه","gorbeh","cat","گ-ر-ب-ه"],
+  ["کفش","kafsh","shoe","ک-ف-ش"],
+  ["مبل","mobl","sofa, armchair","م-ب-ل"],
+  ["کاناپه","kānāpeh","couch","ک-ا-ن-ا-پ-ه"],
+  ["کنار","kenār / kenāre","beside, next to","کنارِ + noun"],
+  ["زن","zan","woman; wife","ز-ن — زنش = his wife"],
+  ["همدیگه","hamdige","each other","هم + دیگه"],
+  ["جلوی","jeloye","in front of","جلو + ezāfe"],
+  ["پشت","poshte","behind","پشت + ezāfe"],
+  ["بین","beyne","between","بین + ezāfe"],
+  ["میان","miāne","between (formal, written)","میان + ezāfe — the written بین"],
+  ["بالای","bālāye","above","بالا + ezāfe"],
+  ["پایینِ","pāyine","below (as a preposition)","پایین + ezāfe — پایینِ + noun"],
+  ["در","dar","in (formal, written)","the written counterpart of توی"],
+  ["پنجره","panjareh / panjare","window","پ-ن-ج-ر-ه"],
+  ["قهوه‌جوش","ghahve-joosh","coffee pot, coffee maker","قهوه (coffee) + جوش (boil)"],
+  ["آب جوش","āb-e joosh","boiling water","آب (water) + جوش (boil)"],
+  ["ماهی‌تابه","māhi-tābeh","frying pan","ماهی (fish) + تابه (pan)"],
+  ["تابه","tābeh","pan","ت-ا-ب-ه"],
+  ["قوری چای","ghoori-e chāy","teapot","قوری (pot) + چای (tea)"],
+  ["کتری","ketri","kettle","ک-ت-ر-ی"],
+  ["سبد","sabad","basket","س-ب-د"],
+  ["سبد میوه","sabad-e miveh","fruit basket","سبد + میوه"],
+  ["ظرف","zarf","dish, container, bowl","ظ-ر-ف"],
+  ["ظرف میوه","zarf-e miveh","fruit bowl","ظرف + میوه"],
+  ["بطری","botri","bottle","ب-ط-ر-ی"],
+  ["بطری آب","botri-e āb","water bottle","بطری + آب"],
+  ["جعبه","ja'beh","box","ج-ع-ب-ه"],
+  ["جعبه تخم مرغ","ja'be-ye tokhm-e morgh","egg box","جعبه + تخم مرغ"],
+  ["سطل","satl","bucket, bin","س-ط-ل"],
+  ["زباله","zobāleh","refuse, waste","ز-ب-ا-ل-ه"],
+  ["آشغال","āshghāl","garbage, rubbish","آ-ش-غ-ا-ل"],
+  ["سطل زباله","satl-e zobāleh","trash can","سطل + زباله"],
+  ["سطل آشغال","satl-e āshghāl","trash can (everyday)","سطل + آشغال"],
+  ["بسته","basteh","packet, pack","ب-س-ت-ه"],
+  ["پاکت","pāakat","packet, paper bag","پ-ا-ک-ت"],
+  ["آرد","ārd","flour","آ-ر-د"],
+  ["لیوان","livān","glass, tumbler","ل-ی-و-ا-ن"],
+  ["لیوان آب","livān-e āb","glass of water","لیوان + آب"],
+  ["سفره","sofreh","tablecloth, spread","س-ف-ر-ه"],
+  ["نقشه","naghsheh","map","ن-ق-ش-ه"],
+  ["جغرافیا","joghrāfiā","geography","ج-غ-ر-ا-ف-ی-ا"],
+  ["جغرافیایی","joghrāfiāyi","geographic","جغرافیا + یی (adjective ending)"],
+  ["جهت","jahat","direction","ج-ه-ت"],
+  ["جهت‌های جغرافیایی","jahat hāye joghrāfiāyi","geographic directions","جهت‌ها + ی + جغرافیایی"],
+  ["شمال","shomāl","north","ش-م-ا-ل"],
+  ["جنوب","jonub / jonoob","south","ج-ن-و-ب"],
+  ["شرق","shargh","east","ش-ر-ق"],
+  ["غرب","gharb","west","غ-ر-ب"],
+  ["شمال شرقی","shomāl-e sharghi","northeast","شمال + شرقی"],
+  ["جنوب شرقی","jonoob-e sharghi","southeast","جنوب + شرقی"],
+  ["شمال غربی","shomāl-e gharbi","northwest","شمال + غربی"],
+  ["جنوب غربی","jonoob-e gharbi","southwest","جنوب + غربی"],
+  ["کشور","keshvar","country","ک-ش-و-ر"],
+  ["همسایه","hamsāyeh","neighbor","ه-م-س-ا-ی-ه"],
+  ["قرار","gharār","appointment, plan, date","ق-ر-ا-ر"],
+  ["قرار کاری","gharār-e kāri","work appointment, business meeting","قرار + کاری (work-related)"],
+  ["بی‌قرار","bigharār","restless; anxious","بی (without) + قرار (settledness)"],
+  ["بچه","bacheh","child, kid","ب-چ-ه"],
+  ["نگران","negarān","worried","ن-گ-ر-ا-ن — نگرانش = worried about him/her"],
+  ["قرار داشتن","gharār dāshtan","to be located, to be situated","قرار + داشتن — formal 'is located'"],
+  ["خاور میانه","khāvar-e miāneh","the Middle East","خاور (east) + میانه (middle)"],
+  ["نزدیک","nazdik","near, close","ن-ز-د-ی-ک"],
+  ["ساحل","sāhel","beach, shore","س-ا-ح-ل"],
+  ["خلیج","khalij","gulf, bay","خ-ل-ی-ج"],
+  ["خلیج فارس","Khalij-e Fārs","the Persian Gulf","خلیج + فارس"],
+  ["استان","ostān","province","ا-س-ت-ا-ن"],
+  ["مرکز","markaz","center","م-ر-ک-ز"],
+  ["مرکز شهر","markaz-e shahr","city center, downtown","مرکز + شهر"],
+  ["پایتخت","pāytakht","capital (city)","پای (foot) + تخت (throne)"],
+  ["سی و یک","si-o-yek","thirty-one","سی (30) + و + یک (1)"],
+  ["اتاق","otāgh","room","ا-ت-ا-ق"],
+  ["نشیمن","neshiman","sitting, seating","from نشستن (to sit)"],
+  ["اتاق نشیمن","otāgh-e neshiman","sitting room, living room","اتاق + نشیمن"],
+  ["توصیف کردن","tosif kardan","to describe","توصیف (description) + کردن"],
+];
+
+const s34_grammar = [
+  ["توی","tuye","in, inside (before a noun)","bare تو + ezāfe — غذا توی یخچاله"],
+  ["روی","ruye","on, on top of (before a noun)","bare رو + ezāfe — کلیدت روی میزه"],
+  ["زیرِ","zire","under (before a noun)","زیر + ezāfe — گربه زیر صندلی بود"],
+  ["کنارِ","kenāre","next to (before a noun)","کنار + ezāfe — سارا کنار من هست"],
+  ["جلویِ","jeloye","in front of (before a noun)","جلو + ezāfe"],
+  ["پشتِ","poshte","behind (before a noun)","پشت + ezāfe"],
+  ["بینِ","beyne","between (before a noun)","بین + ezāfe — formal میانِ"],
+  ["هستند","hastand","they are","plural of هست — تخم مرغ‌ها توی یخچال هستند"],
+  ["نیستند","nistand","they are not","plural negative — تخم مرغ‌ها توی یخچال نیستند"],
+  ["بودند","boodand","they were","plural past — میوه‌ها توی یخچال بودند"],
+  ["نبودند","naboodand","they were not","plural past negative — کفشات زیر تخت نبودند"],
+  ["نبود","nabood","it wasn't","singular past negative — کیفش توی ماشین نبود"],
+  ["کلیدم","kelidam","my key","کلید + م (my)"],
+  ["کلیدت","kelidet","your key","کلید + ت (your)"],
+  ["کیفش","kifesh","his/her bag","کیف + ش (his/her)"],
+  ["جورابام","joorāb-ām","my socks","جوراب‌های من contracted → جورابام"],
+  ["کفشات","kafshāt","your shoes","کفش‌های تو contracted → کفشات"],
+  ["لباسام","lebāsām","my clothes","لباس‌های من contracted → لباسام"],
+  ["کجاست","kojāst","where is it?","کجا + هست"],
+  ["کجان","kojānd / kojān","where are they?","کجا + هستند, contracted"],
+  ["قرار دارم","gharār dāram","I have an appointment / I am located","قرار + دارم"],
+  ["قرار دارد","gharār dārad","it is located","formal written دارد, not spoken داره"],
+  ["دارد","dārad","he/she/it has (formal, written)","the written form of داره"],
+  ["بی‌","bi-","without (negative prefix)","بی + قرار = بی‌قرار (restless)"],
+  ["شمالِ شرقی","shomāl-e sharghi","northeast","main direction + ezāfe + secondary direction in ـی"],
+];
+
+const s34_phrases = [
+  ["زندگی بالا و پایین داره.","Zendegi bālā o pāyin dāreh.","Life has its ups and downs.","زندگی + بالا و پایین + داره"],
+  ["غذا کجا هست؟","Ghazā kojā hast?","Where is the food?","غذا + کجا + هست"],
+  ["غذا توی یخچاله.","Ghazā tuye yakhchāl-eh.","The food is in the fridge.","یخچال + ه (spoken هست)"],
+  ["تخم مرغ‌ها توی یخچال نیستند.","Tokhm-e morgh hā tuye yakhchāl nistand.","The eggs are not in the fridge.","plural subject → نیستند"],
+  ["میوه‌ها توی یخچال بودند.","Miveh hā tuye yakhchāl boodand.","The fruits were in the fridge.","بودند = they were"],
+  ["کیفش توی ماشین نبود.","Kifesh tuye māshin nabood.","His bag was not in the car.","کیف + ش، نبود"],
+  ["جوراب‌های من کجا هستند؟","Joorāb hāye man kojā hastand?","Where are my socks?","full form"],
+  ["جورابام کجان؟","Joorāb hām kojānd?","Where are my socks?","contracted, everyday form"],
+  ["توی کمد.","Tuye komod.","Inside the wardrobe.","توی + کمد"],
+  ["کلیدم کجاست؟","Kelidam kojāst?","Where is my key?","کلید + م، کجا + هست"],
+  ["تو میدونی کلیدم کجاست؟","To midooni kelidam kojāst?","Do you know where my key is?","میدونی + embedded question"],
+  ["نمیدونم کلیدت کجاست!","Nemidoonam kelidet kojāst!","I don't know where your key is!","نمیدونم + کلیدت"],
+  ["ببین! کلیدت روی میزه.","Bebin! Kelidet ruye miz-eh.","Look! Your key is on the table.","ببین (imperative) + روی میز + ه"],
+  ["لباس‌هات روی تخت هستند.","Lebās hāt ruye takht hastand.","Your clothes are on the bed.","لباس‌ها + ت، هستند"],
+  ["لباس‌هام روی تختن.","Lebās hām ruye takht-and.","My clothes are on the bed.","هستند shortened to ـن"],
+  ["لباس‌هام توی کمدن.","Lebās hām tuye komod-and.","My clothes are in the wardrobe.","توی + کمد + ن"],
+  ["موبایلم کجا بود؟","Mobāilam kojā bood?","Where was my phone?","موبایل + م، بود"],
+  ["اینجا، روی این صندلی.","Injā, ruye in sandali.","Here, on this chair.","روی + این + صندلی"],
+  ["قابلمه روی اجاقه.","Ghāblameh ruye ojāgh-eh.","The pot is on the stove.","قابلمه + روی اجاق + ه"],
+  ["غذا روی گازه.","Ghazā ruye gāz-eh.","The food is on the stove.","گاز = the gas stove"],
+  ["کتاب روی میزه.","Ketāb ruye miz-eh.","The book is on the table.","کتاب + روی میز + ه"],
+  ["گربه زیر صندلی بود.","Gorbeh zire sandali bood.","The cat was under the chair.","زیرِ + صندلی + بود"],
+  ["کفش‌های تو زیر تخت نبودند.","Kafsh hāye to zire takht naboodand.","Your shoes weren't under the bed.","full form + نبودند"],
+  ["کفشات زیر تخت نبودند.","Kafshāt zire takht naboodand.","Your shoes weren't under the bed.","contracted کفشات"],
+  ["اونها زیر مبل هستند.","Oonhā zire mobl hastand.","They are under the sofa.","also زیر کاناپه"],
+  ["سارا کنار من هست.","Sārā kenāre man hast.","Sara is next to me.","کنارِ + من"],
+  ["علی کنار زنشه.","Ali kenāre zanesh-eh.","Ali is next to his wife.","زن + ش + ه"],
+  ["کنار دوستم","Kenāre doostam","Next to my friend","کنارِ + دوست + م"],
+  ["من کنار تو میشینم.","Man kenāre to mishinam.","I'll sit next to you.","میشینم = present of نشستن"],
+  ["ما کنار همدیگه میشینیم.","Mā kenāre hamdige mishinim.","We'll sit next to each other.","همدیگه = each other"],
+  ["آب داره می‌جوشه.","Āb dāre mijoosheh.","The water is boiling.","داره + می‌جوشه = continuous present of جوشیدن"],
+  ["کشورهای همسایه‌ی ایران","Keshvar hāye hamsāye-ye Iran","Iran's neighboring countries","کشورها + ی + همسایه + ی + ایران"],
+  ["من قرار دارم.","Man gharār dāram.","I have an appointment.","قرار + دارم"],
+  ["من قرار کاری دارم.","Man gharār-e kāri dāram.","I have a work appointment / business meeting.","قرار + کاری"],
+  ["من با علی قرار دارم.","Man bā Ali gharār dāram.","I'm meeting Ali.","با + person + قرار داشتن"],
+  ["ما با همدیگه قرار داریم.","Mā bā hamdige gharār dārim.","We're meeting. / We have a date.","با همدیگه + قرار داریم"],
+  ["بچه خیلی بی‌قرار هست.","Bache kheili bi-gharār hast.","The kid is very fidgety.","بی‌قرار = restless"],
+  ["مامانم خیلی بی‌قرار هست، من نگرانشم.","Māmānam kheili bi-gharār hast, man negarānesh hastam.","My mom is really anxious, and I'm worried about her.","نگران + ش (about her)"],
+  ["یه میز در مرکز اتاق قرار دارد.","Ye miz dar markaz-e otāgh gharār dārad.","There is a table in the center of the room.","در (formal in) + مرکزِ اتاق"],
+  ["ایران در خاور میانه قرار دارد.","Iran dar khāvar-e miāneh gharār dārad.","Iran is located in the Middle East.","خاور میانه = Middle East"],
+  ["هتل نزدیک ساحل قرار دارد.","Hotel nazdik-e sāhel gharār dārad.","The hotel is located near the beach.","نزدیکِ + ساحل"],
+  ["خلیج فارس در جنوب ایران قرار دارد.","Khalij-e Fārs dar jonoob-e Iran gharār dārad.","The Persian Gulf is located in the south of Iran.","خلیج فارس + جنوبِ ایران"],
+  ["ایران سی و یک استان دارد.","Iran si-o-yek ostān dārad.","Iran has thirty-one provinces.","سی و یک + استان"],
+  ["مرکز استان فارس شیراز هست.","Markaz-e ostān-e Fārs Shirāz hast.","The center of Fars Province is Shiraz.","chained ezāfe: مرکزِ استانِ فارس"],
+  ["تهران پایتخت ایران هست.","Tehran pāytakht-e Iran hast.","Tehran is the capital of Iran.","پایتختِ ایران"],
+  ["اتاق نشیمن رو توصیف کن.","Otāgh-e neshiman ro tosif kon.","Describe the sitting room.","رو = direct-object marker; کن = imperative of کردن"],
+];
+
 for (const c of s27_vocab)   { addCards('27','vocabulary',  [c], 'farsi-to-english'); addCards('27','vocabulary',  [c], 'english-to-farsi'); }
 for (const c of s27_grammar) { addCards('27','grammar',     [c], 'farsi-to-english'); }
 for (const c of s27_phrases) { addCards('27','phrases',     [c], 'farsi-to-english'); }
@@ -2336,11 +2735,14 @@ for (const c of s32_story)   { addCards('32','story',       [c], 'farsi-to-engli
 for (const c of s33_vocab)   { addCards('33','vocabulary',  [c], 'farsi-to-english'); addCards('33','vocabulary',  [c], 'english-to-farsi'); }
 for (const c of s33_grammar) { addCards('33','grammar',     [c], 'farsi-to-english'); }
 for (const c of s33_phrases) { addCards('33','phrases',     [c], 'farsi-to-english'); }
+for (const c of s34_vocab)   { addCards('34','vocabulary',  [c], 'farsi-to-english'); addCards('34','vocabulary',  [c], 'english-to-farsi'); }
+for (const c of s34_grammar) { addCards('34','grammar',     [c], 'farsi-to-english'); }
+for (const c of s34_phrases) { addCards('34','phrases',     [c], 'farsi-to-english'); }
 
 for (const c of alphabet) { addCards('alphabet','alphabet', [c], 'letter'); }
 
 // State
-let activeSessions = new Set(['22','23','24-25','26','27','28','29','30','31','32','33','alphabet']);
+let activeSessions = new Set(['22','23','24-25','26','27','28','29','30','31','32','33','34','alphabet']);
 let activeTypes = new Set(['vocabulary','grammar','phrases','story','alphabet']);
 let activeDirection = 'farsi-to-english';
 let frontMode = 'farsi';
@@ -2363,7 +2765,7 @@ let drillPrompt = null;
 let drillRight = 0;
 let drillWrong = 0;
 
-const sessions = [{id:'22',label:'Session 22'},{id:'23',label:'Session 23'},{id:'24-25',label:'Sessions 24-25'},{id:'26',label:'Session 26'},{id:'27',label:'Session 27'},{id:'28',label:'Session 28'},{id:'29',label:'Session 29'},{id:'30',label:'Session 30'},{id:'31',label:'Session 31'},{id:'32',label:'Session 32'},{id:'33',label:'Session 33'},{id:'alphabet',label:'Alphabet'}];
+const sessions = [{id:'22',label:'Session 22'},{id:'23',label:'Session 23'},{id:'24-25',label:'Sessions 24-25'},{id:'26',label:'Session 26'},{id:'27',label:'Session 27'},{id:'28',label:'Session 28'},{id:'29',label:'Session 29'},{id:'30',label:'Session 30'},{id:'31',label:'Session 31'},{id:'32',label:'Session 32'},{id:'33',label:'Session 33'},{id:'34',label:'Session 34'},{id:'alphabet',label:'Alphabet'}];
 const types = [{id:'vocabulary',label:'Vocabulary'},{id:'grammar',label:'Grammar'},{id:'phrases',label:'Phrases'},{id:'story',label:'Story'},{id:'alphabet',label:'Alphabet'}];
 const frontModes = [{id:'farsi',label:'Farsi Script'},{id:'pinglish',label:'Pinglish'}];
 const studyModes = [{id:'due',label:'Due & new'},{id:'all',label:'All cards'}];
@@ -3030,6 +3432,7 @@ const VERBS = [
     imp: { sg:'d\u0101shte b\u0101sh', sgFa:'داشته باش', pl:'d\u0101shte b\u0101shid', plFa:'داشته باشید', negSg:'nad\u0101shte b\u0101sh', negSgFa:'نداشته باش', negPl:'nad\u0101shte b\u0101shid', negPlFa:'نداشته باشید' } },
   { id: 'doost-dashtan', fa: 'دوست داشتن', pin: 'doost d\u0101shtan', en: 'to like, to love', pre: { fa:'دوست', pin:'doost' }, stem: 'd\u0101r', stemFa: 'دار', noMi: true, noCont: true,
     imp: { sg:'doost d\u0101shte b\u0101sh', sgFa:'دوست داشته باش', pl:'doost d\u0101shte b\u0101shid', plFa:'دوست داشته باشید', negSg:'doost nad\u0101shte b\u0101sh', negSgFa:'دوست نداشته باش', negPl:'doost nad\u0101shte b\u0101shid', negPlFa:'دوست نداشته باشید' } },
+  { id: 'gharar-dashtan', fa: 'قرار داشتن', pin: 'gharār dāshtan', en: 'to have an appointment; to be located', pre: { fa:'قرار', pin:'gharār' }, stem: 'dār', stemFa: 'دار', noMi: true, noCont: true },
   { id: 'alaghe-dashtan', fa: 'علاقه داشتن', pin: 'al\u0101ghe d\u0101shtan (be)', en: 'to be interested (in)', pre: { fa:'علاقه', pin:'al\u0101ghe' }, stem: 'd\u0101r', stemFa: 'دار', noMi: true, noCont: true },
   { id: 'khastan', fa: 'خواستن', pin: 'kh\u0101stan', en: 'to want', stem: 'kh\u0101', stemFa: 'خوا', vowel: true, noCont: true,
     imp: { sg:'bekh\u0101h', sgFa:'بخواه', pl:'bekh\u0101hid', plFa:'بخواهید', negSg:'nakh\u0101h', negSgFa:'نخواه', negPl:'nakh\u0101hid', negPlFa:'نخواهید' } },
