@@ -132,9 +132,23 @@ For every word, phrase, and concept in the teacher's materials:
 
 ### Generation
 
-Run: `python3 generate_anki.py`  
+**`flashcards.html` is the single source of truth for card data.** Both the web
+app and the Anki deck read from it, so a new session is added there once:
+
+1. Add `sNN_vocab` / `sNN_grammar` / `sNN_phrases` arrays alongside the existing ones
+2. Add the matching `for (const c of sNN_...) { addCards('NN', ...) }` lines
+3. Add `{id:'NN',label:'Session NN'}` to the `sessions` array and `'NN'` to the
+   default `activeSessions` set
+
+`generate_anki.py` parses those `addCards` registration lines and the arrays they
+name — it holds no card data of its own and picks up new sessions automatically.
+
+Run: `python3 generate_anki.py` (needs `pip install genanki`)  
 Output: `farsi_cursor_agent.apkg`  
 Import: Double-click the `.apkg` file to import into Anki
+
+The deck and model IDs are fixed, so re-importing a regenerated deck updates the
+existing cards in place rather than creating duplicates.
 
 ---
 
