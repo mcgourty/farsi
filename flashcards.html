@@ -1136,6 +1136,173 @@ kbd {
 .filter-toggle { display: none; }
 .phone-hint { display: none; }
 
+/* ---------- Filter group headers + bulk actions ---------- */
+
+.filter-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+.filter-head label { margin-bottom: 0; }
+.filter-acts { display: flex; gap: 2px; flex: none; }
+.mini {
+  font-family: var(--font-sans);
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  color: var(--ink-light);
+  font-size: 0.72rem;
+  font-weight: 470;
+  letter-spacing: -0.003em;
+  padding: 3px 7px;
+  cursor: pointer;
+  transition: background var(--dur) var(--ease), color var(--dur) var(--ease);
+}
+.mini:hover { background: var(--surface-2); color: var(--text); }
+
+/* ---------- Card-state colours ----------
+   Mid-tones on purpose: these sit on white chips, near-black chips, and the
+   inverted fill of an active pill, and stay legible on all three. */
+
+.seg-mature   { background: #3fa76a; }
+.seg-young    { background: #4a86d8; }
+.seg-learning { background: #d99a2b; }
+.seg-new      { background: var(--ink-light); opacity: 0.45; }
+
+/* ---------- Per-session meter inside a pill ---------- */
+
+.pill.has-meter {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 5px;
+  padding: 5px 11px 6px;
+  min-width: 92px;
+  --meter-track: var(--surface-3);
+}
+.pill.has-meter.active { --meter-track: color-mix(in srgb, var(--bg) 32%, transparent); }
+.pill .pill-text { display: block; text-align: center; }
+.pill .meter {
+  display: flex;
+  height: 3px;
+  border-radius: 2px;
+  overflow: hidden;
+  background: var(--meter-track);
+}
+.pill .seg { height: 100%; display: block; }
+
+/* ---------- Scope breakdown bar ---------- */
+
+.scope-bar {
+  max-width: 740px;
+  margin: 0 auto 18px;
+  padding: 0 20px;
+}
+.scope-track {
+  display: flex;
+  height: 6px;
+  border-radius: 99px;
+  overflow: hidden;
+  background: var(--surface-3);
+}
+.scope-seg { height: 100%; display: block; }
+.scope-legend {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 14px;
+  margin-top: 9px;
+}
+.legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.75rem;
+  color: var(--ink-light);
+  letter-spacing: -0.003em;
+  cursor: default;
+}
+.legend-item b { color: var(--text); font-weight: 550; font-variant-numeric: tabular-nums; }
+.legend-pct {
+  font-family: var(--font-mono);
+  font-size: 0.66rem;
+  color: var(--ink-light);
+  font-variant-numeric: tabular-nums;
+}
+.dot { width: 7px; height: 7px; border-radius: 2px; display: block; flex: none; }
+.scope-note {
+  font-family: var(--font-sans);
+  margin-left: auto;
+  background: var(--warn-soft);
+  border: 1px solid var(--warn-line);
+  border-radius: 7px;
+  color: var(--warn);
+  font-size: 0.72rem;
+  font-weight: 500;
+  padding: 3px 10px;
+  cursor: pointer;
+  transition: filter var(--dur) var(--ease);
+}
+.scope-note:hover { filter: brightness(0.96); }
+.scope-empty { font-size: 0.78rem; color: var(--ink-light); }
+
+.stat-today { color: var(--ink-muted); }
+.stat-streak { color: var(--accent); font-weight: 550; }
+
+/* ---------- Leech ---------- */
+
+.leech-badge {
+  position: absolute;
+  top: 14px;
+  right: 16px;
+  font-family: var(--font-mono);
+  background: var(--warn-soft);
+  border: 1px solid var(--warn-line);
+  border-radius: 6px;
+  color: var(--warn);
+  letter-spacing: 0.05em;
+  font-size: 0.55rem;
+  font-weight: 500;
+  padding: 3px 8px;
+  text-transform: uppercase;
+}
+.leech-tip {
+  margin-top: 12px;
+  padding: 9px 12px;
+  border-radius: 9px;
+  background: var(--warn-soft);
+  border: 1px solid var(--warn-line);
+  color: var(--warn);
+  font-size: 0.76rem;
+  line-height: 1.5;
+  text-align: left;
+}
+
+/* ---------- Audio ---------- */
+
+.speak-btn {
+  position: absolute;
+  bottom: 12px;
+  right: 14px;
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  border: 1px solid var(--line);
+  background: var(--surface-2);
+  color: var(--ink-muted);
+  font-size: 0.7rem;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background var(--dur) var(--ease), color var(--dur) var(--ease), border-color var(--dur) var(--ease);
+}
+.speak-btn:hover { background: var(--accent-soft); border-color: var(--accent-line); color: var(--accent); }
+.speak-btn:active { transform: scale(0.94); }
+
 /* ---------- Phone ---------- */
 
 @media (max-width: 720px) {
@@ -1151,7 +1318,15 @@ kbd {
   .tab-btn { padding: 9px 16px; min-height: 40px; font-size: 0.84rem; }
 
   .filters { padding: 0 16px; }
-  .stats-bar { padding: 0 16px; margin-bottom: 14px; flex-wrap: wrap; gap: 8px; }
+  .stats-bar { padding: 0 16px; margin-bottom: 10px; flex-wrap: wrap; gap: 8px; }
+  .scope-bar { padding: 0 16px; margin-bottom: 14px; }
+  .scope-legend { gap: 3px 10px; }
+  .legend-item { font-size: 0.71rem; }
+  .scope-note { margin-left: 0; }
+  .filter-head { flex-wrap: wrap; gap: 4px 12px; }
+  .mini { padding: 4px 8px; }
+  .pill.has-meter { min-width: 86px; }
+  .speak-btn { width: 34px; height: 34px; }
   .progress-track { width: 88px; }
 
   .card-area { padding: 0 16px 12px; }
@@ -1258,11 +1433,24 @@ button, .pill, .tab-btn, .action-btn, .score-btn, .nav-btn {
     <div class="pills" id="mode-pills"></div>
   </div>
   <div class="filter-group">
-    <label>Session</label>
+    <div class="filter-head">
+      <label>Session</label>
+      <div class="filter-acts">
+        <button type="button" class="mini" onclick="setAllSessions(true)">All</button>
+        <button type="button" class="mini" onclick="setAllSessions(false)">None</button>
+        <button type="button" class="mini" onclick="onlyNewestSession()">Newest only</button>
+      </div>
+    </div>
     <div class="pills" id="session-pills"></div>
   </div>
   <div class="filter-group">
-    <label>Card Type</label>
+    <div class="filter-head">
+      <label>Card Type</label>
+      <div class="filter-acts">
+        <button type="button" class="mini" onclick="setAllTypes(true)">All</button>
+        <button type="button" class="mini" onclick="setAllTypes(false)">None</button>
+      </div>
+    </div>
     <div class="pills" id="type-pills"></div>
   </div>
   <div class="filter-group">
@@ -1298,6 +1486,8 @@ button, .pill, .tab-btn, .action-btn, .score-btn, .nav-btn {
   </div>
 </div>
 
+<div class="scope-bar" id="scope-bar"></div>
+
 <div class="card-area" id="card-area">
   <div class="card-wrapper" id="card-wrapper" onclick="flipCard()">
     <div class="card" id="card">
@@ -1315,6 +1505,7 @@ button, .pill, .tab-btn, .action-btn, .score-btn, .nav-btn {
 
 <div class="bottom-actions">
   <button class="action-btn" id="typed-btn" onclick="toggleTyped()">Type answer</button>
+  <button class="action-btn" id="audio-btn" onclick="toggleAudio()" hidden>Auto-play audio</button>
   <button class="action-btn" id="shuffle-btn" onclick="toggleShuffle()">Shuffle</button>
   <button class="action-btn" id="mastered-btn" onclick="toggleHideMastered()">Hide mastered</button>
   <button class="action-btn" id="newlimit-btn" onclick="cycleNewLimit()">New/day: 20</button>
@@ -2755,6 +2946,7 @@ let hideMastered = false;
 let studyMode = 'due';
 let newPerDay = 20;
 let typedMode = false;
+let audioMode = false;
 let typedResult = null;
 let typedValue = '';
 let filtersExpanded = false;
@@ -2768,8 +2960,8 @@ let drillWrong = 0;
 const sessions = [{id:'22',label:'Session 22'},{id:'23',label:'Session 23'},{id:'24-25',label:'Sessions 24-25'},{id:'26',label:'Session 26'},{id:'27',label:'Session 27'},{id:'28',label:'Session 28'},{id:'29',label:'Session 29'},{id:'30',label:'Session 30'},{id:'31',label:'Session 31'},{id:'32',label:'Session 32'},{id:'33',label:'Session 33'},{id:'34',label:'Session 34'},{id:'alphabet',label:'Alphabet'}];
 const types = [{id:'vocabulary',label:'Vocabulary'},{id:'grammar',label:'Grammar'},{id:'phrases',label:'Phrases'},{id:'story',label:'Story'},{id:'alphabet',label:'Alphabet'}];
 const frontModes = [{id:'farsi',label:'Farsi Script'},{id:'pinglish',label:'Pinglish'}];
-const studyModes = [{id:'due',label:'Due & new'},{id:'all',label:'All cards'}];
-const directions = [{id:'farsi-to-english',label:'Farsi \u2192 English'},{id:'english-to-farsi',label:'English \u2192 Farsi'}];
+const studyModes = [{id:'due',label:'Due & new'},{id:'weak',label:'Weak spots'},{id:'all',label:'All cards'}];
+const directions = [{id:'farsi-to-english',label:'Farsi \u2192 English'},{id:'english-to-farsi',label:'English \u2192 Farsi'},{id:'both',label:'Both, mixed'}];
 
 function buildPills() {
   const mp = document.getElementById('mode-pills');
@@ -2783,10 +2975,13 @@ function buildPills() {
   }
   const sp = document.getElementById('session-pills');
   sp.innerHTML = '';
+  const perSession = sessionStateCounts();
   for (const s of sessions) {
     const b = document.createElement('button');
-    b.className = 'pill' + (activeSessions.has(s.id) ? ' active' : '');
-    b.textContent = s.label;
+    b.className = 'pill has-meter' + (activeSessions.has(s.id) ? ' active' : '');
+    const counts = perSession.get(s.id) || { new: 0, learning: 0, young: 0, mature: 0, total: 0 };
+    b.innerHTML = `<span class="pill-text">${s.label}</span>` + meterHTML(counts);
+    b.title = meterTitle(s.label, counts);
     b.onclick = () => { toggleSet(activeSessions, s.id); buildPills(); applyFilters(); };
     sp.appendChild(b);
   }
@@ -2823,10 +3018,17 @@ function toggleSet(set, val) {
   if (set.has(val)) set.delete(val); else set.add(val);
 }
 
-function inScope(c) {
+// Everything the current filters allow, ignoring the hide-mastered toggle —
+// the state breakdown should stay honest about cards you have already banked.
+function inScopeBase(c) {
   if (!activeSessions.has(c.session)) return false;
   if (!activeTypes.has(c.type)) return false;
-  if (c.type === 'vocabulary' && c.direction !== activeDirection) return false;
+  if (c.type === 'vocabulary' && activeDirection !== 'both' && c.direction !== activeDirection) return false;
+  return true;
+}
+
+function inScope(c) {
+  if (!inScopeBase(c)) return false;
   if (hideMastered && isMastered(c)) return false;
   return true;
 }
@@ -2859,11 +3061,47 @@ function scopeStats() {
   return { due, fresh, later };
 }
 
+// Two directions of one word are the same fact. Seeing فردا → tomorrow makes
+// tomorrow → فردا a freebie if it lands right behind it, so push siblings apart.
+const SIBLING_GAP = 8;
+
+function siblingKey(c) {
+  return c.type === 'alphabet' ? `alpha|${c.name}` : `${c.session}|${c.type}|${c.farsi}`;
+}
+
+function spaceSiblings(list, gap) {
+  const out = [];
+  const held = [];
+  const lastAt = new Map();
+  const place = c => { lastAt.set(siblingKey(c), out.length); out.push(c); };
+  const clear = c => {
+    const i = lastAt.get(siblingKey(c));
+    return i === undefined || out.length - i >= gap;
+  };
+  for (const c of list) {
+    if (clear(c)) place(c); else held.push(c);
+    for (let i = 0; i < held.length; i++) {
+      if (clear(held[i])) { place(held.splice(i, 1)[0]); i--; }
+    }
+  }
+  for (const c of held) place(c);   // no room left — take the collision
+  return out;
+}
+
 function applyFilters() {
   const base = CARDS.filter(inScope);
   const now = Date.now();
   if (studyMode === 'all') {
     queue = base.slice();
+    if (shuffled) shuffle(queue);
+  } else if (studyMode === 'weak') {
+    // Deliberate remediation: everything you have lapsed on or that FSRS rates
+    // as hard, worst first, regardless of whether it happens to be due.
+    queue = base.filter(isWeak);
+    queue.sort((a, b) => {
+      const x = srsOf(a), y = srsOf(b);
+      return (y.lapses - x.lapses) || (y.d - x.d);
+    });
     if (shuffled) shuffle(queue);
   } else {
     const due = [], fresh = [];
@@ -2877,6 +3115,7 @@ function applyFilters() {
     const allowance = Math.max(0, newPerDay - newToday());
     queue = interleave(due, fresh.slice(0, allowance));
   }
+  if (activeDirection === 'both') queue = spaceSiblings(queue, SIBLING_GAP);
   reviewedCount = 0;
   idx = 0;
   flipped = false;
@@ -2906,8 +3145,10 @@ function nextDueLabel() {
 
 function statsLine() {
   const s = scopeStats();
-  return `<strong>${queue.length}</strong> left &middot; ${s.due} due &middot; ${s.fresh} new &middot; `
-    + `<span style="color:var(--notice-success-text)">${masteredTotal()} mastered</span>`;
+  const streak = studyStreak();
+  return `<strong>${queue.length}</strong> left &middot; ${s.due} due &middot; ${s.fresh} new`
+    + ` &middot; <span class="stat-today">${revToday()} today</span>`
+    + (streak > 1 ? ` &middot; <span class="stat-streak">${streak}-day streak</span>` : '');
 }
 
 function escAttr(s) {
@@ -2986,6 +3227,20 @@ function renderCards() {
   if (isMastered(c)) {
     front.insertAdjacentHTML('beforeend', '<span class="mastered-badge">mastered</span>');
     back.insertAdjacentHTML('beforeend', '<span class="mastered-badge">mastered</span>');
+  } else if (isLeech(c)) {
+    const badge = `<span class="leech-badge">leech &middot; ${srsOf(c).lapses} lapses</span>`;
+    front.insertAdjacentHTML('beforeend', badge);
+    back.insertAdjacentHTML('beforeend', badge);
+    const body = back.querySelector('.back-content');
+    if (body) body.insertAdjacentHTML('beforeend',
+      '<div class="leech-tip">You keep losing this one. Another repetition will not fix it \u2014 '
+      + 'build a mnemonic, say it out loud, or break it into a smaller piece.</div>');
+  }
+
+  if (ttsReady() && speakableText(c)) {
+    back.insertAdjacentHTML('beforeend',
+      '<button type="button" class="speak-btn" title="Hear it (s)" aria-label="Hear it"'
+      + ' onclick="event.stopPropagation();speakCurrent()">\u25B6</button>');
   }
 
   const st = srsOf(c);
@@ -3003,6 +3258,8 @@ function renderCards() {
 
   const input = document.getElementById('typed-input');
   if (input && !flipped) input.focus();
+
+  if (flipped) maybeSpeak();
 }
 
 function typedRecallActive(c) {
@@ -3054,6 +3311,7 @@ function flipCard() {
   const card = document.getElementById('card');
   if (card) card.classList.toggle('flipped', flipped);
   renderScoreRow();
+  if (flipped) maybeSpeak();
 }
 
 function next() {
@@ -3082,12 +3340,7 @@ function toggleShuffle() {
 }
 
 function resetProgress() {
-  const base = CARDS.filter(c => {
-    if (!activeSessions.has(c.session)) return false;
-    if (!activeTypes.has(c.type)) return false;
-    if (c.type === 'vocabulary' && c.direction !== activeDirection) return false;
-    return true;
-  });
+  const base = CARDS.filter(inScopeBase);
   const hasSaved = base.some(c => store.srs[cardKey(c)]);
   if (hasSaved && !confirm('Reset the review schedule for the cards in this view? They go back to being brand new.')) return;
   for (const c of base) { delete store.srs[cardKey(c)]; delete store.mastery[cardKey(c)]; }
@@ -3103,6 +3356,7 @@ function gradeCard(g) {
   const prev = store.srs[k];
   const now = Date.now();
   if (!prev) bumpNewToday();
+  bumpRevToday();
   const st = fsrsReview(prev, g, now);
   store.srs[k] = st;
   reviewedCount++;
@@ -3171,6 +3425,7 @@ document.addEventListener('keydown', e => {
   if (e.key === ' ' || e.key === 'Spacebar') { e.preventDefault(); flipCard(); }
   if (e.key === 'ArrowRight') next();
   if (e.key === 'ArrowLeft') prev();
+  if (e.key === 's' || e.key === 'S') speakCurrent();
   if (tab === 'verbs') {
     if (e.key === '1') markCard(false);
     if (e.key === '2') markCard(true);
@@ -3181,7 +3436,7 @@ document.addEventListener('keydown', e => {
 
 // ===== Local storage persistence =====
 const LS_KEY = 'farsi-flashcards-v1';
-let store = { prefs: {}, mastery: {}, drill: {}, srs: {}, newLog: {}, migratedV2: false };
+let store = { prefs: {}, mastery: {}, drill: {}, srs: {}, newLog: {}, revLog: {}, migratedV2: false };
 try {
   const saved = JSON.parse(localStorage.getItem(LS_KEY));
   if (saved && typeof saved === 'object') {
@@ -3190,6 +3445,7 @@ try {
     store.drill = saved.drill || {};
     store.srs = saved.srs || {};
     store.newLog = saved.newLog || {};
+    store.revLog = saved.revLog || {};
     store.migratedV2 = !!saved.migratedV2;
   }
 } catch (e) {}
@@ -3207,6 +3463,7 @@ function persistStore() {
     studyMode: studyMode,
     newPerDay: newPerDay,
     typedMode: typedMode,
+    audioMode: audioMode,
     filtersExpanded: filtersExpanded,
     tab: tab,
     vtMode: vtMode,
@@ -3810,7 +4067,8 @@ function syncChrome() {
     hint.hidden = standalone || window.innerWidth > 720;
   }
   document.getElementById('shortcuts').innerHTML = tab === 'cards'
-    ? '<span><kbd>Space</kbd> show answer &nbsp; <kbd>1</kbd> again &nbsp; <kbd>2</kbd> hard &nbsp; <kbd>3</kbd> good &nbsp; <kbd>4</kbd> easy &nbsp; <kbd>&#8594;</kbd> skip</span>'
+    ? '<span><kbd>Space</kbd> show answer &nbsp; <kbd>1</kbd> again &nbsp; <kbd>2</kbd> hard &nbsp; <kbd>3</kbd> good &nbsp; <kbd>4</kbd> easy &nbsp; <kbd>&#8594;</kbd> skip'
+      + (ttsReady() ? ' &nbsp; <kbd>s</kbd> hear it' : '') + '</span>'
     : '<span><kbd>Space</kbd> flip &nbsp; <kbd>&#8592;</kbd><kbd>&#8594;</kbd> navigate &nbsp; <kbd>1</kbd> again &nbsp; <kbd>2</kbd> got it</span>';
 }
 
@@ -3825,6 +4083,7 @@ function render() {
   else if (vtMode === 'browse') renderBrowse();
   else renderDrill();
   renderScoreRow();
+  renderScopeBar();
   persistStore();
 }
 
@@ -3902,6 +4161,267 @@ function buildVtPills() {
   }
 }
 
+// ===== Card states, breakdown meters, filters, audio =====
+
+// The four states every SRS reports on. Order is "most learned first" so the
+// meters read as a progress bar filling from the left.
+const STATES = [
+  { id: 'mature',   label: 'Mature',   hint: 'stable for 21+ days' },
+  { id: 'young',    label: 'Young',    hint: 'in review, still consolidating' },
+  { id: 'learning', label: 'Learning', hint: 'in a learning or relearning step' },
+  { id: 'new',      label: 'New',      hint: 'not seen yet' },
+];
+
+function cardState(c) {
+  const st = srsOf(c);
+  if (!st) return 'new';
+  if (st.state === 'learning' || st.state === 'relearning') return 'learning';
+  return st.s >= MATURE_DAYS ? 'mature' : 'young';
+}
+
+function emptyCounts() {
+  return { new: 0, learning: 0, young: 0, mature: 0, total: 0 };
+}
+
+// Per session, honouring the type and direction filters but not the session
+// filter itself — otherwise every pill you switch off would read as empty.
+function sessionStateCounts() {
+  const m = new Map();
+  for (const c of CARDS) {
+    if (!activeTypes.has(c.type)) continue;
+    if (c.type === 'vocabulary' && activeDirection !== 'both' && c.direction !== activeDirection) continue;
+    let e = m.get(c.session);
+    if (!e) m.set(c.session, e = emptyCounts());
+    e[cardState(c)]++;
+    e.total++;
+  }
+  return m;
+}
+
+function scopeStateCounts() {
+  const e = emptyCounts();
+  for (const c of CARDS) {
+    if (!inScopeBase(c)) continue;
+    e[cardState(c)]++;
+    e.total++;
+  }
+  return e;
+}
+
+function meterHTML(counts) {
+  if (!counts.total) return '<span class="meter"></span>';
+  const segs = STATES.filter(st => st.id !== 'new' && counts[st.id])
+    .map(st => `<i class="seg seg-${st.id}" style="width:${(counts[st.id] / counts.total) * 100}%"></i>`)
+    .join('');
+  return `<span class="meter">${segs}</span>`;
+}
+
+function meterTitle(label, counts) {
+  if (!counts.total) return `${label} — no cards under the current filters`;
+  const parts = STATES.map(st => `${counts[st.id]} ${st.label.toLowerCase()}`);
+  return `${label} — ${counts.total} cards: ${parts.join(', ')}`;
+}
+
+function renderScopeBar() {
+  const el = document.getElementById('scope-bar');
+  if (!el) return;
+  if (tab !== 'cards') { el.innerHTML = ''; return; }
+
+  const counts = scopeStateCounts();
+  if (!counts.total) {
+    el.innerHTML = '<div class="scope-empty">No cards selected — turn a session back on above.</div>';
+    return;
+  }
+
+  const pct = id => (counts[id] / counts.total) * 100;
+  const track = STATES.map(st =>
+    counts[st.id] ? `<i class="scope-seg seg-${st.id}" style="width:${pct(st.id)}%"></i>` : '').join('');
+  const legend = STATES.map(st =>
+    `<span class="legend-item" title="${st.hint}">`
+    + `<i class="dot seg-${st.id}"></i>${st.label}`
+    + `<b>${counts[st.id]}</b>`
+    + `<span class="legend-pct">${Math.round(pct(st.id))}%</span></span>`).join('');
+
+  const leeches = countLeeches();
+  const note = leeches
+    ? `<button type="button" class="scope-note" onclick="studyWeakSpots()">`
+      + `${leeches} leech${leeches === 1 ? '' : 'es'} — study weak spots</button>`
+    : '';
+
+  el.innerHTML = `<div class="scope-track">${track}</div>`
+    + `<div class="scope-legend">${legend}${note}</div>`;
+}
+
+
+// ===== Bulk filter actions =====
+
+function setAllSessions(on) {
+  activeSessions = on ? new Set(sessions.map(x => x.id)) : new Set();
+  buildPills();
+  applyFilters();
+}
+
+function setAllTypes(on) {
+  activeTypes = on ? new Set(types.map(t => t.id)) : new Set();
+  buildPills();
+  applyFilters();
+}
+
+// "Newest" means the last numbered session in the list, not the alphabet.
+function onlyNewestSession() {
+  const numbered = sessions.filter(x => x.id !== 'alphabet');
+  const newest = numbered[numbered.length - 1];
+  if (!newest) return;
+  activeSessions = new Set([newest.id]);
+  buildPills();
+  applyFilters();
+}
+
+
+// ===== Leeches and weak spots =====
+
+// Anki flags a card at 8 lapses; 6 catches them a little earlier, which is
+// what you want when the fix is to re-encode rather than to keep drilling.
+const LEECH_LAPSES = 6;
+const HARD_DIFFICULTY = 7;   // FSRS difficulty runs 1-10
+
+function isLeech(c) {
+  const st = srsOf(c);
+  return !!st && st.lapses >= LEECH_LAPSES;
+}
+
+function isWeak(c) {
+  const st = srsOf(c);
+  return !!st && (st.lapses > 0 || st.d >= HARD_DIFFICULTY);
+}
+
+function countLeeches() {
+  let n = 0;
+  for (const c of CARDS) if (inScopeBase(c) && isLeech(c)) n++;
+  return n;
+}
+
+function studyWeakSpots() {
+  studyMode = 'weak';
+  buildPills();
+  applyFilters();
+}
+
+
+// ===== Daily activity and streak =====
+
+function revToday() { return (store.revLog || {})[todayKey()] || 0; }
+
+function bumpRevToday() {
+  if (!store.revLog) store.revLog = {};
+  store.revLog[todayKey()] = revToday() + 1;
+}
+
+function dayKeyOffset(n) {
+  const d = new Date();
+  d.setDate(d.getDate() - n);
+  return `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`;
+}
+
+// Counts back from today. A day with no reviews yet does not break the streak
+// until it is over, so an untouched morning still shows yesterday's run.
+function studyStreak() {
+  const log = store.revLog || {};
+  let n = 0;
+  let i = log[dayKeyOffset(0)] ? 0 : 1;
+  while (log[dayKeyOffset(i)]) { n++; i++; }
+  return n;
+}
+
+// The logs are keyed by day and only ever grow, so trim the old tail.
+function pruneLogs() {
+  const keep = new Set();
+  for (let i = 0; i < 400; i++) keep.add(dayKeyOffset(i));
+  for (const which of ['newLog', 'revLog']) {
+    const log = store[which];
+    if (!log) continue;
+    for (const k of Object.keys(log)) if (!keep.has(k)) delete log[k];
+  }
+}
+
+
+// ===== Text-to-speech =====
+//
+// Hearing a word while reading it is the cheapest win available here: the
+// script and the sound get encoded together instead of separately. Only
+// offered when the device actually has a Persian voice — without one the
+// browser reads Farsi script as nonsense.
+
+let faVoice = null;
+let spokenFor = null;
+
+function initVoices() {
+  if (!('speechSynthesis' in window)) return;
+  pickVoice();
+  speechSynthesis.addEventListener('voiceschanged', () => {
+    pickVoice();
+    syncAudioBtn();
+    if (tab === 'cards') render();
+  });
+}
+
+function pickVoice() {
+  let list = [];
+  try { list = speechSynthesis.getVoices() || []; } catch (e) { return; }
+  faVoice = list.find(v => /^fa\b|^fa[-_]/i.test(v.lang || '')) || null;
+}
+
+function ttsReady() { return !!faVoice; }
+
+function speakableText(c) {
+  if (!c || c.type === 'alphabet') return '';
+  return c.farsi || '';
+}
+
+function speakFarsi(text) {
+  if (!ttsReady() || !text) return;
+  try {
+    speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang = faVoice.lang || 'fa-IR';
+    // Some engines reject the voice object outright; the lang tag alone still
+    // gets Persian out of them, so never let this take the utterance down.
+    try { u.voice = faVoice; } catch (e) {}
+    u.rate = 0.85;
+    speechSynthesis.speak(u);
+  } catch (e) {}
+}
+
+function speakCurrent() {
+  if (tab !== 'cards') return;
+  speakFarsi(speakableText(queue[idx]));
+}
+
+// Auto-play fires once per reveal, not on every incidental re-render.
+function maybeSpeak() {
+  if (!audioMode || !ttsReady()) return;
+  const c = queue[idx];
+  if (!c) return;
+  const token = cardKey(c) + '|' + reviewedCount;
+  if (spokenFor === token) return;
+  spokenFor = token;
+  speakFarsi(speakableText(c));
+}
+
+function toggleAudio() {
+  audioMode = !audioMode;
+  syncAudioBtn();
+  if (audioMode) speakCurrent();
+  persistStore();
+}
+
+function syncAudioBtn() {
+  const b = document.getElementById('audio-btn');
+  if (!b) return;
+  b.hidden = !ttsReady();
+  b.classList.toggle('active', audioMode);
+}
+
 (function init() {
   const p = store.prefs || {};
   if (Array.isArray(p.sessions)) {
@@ -3919,8 +4439,9 @@ function buildVtPills() {
   if (typeof p.shuffled === 'boolean') shuffled = p.shuffled;
   if (typeof p.hideMastered === 'boolean') hideMastered = p.hideMastered;
   if (typeof p.typedMode === 'boolean') typedMode = p.typedMode;
+  if (typeof p.audioMode === 'boolean') audioMode = p.audioMode;
   if (typeof p.filtersExpanded === 'boolean') filtersExpanded = p.filtersExpanded;
-  if (p.studyMode === 'all' || p.studyMode === 'due') studyMode = p.studyMode;
+  if (studyModes.some(m => m.id === p.studyMode)) studyMode = p.studyMode;
   if (NEW_LIMITS.includes(p.newPerDay)) newPerDay = p.newPerDay;
   if (p.tab === 'verbs') tab = 'verbs';
   if (p.vtMode === 'drill') vtMode = 'drill';
@@ -3939,7 +4460,10 @@ function buildVtPills() {
   document.getElementById('shuffle-btn').classList.toggle('active', shuffled);
   document.getElementById('mastered-btn').classList.toggle('active', hideMastered);
   document.getElementById('typed-btn').classList.toggle('active', typedMode);
+  initVoices();
+  syncAudioBtn();
   syncNewLimitBtn();
+  pruneLogs();
   if (tab === 'verbs' && vtMode === 'drill') newDrillPrompt();
   buildPills();
   buildVtPills();
