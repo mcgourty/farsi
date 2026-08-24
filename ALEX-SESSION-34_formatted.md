@@ -2,506 +2,385 @@
 
 > **پارسی را پاس بداریم** — *Pārsi rā pās bedārim* — Protect Persian Language
 
-**Theme of this session:** *where things are.* Prepositions of place (`تو`, `رو`, `زیر`, `کنار`, `جلو`, `پشت`, `بین`), the household nouns to put in them, then the same idea scaled up to a map — geographic directions, provinces, capitals, and the formal verb `قرار داشتن` for "is located".
+**Theme of this session:** *comparison.* The `ـتر` comparative and `ـترین` superlative suffixes, the adjective pairs to use them on, and a short reading passage in the formal written register.
 
 ---
 
-## Cultural Note: Iran
+## Cultural Note: Jundishapur University
 
-Iran is a large country in Western Asia. It covers about **1.65 million square kilometers**, making it the **second-largest country in the Middle East**. Its population is around **88 million people**, making it one of the most populous countries in the region.
+**Jundishapur** (or **Gondishapur**) was a legendary ancient center of higher learning founded around **260 AD** in Sassanid Persia — modern-day **Khuzestan, Iran**.
+
+Renowned as one of the world's first teaching hospitals and university-style academies, it became a major intellectual hub by uniting **Greek, Persian, Roman and Indian** scholars in medicine, astronomy, philosophy and mathematics. Its tradition of translating key scientific texts and combining clinical practice with medical instruction directly inspired the **House of Wisdom** in Baghdad, helping trigger the **Islamic Golden Age**.
+
+Today its legacy is preserved by **Ahvaz Jundishapur University of Medical Sciences**.
 
 ---
 
-## Part 1 — Directions (بالا و پایین)
+## Part 1 — نظر — Opinion, View
 
 | Farsi | Pinglish | Meaning |
 |:-----:|:--------:|:-------:|
-| بالا | bālā | up, above, upstairs |
-| پایین | pāyin | down, below, downstairs |
-| راست | rāst | right |
-| چپ | chap | left |
-| سمت چپ | samt-e chap | left side |
-| سمت راست | samt-e rāst | right side |
+| نظر | nazar | opinion, view |
 
-**سمت** (*samt*) = side, direction. Join it to `چپ` / `راست` with the **ezāfe** (the little linking *-e*) and you get "the left side" / "the right side."
+**به نظر من…**
+*Be nazar-e man…*
+In my opinion…
 
-### Example
+**از نظر من…**
+*Az nazar-e man…*
+In my opinion… / From my point of view…
 
-**زندگی بالا و پایین داره.**
-*Zendegi bālā o pāyin dāreh.*
-Life has its ups and downs.
-
-- **زندگی** *zendegi* — life
-- **بالا و پایین** *bālā o pāyin* — up and down → "ups and downs"
-- **داره** *dāreh* — it has (`داشتن` third person, colloquial)
+→ Both take the **ezāfe**: `نظرِ من` — "the opinion of me." Swap `من` for anyone: `به نظرِ تو` (in your opinion), `به نظرِ اون` (in their opinion).
 
 ---
 
-## Part 2 — تو / توی — In, Inside
+## Part 2 — Comparative Adjectives with ـتر
 
-**تو** (*tu*) is the bare form; **توی** (*tuye*) is the linked form used before a noun. In fast speech `توی` often shortens back to `تو`.
+**The rule:** add **ـتر** (*-tar*) to the adjective. There are no irregular endings to memorise — the suffix is the same every time.
 
-### Vocabulary
+**The sentence frame:**
+
+> **[A] + از + [B] + [adjective]ـتر + هست / ـه**
+
+**از** (*az*) is the word for **than** here. It is the same `از` that means "from" — Persian uses one word for both.
+
+| Farsi | Pinglish | Meaning |
+|:-----:|:--------:|:-------:|
+| از | az | than; from |
+| ـتر | -tar | comparative suffix (more ...) |
+
+### Examples
+
+**امروز از دیروز گرم‌تره.**
+*Emrooz az dirooz garmtar-eh.*
+Today is warmer than yesterday.
+
+**امشب از دیشب گرم‌تره.**
+*Emshab az dishab garmtar-eh.*
+Tonight is warmer than last night.
+
+**امسال از پارسال سردتره.**
+*Emsāl az pārsāl sardtar-eh.*
+This year is colder than last year.
+→ Also **از سال پیش** (*az sāl-e pish*) — "than the year before."
+
+**تهران از شیراز بزرگ‌تر هست.**
+*Tehran az Shirāz bozorgtar hast.*
+Tehran is bigger than Shiraz.
+
+**شیراز از تهران کوچیک‌تر هست.**
+*Shirāz az Tehran koochiktar hast.*
+Shiraz is smaller than Tehran.
+
+### Plural subjects take هستند
+
+**فیل‌ها از طوطی‌ها بزرگ‌تر هستند.**
+*Fil hā az tuti hā bozorgtar hastand.*
+Elephants are bigger than parrots.
+
+**سگ از اسب کوچیک‌تر هست.**
+*Sag az asb koochiktar hast.*
+A dog is smaller than a horse.
+
+**سگ‌ها از اسب‌ها کوچیک‌تر هستند.**
+*Sag hā az asb hā koochiktar hastand.*
+Dogs are smaller than horses.
+
+### Comparing people
+
+**من از اون کوچیک‌تر هستم.**
+*Man az oon koochiktar hastam.*
+I am younger than her.
+→ Persian uses **کوچیک‌تر** (smaller) and **بزرگ‌تر** (bigger) for *younger* and *older*.
+
+**اون از من بزرگ‌تر هست.**
+*Oon az man bozorgtar hast.*
+He is older than me.
+
+**شوهرم از من بزرگ‌تر هست.**
+*Shoharam az man bozorgtar hast.*
+My husband is older than me.
+
+**تو از من جوون‌تر، کوچیک‌تر هستی.**
+*To az man javoontar, koochiktar hasti.*
+You are younger, smaller than me.
+
+**دوچرخه‌ی من از دوچرخه‌ی تو قدیمی‌تره.**
+*Docharkhe-ye man az docharkhe-ye to ghadimitar-eh.*
+My bicycle is older than your bicycle.
+→ For objects, "older" is **قدیمی‌تر** (*ghadimitar*), not بزرگ‌تر.
+
+---
+
+## Part 3 — The Adjective Ladder
+
+| Base | Pinglish | Comparative | Pinglish | Meaning |
+|:----:|:--------:|:-----------:|:--------:|:-------:|
+| بزرگ | bozorg | بزرگ‌تر | bozorgtar | big → bigger / older |
+| کوچک | koochak | کوچک‌تر | koochaktar | small → smaller / younger |
+| گرم | garm | گرم‌تر | garmtar | warm → warmer |
+| سرد | sard | سردتر | sardtar | cold → colder |
+| جالب | jāleb | جالب‌تر | jālebtar | interesting → more interesting |
+| پیر | peer | پیرتر | peertar | old (of a person) → older |
+| جوان / جوون | javān / javoon | جوون‌تر | javoontar | young → younger |
+| خوشگل | khoshgel | خوشگل‌تر | khoshgeltar | pretty → prettier |
+| خوب | khoob | **بهتر** | **behtar** | good → **better** (irregular) |
+
+**خوب → بهتر** is the one you cannot build with `ـتر`. Learn it as its own word.
+
+### Examples
+
+**یه کم بهترم!**
+*Ye kam behtaram!*
+I feel a bit better!
+
+**خیلی بهترم!**
+*Kheili behtaram!*
+I feel much better!
+
+**تو از من بزرگ‌تر هستی.**
+*To az man bozorgtar hasti.*
+You are older than me.
+
+**من از تو بزرگ‌تر هستم.**
+*Man az to bozorgtar hastam.*
+I am older than you.
+
+**خواهرم از من جوون‌تر هست.**
+*Khāharam az man javoontar hast.*
+My sister is younger than me.
+
+**این کفش خوشگل‌تره.**
+*In kafsh khoshgeltar-eh.*
+This shoe is prettier.
+
+**این بهتره!**
+*In behtar-eh!*
+This one is better!
+
+---
+
+## Part 4 — Superlative Adjectives with ـترین
+
+**The rule:** add **ـترین** (*-tarin*) to the adjective.
+
+**The frame:** superlatives sit **before** the noun and link to it with the **ezāfe**:
+
+> **[adjective]ـترین + [noun]ِ + [group]**
+
+**تهران بزرگ‌ترین شهر ایران هست.**
+*Tehran bozorgtarin shahr-e Iran hast.*
+Tehran is the biggest city in Iran.
+
+**یزد قشنگ‌ترین شهر ایران هست.**
+*Yazd ghashangtarin shahr-e Iran hast.*
+Yazd is the most beautiful city in Iran.
+
+**فسنجون خوشمزه‌ترین غذای ایرانی هست.**
+*Fesenjoon khoshmazzetarin ghazā-ye Irāni hast.*
+Fesenjoon is the tastiest Iranian food.
+
+### The two irregular ladders
+
+| Base | Comparative | Superlative |
+|:----:|:-----------:|:-----------:|
+| **خوب** *khoob* — good | **بهتر** *behtar* — better | **بهترین** *behtarin* — the best |
+| **بد** *bad* — bad | **بدتر** *badtar* — worse | **بدترین** *badtarin* — the worst |
+
+---
+
+## Part 5 — دنیا vs جهان — Two Words for "World"
+
+| Farsi | Pinglish | When to use it |
+|:-----:|:--------:|:---------------|
+| دنیا | donyā | Worldly life, everyday life, material existence. Has a philosophical or emotional tone. |
+| جهان | jahān | The universe, the whole of existence. Used in scientific or poetic contexts. |
+
+**تو بهترین مامان دنیا هستی.**
+*To behtarin māmān-e donyā hasti.*
+You are the best mother in the world.
+→ This is emotional and everyday, so it is **دنیا**, not جهان.
+
+---
+
+## Part 6 — Adjective Pairs
+
+Learn these as opposites — every one of them takes `ـتر` and `ـترین` regularly.
+
+| Farsi | Pinglish | Meaning | | Farsi | Pinglish | Meaning |
+|:-----:|:--------:|:-------:|:-:|:-----:|:--------:|:-------:|
+| لاغر | lāghar | slim, thin | ↔ | چاق | chāgh | fat |
+| کوتاه | kutāh | short | ↔ | بلند | boland | tall |
+| سنگین | sangin | heavy | ↔ | سبک | sabok | light |
+| کثیف | kasif | dirty | ↔ | تمیز | tamiz | clean |
+| کند | kond | slow | ↔ | تند | tond | fast |
+| بیشتر | bishtar | more | ↔ | کمتر | kamtar | less |
+| کوتاه | kutāh | short, brief | ↔ | طولانی | tulāni | long |
+| پر | por | full | ↔ | خالی | khāli | empty |
+
+**کوتاه** does double duty: *short* in height (opposite بلند) and *brief* in time (opposite طولانی). **بلند** likewise means both *tall* and *long*.
+
+---
+
+## Part 7 — Cultural Note: حلیم
+
+**حلیم** (*halim*) is a traditional, thick porridge made from **wheat or barley and meat** — usually lamb or chicken — sometimes sweetened with sugar or cinnamon. It is warm, hearty and nutritious, and is often eaten for **breakfast**.
+
+---
+
+## Part 8 — Reading: یادداشت‌های من
+
+The passage is written in the **formal written register**: `است` rather than the spoken `ـه`, `می‌شَوَم` rather than `میشم`. Read it aloud, then compare each line to how you would say it in conversation.
+
+> ### یادداشت‌هایِ من
+>
+> امروز جُمعه اَست. هَوا خیلی بِهتَر از دیروز است.
+>
+> صُبحِ زود بیدار میشم و صُبحانه دُرُست می‌کنم. حَلیم، نانِ داغ و چای. بویِ حَلیم و دارچین در خانه می‌پیچَد امّا خانه ساکِت اَست. بَچّه‌ها هَنوز خواب هَستَند. سیاوَش هَم. امروز جُمعه اَست. کَم کَم برایِ رفتن آماده می‌شَوَم. مَن خیلی خوشحالَم چون جُمعه‌ها کِلاسِ رَقص دارَم. جُمعه بِهتَرین روزِ هَفته اَست. هَمین.
+
+### Line by line
+
+**یادداشت‌هایِ من**
+*Yād dāsht hāye man*
+My notes
+
+**امروز جُمعه اَست.**
+*Emrooz jom'e ast.*
+Today is Friday.
+→ Spoken: *emrooz jom'e-ast* / *jom'e-s*.
+
+**هَوا خیلی بِهتَر از دیروز است.**
+*Havā kheili behtar az dirooz ast.*
+The weather is much better than yesterday.
+→ The comparative from Part 2, in the wild: **بهتر از** = better than.
+
+**صُبحِ زود بیدار میشم و صُبحانه دُرُست می‌کنم.**
+*Sobh-e zood bidār misham va sobhāneh dorost mikonam.*
+I wake up early in the morning and make breakfast.
+
+**حَلیم، نانِ داغ و چای.**
+*Halim, nān-e dāgh va chāy.*
+Halim, hot bread and tea.
+
+**بویِ حَلیم و دارچین در خانه می‌پیچَد امّا خانه ساکِت اَست.**
+*Booye halim va dārchin dar khāneh mipichad ammā khāneh sāket ast.*
+The smell of halim and cinnamon fills the house, but the house is quiet.
+
+**بَچّه‌ها هَنوز خواب هَستَند. سیاوَش هَم.**
+*Bachcheh hā hanooz khāb hastand. Siāvash ham.*
+The children are still asleep. Siavash too.
+
+**کَم کَم برایِ رفتن آماده می‌شَوَم.**
+*Kam kam barāye raftan āmādeh mishavam.*
+Little by little I get ready to leave.
+
+**مَن خیلی خوشحالَم چون جُمعه‌ها کِلاسِ رَقص دارَم.**
+*Man kheili khoshhālam chun jom'e hā kelās-e raghs dāram.*
+I am very happy because on Fridays I have a dance class.
+
+**جُمعه بِهتَرین روزِ هَفته اَست.**
+*Jom'e behtarin rooz-e hafteh ast.*
+Friday is the best day of the week.
+→ The superlative from Part 4: **بهترین روزِ هفته**.
+
+**هَمین.**
+*Hamin.*
+That's it. / Just that.
+
+---
+
+## Part 9 — Vocabulary from the Passage
 
 | Farsi | Pinglish | Meaning | Breakdown |
 |:-----:|:--------:|:-------:|:----------|
-| غذا | ghazā | food | غ-ذ-ا |
-| یخ | yakh | ice | ی-خ |
-| یخچال | yakhchāl | fridge, refrigerator | یخ (ice) + چال (pit, hollow) — literally "ice pit" |
-| تخم مرغ | tokhm-e morgh | egg | تخم (seed, egg) + مرغ (hen) |
-| میوه | miveh | fruit | م-ی-و-ه |
-| کیف | kif | bag | ک-ی-ف |
-| ماشین | māshin | car | م-ا-ش-ی-ن |
-| جوراب | joorāb | sock | ج-و-ر-ا-ب |
-| کمد | komod | wardrobe, closet | ک-م-د |
-
-### Sentences
-
-**غذا کجا هست؟**
-*Ghazā kojā hast?*
-Where is the food?
-
-**غذا توی یخچاله.**
-*Ghazā tuye yakhchāl-eh.*
-The food is in the fridge.
-→ `یخچاله` = `یخچال` + `ه`, the spoken contraction of `هست`.
-
-**تخم مرغ‌ها توی یخچال نیستند.**
-*Tokhm-e morgh hā tuye yakhchāl nistand.*
-The eggs are not in the fridge.
-→ plural subject → plural verb `نیستند` (they are not).
-
-**میوه‌ها توی یخچال بودند.**
-*Miveh hā tuye yakhchāl boodand.*
-The fruits were in the fridge.
-→ `بودند` = they were.
-
-**کیفش توی ماشین نبود.**
-*Kifesh tuye māshin nabood.*
-His bag was not in the car.
-→ `کیفش` = `کیف` + `ش` (his/her). `نبود` = it wasn't.
-
-**جوراب‌های من کجا هستند؟ / جورابام کجان؟**
-*Joorāb hāye man kojā hastand? / Joorāb hām kojānd?*
-Where are my socks?
-→ The second is the everyday contraction: `جوراب‌های من` → `جورابام`, and `کجا هستند` → `کجان`.
-
-**توی کمد.**
-*Tuye komod.*
-Inside the wardrobe.
-
----
-
-## Part 3 — رو / روی — On, On Top Of
-
-**رو** (*ru*) bare, **روی** (*ruye*) before a noun.
-
-### Vocabulary
-
-| Farsi | Pinglish | Meaning | Breakdown |
-|:-----:|:--------:|:-------:|:----------|
-| کلید | kelid / kilid | key | ک-ل-ی-د |
-| دسته | dasteh | handle, bunch | د-س-ت-ه |
-| دسته کلید | dasteh kelid | keychain | dasteh (bunch) + kelid (key) |
-| دسته گل | dasteh gol | bouquet | dasteh (bunch) + gol (flower) |
-| میز | miz | table | م-ی-ز |
-| لباس | lebās | clothes, clothing | ل-ب-ا-س |
-| تخت | takht | bed | ت-خ-ت |
-| صندلی | sandali | chair | ص-ن-د-ل-ی |
-| موبایل | mobāil | mobile phone | م-و-ب-ا-ی-ل |
-| ببین | bebin | look! (imperative) | imperative of دیدن (to see) |
-
-### Sentences
-
-**کلیدم کجاست؟**
-*Kelidam kojāst?*
-Where is my key?
-→ `کلیدم` = `کلید` + `م` (my). `کجاست` = `کجا` + `هست`.
-
-**تو میدونی کلیدم کجاست؟**
-*To midooni kelidam kojāst?*
-Do you know where my key is?
-
-**نمیدونم کلیدت کجاست!**
-*Nemidoonam kelidet kojāst!*
-I don't know where your key is!
-
-**ببین! کلیدت روی میزه.**
-*Bebin! Kelidet ruye miz-eh.*
-Look! Your key is on the table.
-
-**لباس‌هات روی تخت هستند. / لباس‌هام روی تختن.**
-*Lebās hāt ruye takht hastand. / Lebās hām ruye takht-and.*
-Your clothes are on the bed. / My clothes are on the bed.
-→ `-هات` = your (pl. noun), `-هام` = my (pl. noun). The `هستند` can drop to a bare `-ن` ending.
-
-**لباس‌هام توی کمدن.**
-*Lebās hām tuye komod-and.*
-My clothes are in the wardrobe.
-
-**موبایلم کجا بود؟**
-*Mobāilam kojā bood?*
-Where was my phone?
-
-**اینجا، روی این صندلی.**
-*Injā, ruye in sandali.*
-Here, on this chair.
-
----
-
-## Part 4 — The Stove (روی اجاق)
-
-| Farsi | Pinglish | Meaning | Breakdown |
-|:-----:|:--------:|:-------:|:----------|
-| قابلمه | ghāblameh | pot, saucepan | ق-ا-ب-ل-م-ه |
-| اجاق | ojāgh | stove | ا-ج-ا-ق |
-| گاز | gāz | gas; (by extension) the stove | گ-ا-ز |
-| کتاب | ketāb | book | ک-ت-ا-ب |
-
-**قابلمه روی اجاقه.**
-*Ghāblameh ruye ojāgh-eh.*
-The pot is on the stove.
-
-**غذا روی گازه.**
-*Ghazā ruye gāz-eh.*
-The food is on the stove.
-
-**کتاب روی میزه.**
-*Ketāb ruye miz-eh.*
-The book is on the table.
-
----
-
-## Part 5 — زیر / زیرِ — Under, Beneath
-
-| Farsi | Pinglish | Meaning |
-|:-----:|:--------:|:-------:|
-| زیر، زیرِ | zir, zire | under, beneath |
-| گربه | gorbeh | cat |
-| کفش | kafsh | shoe |
-| مبل | mobl | sofa, armchair |
-| کاناپه | kānāpeh | couch |
-
-**گربه زیر صندلی بود.**
-*Gorbeh zire sandali bood.*
-The cat was under the chair.
-
-**کفش‌های تو زیر تخت نبودند. / کفشات زیر تخت نبودند.**
-*Kafsh hāye to zire takht naboodand. / Kafshāt zire takht naboodand.*
-Your shoes weren't under the bed.
-→ Same contraction pattern again: `کفش‌های تو` → `کفشات`.
-
-**اونها زیر مبل هستند. / اونها زیر کاناپه‌ان.**
-*Oonhā zire mobl hastand. / Oonhā zire kānāpeh-and.*
-They are under the sofa!
-
----
-
-## Part 6 — کنار / کنارِ — Beside, Next To
-
-| Farsi | Pinglish | Meaning |
-|:-----:|:--------:|:-------:|
-| کنار، کنارِ | kenār, kenāre | beside, next to |
-| زن | zan | woman; wife |
-| دوست | doost | friend |
-| همدیگه | hamdige | each other |
-
-**سارا کنار من هست.**
-*Sārā kenāre man hast.*
-Sara is next to me.
-
-**علی کنار زنشه.**
-*Ali kenāre zanesh-eh.*
-Ali is next to his wife.
-→ `زنش` = `زن` + `ش` (his wife).
-
-**کنار دوستم**
-*Kenāre doostam*
-Next to my friend
-
-**کنار تو**
-*Kenāre to*
-Next to you
-
-**من کنار تو میشینم.**
-*Man kenāre to mishinam.*
-I'll sit next to you.
-→ `میشینم` = present of `نشستن` (to sit), stem `شین`.
-
-**ما کنار همدیگه میشینیم.**
-*Mā kenāre hamdige mishinim.*
-We'll sit next to each other.
-
----
-
-## Part 7 — The Full Preposition Set
-
-These all take the **ezāfe** ending when they link to a noun. Learn them as a block:
-
-| Farsi | Pinglish | Meaning |
-|:-----:|:--------:|:-------:|
-| جلویِ | jeloye | in front of |
-| پشتِ | poshte | behind |
-| بینِ | beyne | between |
-| میانِ | miāne | between (more formal / written) |
-| بالایِ | bālāye | above |
-| پایینِ | pāyine | below |
-| زیرِ | zire | under |
-| رویِ | rooye | on |
-| تویِ | tuye | in, inside |
-| کنارِ | kenāre | beside, next to |
-
-**The pattern:** `preposition + ِ (ezāfe) + noun`
-`زیر` + `ِ` + `تخت` → **زیرِ تخت** — under the bed.
-
----
-
-## Part 8 — Describe the Kitchen (آشپزخونه رو توصیف کن)
-
-### Exercise from the lesson
-
-> **Describe the kitchen.**
-
-| Farsi | Pinglish | Meaning | Breakdown |
-|:-----:|:--------:|:-------:|:----------|
-| پنجره | panjareh / panjare | window | پ-ن-ج-ر-ه |
-| قهوه‌جوش | ghahve-joosh | coffee pot, coffee maker | قهوه (coffee) + جوش (boil) |
-| آب جوش | āb-e joosh | boiling water | آب (water) + جوش (boil) |
-| ماهی‌تابه | māhi-tābeh | frying pan | ماهی (fish) + تابه (pan) |
-| تابه | tābeh | pan | ت-ا-ب-ه |
-| قوری چای | ghoori-e chāy | teapot | قوری (pot) + چای (tea) |
-| کتری | ketri | kettle | ک-ت-ر-ی |
-| سبد | sabad | basket | س-ب-د |
-| سبد میوه | sabad-e miveh | fruit basket | سبد + میوه |
-| ظرف | zarf | dish, container, bowl | ظ-ر-ف |
-| ظرف میوه | zarf-e miveh | fruit bowl | ظرف + میوه |
-| بطری | botri | bottle | ب-ط-ر-ی |
-| بطری آب | botri-e āb | water bottle | بطری + آب |
-| جعبه | ja'beh | box | ج-ع-ب-ه |
-| جعبه تخم مرغ‌ها | ja'be-ye tokhm-e morgh hā | egg box | جعبه + تخم مرغ‌ها |
-| سطل | satl | bucket, bin | س-ط-ل |
-| زباله | zobāleh | refuse, waste | ز-ب-ا-ل-ه |
-| آشغال | āshghāl | garbage, rubbish | آ-ش-غ-ا-ل |
-| سطل زباله | satl-e zobāleh | trash can | سطل + زباله |
-| سطل آشغال | satl-e āshghāl | trash can (everyday) | سطل + آشغال |
-| بسته | basteh | packet, pack | ب-س-ت-ه |
-| پاکت | pāakat | packet, paper bag | پ-ا-ک-ت |
-| آرد | ārd | flour | آ-ر-د |
-| لیوان | livān | glass, tumbler | ل-ی-و-ا-ن |
-| لیوان آب | livān-e āb | glass of water | لیوان + آب |
-| سفره | sofreh | tablecloth, spread | س-ف-ر-ه |
-
-### Sentence
-
-**آب داره می‌جوشه.**
-*Āb dāre mijoosheh.*
-The water is boiling.
-→ `داره + می‌جوشه` is the **continuous present**: "is (in the act of) boiling." Root verb: `جوشیدن` (*jooshidan*, to boil), stem `جوش`. Same `جوش` sits inside `قهوه‌جوش` and `آب جوش`.
-
----
-
-## Part 9 — Geography (جغرافیا)
-
-| Farsi | Pinglish | Meaning | Breakdown |
-|:-----:|:--------:|:-------:|:----------|
-| نقشه | naghsheh | map | ن-ق-ش-ه |
-| جغرافیا | joghrāfiā | geography | ج-غ-ر-ا-ف-ی-ا |
-| جغرافیایی | joghrāfiāyi | geographic | جغرافیا + یی (adjective ending) |
-| جهت | jahat | direction | ج-ه-ت |
-| جهت‌های جغرافیایی | jahat hāye joghrāfiāyi | geographic directions | جهت‌ها + ی + جغرافیایی |
-| شمال | shomāl | north | ش-م-ا-ل |
-| جنوب | jonub / jonoob | south | ج-ن-و-ب |
-| شرق | shargh | east | ش-ر-ق |
-| غرب | gharb | west | غ-ر-ب |
-| شمال شرقی | shomāl-e sharghi | northeast | شمال + شرقی |
-| جنوب شرقی | jonoob-e sharghi | southeast | جنوب + شرقی |
-| شمال غربی | shomāl-e gharbi | northwest | شمال + غربی |
-| جنوب غربی | jonoob-e gharbi | southwest | جنوب + غربی |
-| کشور | keshvar | country | ک-ش-و-ر |
-| همسایه | hamsāyeh | neighbor | ه-م-س-ا-ی-ه |
-
-**Compound rule:** the *main* direction stays a noun and takes ezāfe; the *secondary* one becomes an adjective in `-ی`.
-`شمال` + `ِ` + `شرقی` → **شمالِ شرقی** (north-eastern → northeast).
-
-**کشورهای همسایه‌ی ایران**
-*Keshvar hāye hamsāye-ye Iran*
-Iran's neighboring countries
-
----
-
-## Part 10 — قرار — Appointment
-
-| Farsi | Pinglish | Meaning |
-|:-----:|:--------:|:-------:|
-| قرار | gharār | appointment, plan, arrangement, date |
-| قرار کاری | gharār-e kāri | work appointment, business meeting |
-
-**من قرار دارم.**
-*Man gharār dāram.*
-I have an appointment.
-
-**من قرار کاری دارم.**
-*Man gharār-e kāri dāram.*
-I have a work appointment. / I have a business meeting.
-
-**من با علی قرار دارم.**
-*Man bā Ali gharār dāram.*
-I'm meeting Ali.
-
-**ما با همدیگه قرار داریم.**
-*Mā bā hamdige gharār dārim.*
-We're meeting. / We have a date.
-
----
-
-## Part 11 — بی‌قرار — Restless
-
-**بی‌** (*bi-*) is the negative prefix: "without." `بی` + `قرار` = "without settledness" → restless.
-
-| Farsi | Pinglish | Meaning |
-|:-----:|:--------:|:-------:|
-| بی‌قرار | bigharār | restless (physical, unable to relax); anxious (mental worry) |
-| بچه | bacheh | child, kid |
-| نگران | negarān | worried |
-
-**بچه خیلی بی‌قرار هست.**
-*Bache kheili bi-gharār hast.*
-The kid is very fidgety.
-
-**مامانم خیلی بی‌قرار هست، من نگرانشم.**
-*Māmānam kheili bi-gharār hast, man negarānesh hastam.*
-My mom is really anxious, and I'm worried about her.
-→ `نگرانش` = `نگران` + `ش` (worried *about her*).
-
----
-
-## Part 12 — قرار داشتن — To Be Located
-
-This is the formal/written way to say something **is situated** somewhere. The verb is `داشتن`, so it conjugates exactly like "to have" — but here the written third-person `دارد` (*dārad*) is used rather than the spoken `داره`.
-
-**یه میز در مرکز اتاق قرار دارد.**
-*Ye miz dar markaz-e otāgh gharār dārad.*
-There is a table in the center of the room.
-→ `در` (*dar*) is the formal written "in" — the counterpart of spoken `تو / توی`.
-
-**ایران در خاور میانه قرار دارد.**
-*Iran dar khāvar-e miāneh gharār dārad.*
-Iran is located in the Middle East.
-→ **خاور میانه** *khāvar-e miāneh* — the Middle East (خاور = east + میانه = middle).
-
-**هتل نزدیک ساحل قرار دارد.**
-*Hotel nazdik-e sāhel gharār dārad.*
-The hotel is located near the beach.
-→ **نزدیک** *nazdik* — near; **ساحل** *sāhel* — beach, shore.
-
-**خلیج فارس در جنوب ایران قرار دارد.**
-*Khalij-e Fārs dar jonoob-e Iran gharār dārad.*
-The Persian Gulf is located in the south of Iran.
-→ **خلیج فارس** *Khalij-e Fārs* — the Persian Gulf (خلیج = gulf, bay).
-
----
-
-## Part 13 — استان و پایتخت — Provinces and Capital
-
-| Farsi | Pinglish | Meaning |
-|:-----:|:--------:|:-------:|
-| استان | ostān | province |
-| مرکز | markaz | center |
-| مرکز شهر | markaz-e shahr | city center, downtown |
-| پایتخت | pāytakht | capital |
-| سی و یک | si-o-yek | thirty-one |
-
-**ایران سی و یک استان دارد.**
-*Iran si-o-yek ostān dārad.*
-Iran has thirty-one provinces.
-
-**مرکز استان فارس شیراز هست.**
-*Markaz-e ostān-e Fārs Shirāz hast.*
-The center of Fars Province is Shiraz.
-→ Note the chained ezāfe: `مرکزِ استانِ فارس` — "the center of the province of Fars."
-
-**تهران پایتخت ایران هست.**
-*Tehran pāytakht-e Iran hast.*
-Tehran is the capital of Iran.
-
----
-
-## Part 14 — اتاق نشیمن — The Sitting Room
-
-| Farsi | Pinglish | Meaning | Breakdown |
-|:-----:|:--------:|:-------:|:----------|
-| اتاق | otāgh | room | ا-ت-ا-ق |
-| نشیمن | neshiman | sitting, seating | from نشستن (to sit) |
-| اتاق نشیمن | otāgh-e neshiman | sitting room, living room | اتاق + نشیمن |
-| توصیف کردن | tosif kardan | to describe | توصیف (description) + کردن |
-
-### Exercise from the lesson
-
-**اتاق نشیمن رو توصیف کن.**
-*Otāgh-e neshiman ro tosif kon.*
-Describe the sitting room.
-→ `کن` is the imperative of `کردن`. `رو` here is the direct-object marker (`را`), not the preposition "on."
+| یادداشت | yād dāsht | note | یاد (memory) + داشت (had) |
+| یادداشت کردن | yād dāsht kardan | to note down | یادداشت + کردن |
+| داغ | dāgh | extremely hot | د-ا-غ |
+| دارچین | dārchin | cinnamon | د-ا-ر-چ-ی-ن |
+| ساکت | sāket | quiet, silent | س-ا-ک-ت |
+| هنوز | hanooz | yet, still | ه-ن-و-ز |
+| کم کم | kam kam | gradually, little by little | کم (little) doubled |
+| برای رفتن | barāye raftan | to go, for leaving | برای + رفتن (infinitive as a noun) |
+| آماده شدن | āmādeh shodan | to get ready | آماده (ready) + شدن |
+| رقص | raghs | dance | ر-ق-ص |
+| رقصیدن | raghsidan | to dance | present stem: رقص |
+| می‌رقصم | miraghsam | I dance | می + رقص + م |
+| پیچیدن | pichidan | to spread, to wind, to echo | present stem: پیچ |
+| صدا می‌پیچه | sedā mipicheh | the sound echoes / spreads | صدا (sound) + می‌پیچه |
+| بو می‌پیچه | boo mipicheh | the smell fills the air / spreads | بو (smell) + می‌پیچه |
+| جمعه | jom'e | Friday | ج-م-ع-ه |
+| هوا | havā | weather, air | ه-و-ا |
+| صبح زود | sobh-e zood | early morning | صبح + زود (early) |
+| صبحانه | sobhāneh | breakfast | from صبح (morning) |
+| نان / نون | nān / noon | bread | ن-ا-ن |
+| خواب | khāb | asleep; sleep | خ-و-ا-ب |
+| خوشحال | khoshhāl | happy | خوش (good) + حال (state) |
+| چون | chun | because | چ-و-ن |
+| کلاس رقص | kelās-e raghs | dance class | کلاس + رقص |
+| هفته | hafteh | week | ه-ف-ت-ه |
+| همین | hamin | that's it, just that | هم + این |
+| امّا | ammā | but | ا-م-ا |
+| است | ast | is (formal, written) | the written form of the spoken ـه |
+
+**The teacher's example of می‌پیچه:**
+*The sound of her laughter echoes in my head.* — built from the same pattern: **صدای خنده‌اش تو سرم می‌پیچه** (*Sedāye khandash tu saram mipicheh*).
 
 ---
 
 ## Grammar Summary
 
-### 1. The ezāfe on prepositions
+### 1. Comparative: ـتر
 
-Bare form → linked form before a noun:
+```
+adjective + ـتر
+بزرگ → بزرگ‌تر     گرم → گرم‌تر     جالب → جالب‌تر
+```
 
-| Bare | Linked | Meaning |
-|:----:|:------:|:-------:|
-| تو | توی | in |
-| رو | روی | on |
-| زیر | زیرِ | under |
-| کنار | کنارِ | next to |
-| جلو | جلویِ | in front of |
-| پشت | پشتِ | behind |
-| بین | بینِ | between |
+Sentence frame: **[A] از [B] [adj]ـتر + هست/ـه**
 
-### 2. Possessive suffix contractions
+Irregular: **خوب → بهتر**, **بد → بدتر**
 
-| Full form | Contracted | Meaning |
-|:---------:|:----------:|:-------:|
-| کلیدِ من | کلیدم | my key |
-| کلیدِ تو | کلیدت | your key |
-| کیفِ اون | کیفش | his/her bag |
-| جوراب‌های من | جورابام | my socks |
-| کفش‌های تو | کفشات | your shoes |
-| لباس‌های من | لباسام | my clothes |
+### 2. Superlative: ـترین
 
-### 3. "To be" across all four forms
+```
+adjective + ـترین
+بزرگ → بزرگ‌ترین     قشنگ → قشنگ‌ترین     خوشمزه → خوشمزه‌ترین
+```
 
-| | Singular | Plural |
-|:-:|:--------:|:------:|
-| **is / are** | هست، ـه | هستند، ـن |
-| **is not / are not** | نیست | نیستند |
-| **was / were** | بود | بودند |
-| **wasn't / weren't** | نبود | نبودند |
+Sentence frame: **[adj]ـترین + نounِ + group** — `بزرگ‌ترین شهرِ ایران`
 
-Plural subjects (`تخم مرغ‌ها`, `میوه‌ها`, `کفش‌ها`, `اونها`) take the plural verb.
+Irregular: **خوب → بهترین**, **بد → بدترین**
 
-### 4. Spoken vs. written "in"
+### 3. از does double duty
 
-- **توی / تو** — spoken, everyday: *غذا توی یخچاله.*
-- **در** — written, formal: *ایران در خاور میانه قرار دارد.*
+- **from** — `از تهران` (from Tehran)
+- **than** — `از تهران بزرگ‌تر` (bigger than Tehran)
 
-### 5. قرار داشتن conjugation (formal "is located")
+### 4. Age is size
 
-| Person | Farsi | Pinglish | English |
-|:------:|:-----:|:--------:|:-------:|
-| من | قرار دارم | gharār dāram | I am located |
-| تو | قرار داری | gharār dāri | you are located |
-| اون | قرار دارد | gharār dārad | it is located |
-| ما | قرار داریم | gharār dārim | we are located |
-| شما | قرار دارید | gharār dārid | you are located |
-| اونها | قرار دارند | gharār dārand | they are located |
+| Farsi | Literally | Means |
+|:-----:|:---------:|:-----:|
+| بزرگ‌تر | bigger | older (person) |
+| کوچیک‌تر | smaller | younger (person) |
+| جوون‌تر | younger | younger (person) |
+| پیرتر | older | older (person, emphasises being elderly) |
+| قدیمی‌تر | more antique | older (object) |
+
+### 5. Written vs spoken register
+
+| Written | Spoken | Meaning |
+|:-------:|:------:|:-------:|
+| است | ـه / ـست | is |
+| هستند | ـن | they are |
+| می‌شَوَم | میشم | I become |
+| می‌پیچَد | می‌پیچه | it spreads |
+| خانه | خونه | house |
+| نان | نون | bread |
 
 ---
 
 ## Practice Prompts from the Lesson
 
-1. **آشپزخونه رو توصیف کن** — *Describe the kitchen.* Use `روی`, `توی`, `زیر`, `کنار` with the kitchen nouns above.
-2. **اتاق نشیمن رو توصیف کن** — *Describe the sitting room.*
-3. **کشورهای همسایه‌ی ایران** — *Name Iran's neighboring countries* using `شمال`, `جنوب`, `شرق`, `غرب` and the compound directions.
+1. Compare two cities, two animals and two people using **از … ـتر**.
+2. Name the **بهترین** and **بدترین** of three things you care about.
+3. Re-tell the یادداشت passage in the spoken register — swap every `است` for `ـه`, `می‌شَوَم` for `میشم`.
