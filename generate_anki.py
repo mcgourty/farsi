@@ -8,6 +8,10 @@ there. This script reads the `for (const c of sNN_type)` registration lines
 out of flashcards.html, parses the arrays they name, and turns every entry
 into Anki notes.
 
+Verb *meaning* cards (session/type `verbs`) are generated at runtime from
+the trainer's VERBS list and are not exported here. The Anki deck still
+gets every hand-written session array.
+
 Run:    python3 generate_anki.py
 Output: farsi_cursor_agent.apkg (double-click to import into Anki)
 """

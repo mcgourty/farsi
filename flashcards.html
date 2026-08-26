@@ -1035,13 +1035,25 @@ header .subtitle {
   font-weight: 550;
   box-shadow: var(--shadow-md);
 }
+.score-btn.bury {
+  background: var(--surface-2);
+  border-color: var(--line);
+  color: var(--ink-muted);
+}
+.score-btn.unbury {
+  background: var(--accent-soft);
+  border-color: var(--accent-line);
+  color: var(--accent);
+}
 .score-btn.again:hover, .score-btn.hard:hover, .score-btn.easy:hover,
-.score-btn.know:hover, .score-btn.dunno:hover, .score-btn.show:hover {
+.score-btn.know:hover, .score-btn.dunno:hover, .score-btn.show:hover,
+.score-btn.bury:hover, .score-btn.unbury:hover {
   transform: translateY(-1px);
   border-color: currentColor;
 }
 .score-btn.show:hover { border-color: var(--text); filter: brightness(1.12); }
 .score-btn.suggest { box-shadow: 0 0 0 3px var(--bad-soft), var(--shadow-sm); }
+.score-btn.know.suggest { box-shadow: 0 0 0 3px var(--ok-soft), var(--shadow-sm); }
 
 /* ---------- Shortcuts ---------- */
 
@@ -1073,6 +1085,7 @@ kbd {
   color: var(--text);
   letter-spacing: -0.02em;
 }
+.empty-state .action-btn { margin-top: 12px; }
 
 /* ---------- Verb trainer ---------- */
 
@@ -1279,6 +1292,32 @@ kbd {
   line-height: 1.5;
   text-align: left;
 }
+.buried-badge {
+  position: absolute;
+  top: 14px;
+  right: 16px;
+  font-family: var(--font-mono);
+  background: var(--surface-2);
+  border: 1px solid var(--line-strong);
+  border-radius: 6px;
+  color: var(--ink-muted);
+  letter-spacing: 0.05em;
+  font-size: 0.55rem;
+  font-weight: 500;
+  padding: 3px 8px;
+  text-transform: uppercase;
+}
+.buried-tip {
+  margin-top: 12px;
+  padding: 9px 12px;
+  border-radius: 9px;
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  color: var(--ink-muted);
+  font-size: 0.76rem;
+  line-height: 1.5;
+  text-align: left;
+}
 
 /* ---------- Audio ---------- */
 
@@ -1356,6 +1395,12 @@ kbd {
   }
   .score-btn { min-width: 0; flex: 1; padding: 10px 6px; }
   .score-btn.show { min-width: 0; width: 100%; }
+  .score-btn.bury, .score-btn.unbury {
+    flex: 1 1 100%;
+    flex-direction: row;
+    gap: 8px;
+    padding: 8px 10px;
+  }
 
   .typed-input { font-size: 16px; max-width: none; }
 
@@ -1469,11 +1514,33 @@ button, .pill, .tab-btn, .action-btn, .score-btn, .nav-btn {
     <div class="pills" id="vt-mode-pills"></div>
   </div>
   <div class="filter-group" id="vt-tense-group">
-    <label>Tenses</label>
+    <div class="filter-head">
+      <label>Tenses</label>
+      <div class="filter-acts">
+        <button type="button" class="mini" onclick="setAllTenses(true)">All</button>
+        <button type="button" class="mini" onclick="setAllTenses(false)">None</button>
+      </div>
+    </div>
     <div class="pills" id="vt-tense-pills"></div>
   </div>
+  <div class="filter-group" id="vt-person-group">
+    <div class="filter-head">
+      <label>Person</label>
+      <div class="filter-acts">
+        <button type="button" class="mini" onclick="setAllPersons(true)">All</button>
+        <button type="button" class="mini" onclick="setAllPersons(false)">None</button>
+      </div>
+    </div>
+    <div class="pills" id="vt-person-pills"></div>
+  </div>
   <div class="filter-group">
-    <label>Verbs</label>
+    <div class="filter-head">
+      <label>Verbs</label>
+      <div class="filter-acts">
+        <button type="button" class="mini" onclick="setAllVtVerbs(true)">All</button>
+        <button type="button" class="mini" onclick="setAllVtVerbs(false)">None</button>
+      </div>
+    </div>
     <div class="pills" id="vt-verb-pills"></div>
   </div>
 </div>
@@ -1515,7 +1582,7 @@ button, .pill, .tab-btn, .action-btn, .score-btn, .nav-btn {
 <div class="score-row" id="score-row"></div>
 
 <div class="shortcuts" id="shortcuts">
-  <span><kbd>Space</kbd> show answer &nbsp; <kbd>1</kbd> again &nbsp; <kbd>2</kbd> hard &nbsp; <kbd>3</kbd> good &nbsp; <kbd>4</kbd> easy &nbsp; <kbd>&#8594;</kbd> skip</span>
+  <span><kbd>Space</kbd> show answer &nbsp; <kbd>1</kbd> again &nbsp; <kbd>2</kbd> hard &nbsp; <kbd>3</kbd> good &nbsp; <kbd>4</kbd> easy &nbsp; <kbd>b</kbd> bury &nbsp; <kbd>&#8594;</kbd> skip</span>
 </div>
 
 <script>
@@ -2899,8 +2966,8 @@ for (const c of s34_story)   { addCards('34','story',       [c], 'farsi-to-engli
 for (const c of alphabet) { addCards('alphabet','alphabet', [c], 'letter'); }
 
 // State
-let activeSessions = new Set(['22','23','24-25','26','27','28','29','30','31','32','33','34','alphabet']);
-let activeTypes = new Set(['vocabulary','grammar','phrases','story','alphabet']);
+let activeSessions = new Set(['22','23','24-25','26','27','28','29','30','31','32','33','34','alphabet','verbs']);
+let activeTypes = new Set(['vocabulary','grammar','phrases','story','alphabet','verbs']);
 let activeDirection = 'farsi-to-english';
 let frontMode = 'farsi';
 let queue = [];
@@ -2920,13 +2987,16 @@ let tab = 'cards';
 let vtMode = 'browse';
 let vIdx = 0;
 let drillPrompt = null;
+let drillQueue = [];
+let drillIdx = 0;
 let drillRight = 0;
 let drillWrong = 0;
+let browseIds = null;
 
-const sessions = [{id:'22',label:'Session 22'},{id:'23',label:'Session 23'},{id:'24-25',label:'Sessions 24-25'},{id:'26',label:'Session 26'},{id:'27',label:'Session 27'},{id:'28',label:'Session 28'},{id:'29',label:'Session 29'},{id:'30',label:'Session 30'},{id:'31',label:'Session 31'},{id:'32',label:'Session 32'},{id:'33',label:'Session 33'},{id:'34',label:'Session 34'},{id:'alphabet',label:'Alphabet'}];
-const types = [{id:'vocabulary',label:'Vocabulary'},{id:'grammar',label:'Grammar'},{id:'phrases',label:'Phrases'},{id:'story',label:'Story'},{id:'alphabet',label:'Alphabet'}];
+const sessions = [{id:'22',label:'Session 22'},{id:'23',label:'Session 23'},{id:'24-25',label:'Sessions 24-25'},{id:'26',label:'Session 26'},{id:'27',label:'Session 27'},{id:'28',label:'Session 28'},{id:'29',label:'Session 29'},{id:'30',label:'Session 30'},{id:'31',label:'Session 31'},{id:'32',label:'Session 32'},{id:'33',label:'Session 33'},{id:'34',label:'Session 34'},{id:'alphabet',label:'Alphabet'},{id:'verbs',label:'Verbs'}];
+const types = [{id:'vocabulary',label:'Vocabulary'},{id:'grammar',label:'Grammar'},{id:'phrases',label:'Phrases'},{id:'story',label:'Story'},{id:'alphabet',label:'Alphabet'},{id:'verbs',label:'Verbs'}];
 const frontModes = [{id:'farsi',label:'Farsi Script'},{id:'pinglish',label:'Pinglish'}];
-const studyModes = [{id:'due',label:'Due & new'},{id:'weak',label:'Weak spots'},{id:'all',label:'All cards'}];
+const studyModes = [{id:'due',label:'Due & new'},{id:'weak',label:'Weak spots'},{id:'all',label:'All cards'},{id:'buried',label:'Buried'}];
 const directions = [{id:'farsi-to-english',label:'Farsi \u2192 English'},{id:'english-to-farsi',label:'English \u2192 Farsi'},{id:'both',label:'Both, mixed'}];
 
 function buildPills() {
@@ -2984,13 +3054,24 @@ function toggleSet(set, val) {
   if (set.has(val)) set.delete(val); else set.add(val);
 }
 
+function isBuried(c) {
+  return !!(store.buried && store.buried[cardKey(c)]);
+}
+
+// Session / type / direction only — bury and mastery are layered on top.
+function matchesFilters(c) {
+  if (!activeSessions.has(c.session)) return false;
+  if (!activeTypes.has(c.type)) return false;
+  if ((c.type === 'vocabulary' || c.type === 'verbs') && activeDirection !== 'both' && c.direction !== activeDirection) return false;
+  return true;
+}
+
 // Everything the current filters allow, ignoring the hide-mastered toggle —
 // the state breakdown should stay honest about cards you have already banked.
 function inScopeBase(c) {
-  if (!activeSessions.has(c.session)) return false;
-  if (!activeTypes.has(c.type)) return false;
-  if (c.type === 'vocabulary' && activeDirection !== 'both' && c.direction !== activeDirection) return false;
-  return true;
+  if (!matchesFilters(c)) return false;
+  const buried = isBuried(c);
+  return studyMode === 'buried' ? buried : !buried;
 }
 
 function inScope(c) {
@@ -3057,7 +3138,7 @@ function spaceSiblings(list, gap) {
 function applyFilters() {
   const base = CARDS.filter(inScope);
   const now = Date.now();
-  if (studyMode === 'all') {
+  if (studyMode === 'all' || studyMode === 'buried') {
     queue = base.slice();
     if (shuffled) shuffle(queue);
   } else if (studyMode === 'weak') {
@@ -3110,6 +3191,9 @@ function nextDueLabel() {
 }
 
 function statsLine() {
+  if (studyMode === 'buried') {
+    return `<strong>${queue.length}</strong> buried &middot; hidden from study`;
+  }
   const s = scopeStats();
   const streak = studyStreak();
   return `<strong>${queue.length}</strong> left &middot; ${s.due} due &middot; ${s.fresh} new`
@@ -3126,7 +3210,11 @@ function renderCards() {
   if (queue.length === 0) {
     const s = scopeStats();
     let msg;
-    if (reviewedCount > 0) {
+    if (studyMode === 'buried') {
+      msg = reviewedCount > 0
+        ? `<div class="empty-state"><h2>Done for now</h2><p>Restored ${reviewedCount} card${reviewedCount === 1 ? '' : 's'}.</p></div>`
+        : '<div class="empty-state"><h2>Nothing buried</h2><p>Bury a card to hide it from study. It stays gone until you unbury it here.</p></div>';
+    } else if (reviewedCount > 0) {
       const nd = nextDueLabel();
       msg = `<div class="empty-state"><h2>Done for now</h2><p>${reviewedCount} card${reviewedCount === 1 ? '' : 's'} reviewed.`
         + (s.fresh ? ` ${s.fresh} new card${s.fresh === 1 ? '' : 's'} waiting behind today's limit of ${newPerDay}.` : '')
@@ -3138,7 +3226,10 @@ function renderCards() {
         + (s.fresh ? ` ${s.fresh} unseen card${s.fresh === 1 ? '' : 's'} left — raise New/day or switch to All cards to get ahead.` : '')
         + '</p></div>';
     } else {
-      msg = '<div class="empty-state"><h2>No cards match</h2><p>Adjust the filters above</p></div>';
+      const buriedN = countBuried();
+      msg = buriedN
+        ? `<div class="empty-state"><h2>No cards match</h2><p>${buriedN} buried card${buriedN === 1 ? '' : 's'} hidden from study. Open Buried to restore one.</p></div>`
+        : '<div class="empty-state"><h2>No cards match</h2><p>Adjust the filters above</p></div>';
     }
     area.innerHTML = msg;
     document.getElementById('nav-pos').textContent = '0 / 0';
@@ -3155,7 +3246,19 @@ function renderCards() {
   const front = document.getElementById('card-front');
   const back = document.getElementById('card-back');
 
-  if (c.type === 'alphabet') {
+  if (c.type === 'verbs') {
+    const tag = c.direction === 'english-to-farsi' ? 'VERBS / EN\u2192FA' : 'VERBS';
+    if (c.direction === 'english-to-farsi') {
+      front.innerHTML = `<span class="card-tag">${tag}</span><div class="front-content"><div class="english-big">${c.english}</div></div><span class="tap-hint">tap to reveal</span>`;
+      back.innerHTML = `<span class="card-tag">${tag}</span><div class="back-content"><div class="farsi-answer">${c.farsi}</div><div class="pinglish">${c.pinglish}</div><div class="breakdown">${c.breakdown}</div></div>`;
+    } else if (frontMode === 'pinglish') {
+      front.innerHTML = `<span class="card-tag">${tag}</span><div class="front-content"><div class="english-big" style="font-size:1.8rem;font-style:italic;color:var(--blue)">${c.pinglish}</div></div><span class="tap-hint">tap to reveal</span>`;
+      back.innerHTML = `<span class="card-tag">${tag}</span><div class="back-content"><div class="farsi-answer">${c.farsi}</div><div class="meaning">${c.english}</div><div class="breakdown">${c.breakdown}</div></div>`;
+    } else {
+      front.innerHTML = `<span class="card-tag">${tag}</span><div class="front-content"><div class="farsi-big">${c.farsi}</div></div><span class="tap-hint">tap to reveal</span>`;
+      back.innerHTML = `<span class="card-tag">${tag}</span><div class="back-content"><div class="farsi-answer">${c.farsi}</div><div class="pinglish">${c.pinglish}</div><div class="meaning">${c.english}</div><div class="breakdown">${c.breakdown}</div></div>`;
+    }
+  } else if (c.type === 'alphabet') {
     const tag = 'ALPHABET';
     if (frontMode === 'pinglish') {
       front.innerHTML = `<span class="card-tag">${tag}</span><div class="front-content"><div class="english-big">${c.name}</div><div class="pinglish" style="margin-top:8px">Sound: ${c.sound}</div></div><span class="tap-hint">tap to reveal</span>`;
@@ -3190,7 +3293,13 @@ function renderCards() {
     }
   }
 
-  if (isMastered(c)) {
+  if (isBuried(c)) {
+    front.insertAdjacentHTML('beforeend', '<span class="buried-badge">buried</span>');
+    back.insertAdjacentHTML('beforeend', '<span class="buried-badge">buried</span>');
+    const body = back.querySelector('.back-content');
+    if (body) body.insertAdjacentHTML('beforeend',
+      '<div class="buried-tip">Hidden from study. Unbury it if you want this card to come back.</div>');
+  } else if (isMastered(c)) {
     front.insertAdjacentHTML('beforeend', '<span class="mastered-badge">mastered</span>');
     back.insertAdjacentHTML('beforeend', '<span class="mastered-badge">mastered</span>');
   } else if (isLeech(c)) {
@@ -3228,7 +3337,17 @@ function renderCards() {
   if (flipped) maybeSpeak();
 }
 
+function typedAnswerPin() {
+  if (tab === 'verbs' && vtMode === 'drill' && drillPrompt) {
+    const ans = drillAnswer(drillPrompt);
+    return ans ? ans.pin : '';
+  }
+  if (tab === 'cards' && queue[idx]) return queue[idx].pinglish;
+  return '';
+}
+
 function typedRecallActive(c) {
+  if (tab === 'verbs') return typedMode && vtMode === 'drill' && !!drillPrompt;
   if (!typedMode || !c || c.type === 'alphabet' || frontMode === 'pinglish') return false;
   // Skip rule-of-thumb cards whose "pinglish" is an explanation rather than a word to type
   return !/[=\u0600-\u06FF]/.test(c.pinglish);
@@ -3257,17 +3376,18 @@ function typedKey(e) {
   if (e.key !== 'Enter') return;
   e.preventDefault();
   typedValue = e.target.value;
-  typedResult = pinMatches(typedValue, queue[idx].pinglish) ? 'right' : 'wrong';
+  typedResult = pinMatches(typedValue, typedAnswerPin()) ? 'right' : 'wrong';
   flipped = true;
   render();
 }
 
 function flipCard() {
-  if (!flipped && tab === 'cards' && queue.length && typedRecallActive(queue[idx])) {
+  const typedTarget = tab === 'verbs' ? drillPrompt : queue[idx];
+  if (!flipped && typedRecallActive(typedTarget)) {
     const el = document.getElementById('typed-input');
     if (el && el.value.trim()) {
       typedValue = el.value;
-      typedResult = pinMatches(typedValue, queue[idx].pinglish) ? 'right' : 'wrong';
+      typedResult = pinMatches(typedValue, typedAnswerPin()) ? 'right' : 'wrong';
       flipped = true;
       render();
       return;
@@ -3283,9 +3403,9 @@ function flipCard() {
 function next() {
   if (tab === 'verbs') {
     if (vtMode === 'browse') {
-      if (vIdx < browseVerbs().length - 1) { vIdx++; flipped = false; render(); }
-    } else {
-      newDrillPrompt(); flipped = false; render();
+      if (vIdx < browseList().length - 1) { vIdx++; flipped = false; render(); }
+    } else if (drillIdx < drillQueue.length - 1) {
+      drillIdx++; drillPrompt = drillQueue[drillIdx]; flipped = false; typedResult = null; typedValue = ''; render();
     }
     return;
   }
@@ -3294,6 +3414,9 @@ function next() {
 function prev() {
   if (tab === 'verbs') {
     if (vtMode === 'browse' && vIdx > 0) { vIdx--; flipped = false; render(); }
+    else if (vtMode === 'drill' && drillIdx > 0) {
+      drillIdx--; drillPrompt = drillQueue[drillIdx]; flipped = false; typedResult = null; typedValue = ''; render();
+    }
     return;
   }
   if (idx > 0) { idx--; flipped = false; typedResult = null; typedValue = ''; render(); }
@@ -3302,14 +3425,36 @@ function prev() {
 function toggleShuffle() {
   shuffled = !shuffled;
   document.getElementById('shuffle-btn').classList.toggle('active', shuffled);
+  browseIds = null;
+  if (tab === 'verbs') {
+    if (vtMode === 'drill') rebuildDrillQueue();
+    render();
+    return;
+  }
   applyFilters();
 }
 
 function resetProgress() {
-  const base = CARDS.filter(inScopeBase);
-  const hasSaved = base.some(c => store.srs[cardKey(c)]);
-  if (hasSaved && !confirm('Reset the review schedule for the cards in this view? They go back to being brand new.')) return;
-  for (const c of base) { delete store.srs[cardKey(c)]; delete store.mastery[cardKey(c)]; }
+  if (tab === 'verbs') {
+    const combos = allDrillCombos();
+    const hasSaved = combos.some(c => store.drill[drillKey(c)]);
+    if (hasSaved && !confirm('Reset conjugation drill scores for the selected verbs?')) return;
+    for (const c of combos) delete store.drill[drillKey(c)];
+    drillRight = 0;
+    drillWrong = 0;
+    rebuildDrillQueue();
+    render();
+    return;
+  }
+  const base = CARDS.filter(matchesFilters);
+  const hasSaved = base.some(c => store.srs[cardKey(c)] || isBuried(c));
+  if (hasSaved && !confirm('Reset the review schedule for the cards in this view? They go back to being brand new, and any buried cards come back.')) return;
+  for (const c of base) {
+    const k = cardKey(c);
+    delete store.srs[k];
+    delete store.mastery[k];
+    if (store.buried) delete store.buried[k];
+  }
   applyFilters();
 }
 
@@ -3325,9 +3470,10 @@ function gradeCard(g) {
   bumpRevToday();
   const st = fsrsReview(prev, g, now);
   store.srs[k] = st;
+  if (store.buried) delete store.buried[k];
   reviewedCount++;
   queue.splice(idx, 1);
-  if (st.due - now <= SITTING_MS) {
+  if (st.due - now <= SITTING_MS && studyMode !== 'buried') {
     const pos = Math.min(queue.length, idx + 3 + Math.floor(Math.random() * 4));
     queue.splice(pos, 0, c);
   }
@@ -3341,16 +3487,23 @@ function gradeCard(g) {
 // Verb drill keeps the simple right/wrong scoring
 function markCard(known) {
   if (tab !== 'verbs' || vtMode !== 'drill' || !drillPrompt) return;
-  if (!flipped) flipCard();
-  setTimeout(() => {
-    const k = drillKey(drillPrompt);
-    const st = store.drill[k] || { r: 0, w: 0 };
-    if (known) { st.r++; drillRight++; } else { st.w++; drillWrong++; }
-    store.drill[k] = st;
-    newDrillPrompt();
-    flipped = false;
-    render();
-  }, 200);
+  if (!flipped) { flipCard(); return; }
+  const c = drillPrompt;
+  const k = drillKey(c);
+  const st = store.drill[k] || { r: 0, w: 0 };
+  if (known) { st.r++; drillRight++; } else { st.w++; drillWrong++; }
+  store.drill[k] = st;
+  drillQueue.splice(drillIdx, 1);
+  if (!known) {
+    const pos = Math.min(drillQueue.length, drillIdx + 2 + Math.floor(Math.random() * 3));
+    drillQueue.splice(pos, 0, c);
+  }
+  if (drillIdx >= drillQueue.length) drillIdx = 0;
+  drillPrompt = drillQueue[drillIdx] || null;
+  flipped = false;
+  typedResult = null;
+  typedValue = '';
+  render();
 }
 
 const GRADES = [
@@ -3360,19 +3513,53 @@ const GRADES = [
   { g: 4, label: 'Easy', cls: 'easy' },
 ];
 
+function buryBtnHTML() {
+  return isBuried(queue[idx])
+    ? '<button class="score-btn unbury" onclick="unburyCard()"><span>Unbury</span><span class="score-sub">restore</span></button>'
+    : '<button class="score-btn bury" onclick="buryCard()"><span>Bury</span><span class="score-sub">hide</span></button>';
+}
+
+function buryCard() {
+  if (tab !== 'cards' || !queue.length) return;
+  const c = queue[idx];
+  if (isBuried(c)) return;
+  if (!store.buried) store.buried = {};
+  store.buried[cardKey(c)] = Date.now();
+  reviewedCount++;
+  queue.splice(idx, 1);
+  if (idx >= queue.length) idx = 0;
+  flipped = false;
+  typedResult = null;
+  typedValue = '';
+  render();
+}
+
+function unburyCard() {
+  if (tab !== 'cards' || !queue.length) return;
+  const c = queue[idx];
+  if (!isBuried(c)) return;
+  delete store.buried[cardKey(c)];
+  queue.splice(idx, 1);
+  if (idx >= queue.length) idx = 0;
+  flipped = false;
+  typedResult = null;
+  typedValue = '';
+  render();
+}
+
 function renderScoreRow() {
   const row = document.getElementById('score-row');
   if (!row) return;
   if (tab === 'verbs') {
-    row.innerHTML = vtMode === 'drill'
-      ? '<button class="score-btn again" onclick="markCard(false)">Again</button>'
-        + '<button class="score-btn know" onclick="markCard(true)">Got it</button>'
+    row.innerHTML = vtMode === 'drill' && drillPrompt
+      ? `<button class="score-btn again${typedResult === 'wrong' ? ' suggest' : ''}" onclick="markCard(false)">Again</button>`
+        + `<button class="score-btn know${typedResult === 'right' ? ' suggest' : ''}" onclick="markCard(true)">Got it</button>`
       : '';
     return;
   }
   if (!queue.length) { row.innerHTML = ''; return; }
   if (!flipped) {
-    row.innerHTML = '<button class="score-btn show" onclick="flipCard()">Show answer</button>';
+    row.innerHTML = '<button class="score-btn show" onclick="flipCard()">Show answer</button>' + buryBtnHTML();
     return;
   }
   const prev = store.srs[cardKey(queue[idx])];
@@ -3382,7 +3569,7 @@ function renderScoreRow() {
     const suggest = typedResult === 'wrong' && g === 1 ? ' suggest' : '';
     return `<button class="score-btn ${cls}${suggest}" onclick="gradeCard(${g})">`
       + `<span>${label}</span><span class="score-sub">${fmtIvl(st.due - now)}</span></button>`;
-  }).join('');
+  }).join('') + buryBtnHTML();
 }
 
 document.addEventListener('keydown', e => {
@@ -3397,12 +3584,15 @@ document.addEventListener('keydown', e => {
     if (e.key === '2') markCard(true);
   } else if (e.key >= '1' && e.key <= '4') {
     gradeCard(Number(e.key));
+  } else if (e.key === 'b' || e.key === 'B') {
+    if (queue.length && isBuried(queue[idx])) unburyCard();
+    else buryCard();
   }
 });
 
 // ===== Local storage persistence =====
 const LS_KEY = 'farsi-flashcards-v1';
-let store = { prefs: {}, mastery: {}, drill: {}, srs: {}, newLog: {}, revLog: {}, migratedV2: false };
+let store = { prefs: {}, mastery: {}, drill: {}, srs: {}, buried: {}, newLog: {}, revLog: {}, migratedV2: false };
 try {
   const saved = JSON.parse(localStorage.getItem(LS_KEY));
   if (saved && typeof saved === 'object') {
@@ -3410,6 +3600,7 @@ try {
     store.mastery = saved.mastery || {};
     store.drill = saved.drill || {};
     store.srs = saved.srs || {};
+    store.buried = saved.buried || {};
     store.newLog = saved.newLog || {};
     store.revLog = saved.revLog || {};
     store.migratedV2 = !!saved.migratedV2;
@@ -3435,6 +3626,7 @@ function persistStore() {
     vtMode: vtMode,
     tenses: [...activeTenses],
     knownTenses: TENSES.map(t => t.id),
+    persons: [...activePersons],
     verbsOff: VERBS.filter(v => !activeVerbs.has(v.id)).map(v => v.id),
   };
   try { localStorage.setItem(LS_KEY, JSON.stringify(store)); } catch (e) {}
@@ -3780,6 +3972,7 @@ const TENSES = [
 
 let activeTenses = new Set(TENSES.map(t => t.id));
 let activeVerbs = new Set(VERBS.map(v => v.id));
+let activePersons = new Set([0, 1, 2, 3, 4, 5]);
 
 // ===== Conjugation engine (colloquial Tehrani forms) =====
 // Past stem = infinitive minus the final -an / -ن (true for every Persian verb)
@@ -3865,9 +4058,208 @@ function drillBreakdown(d) {
   return s;
 }
 
+// ===== Verb meaning cards (general flashcards) =====
+//
+// The trainer drills *producing* a form. These cards drill *what it means*,
+// both ways, for every person × tense the engine can build.
+
+const EN_SUBJ = ['I', 'you', 'he/she', 'we', 'you (pl/formal)', 'they'];
+const EN_POSS = ['my', 'your', 'their', 'our', 'your', 'their'];
+const EN_BE_PRES = ['am', 'are', 'is', 'are', 'are', 'are'];
+const EN_BE_PAST = ['was', 'were', 'was', 'were', 'were', 'were'];
+const EN_FUT = ["I'll", "you'll", "he/she'll", "we'll", "you'll", "they'll"];
+const EN_NO_FUTURE = new Set(['be', 'have', 'own', 'know', 'want', 'like', 'love']);
+const EN_DOUBLE = new Set(['shop', 'chat', 'get', 'put', 'hit', 'sit', 'clap', 'stop', 'plan']);
+const EN_IRREG = {
+  be: {},
+  have: { pres3: 'has', past: 'had', gerund: 'having' },
+  do: { pres3: 'does', past: 'did', gerund: 'doing' },
+  go: { past: 'went' },
+  come: { past: 'came' },
+  eat: { past: 'ate' },
+  drink: { past: 'drank' },
+  say: { past: 'said' },
+  tell: { past: 'told' },
+  give: { past: 'gave', gerund: 'giving' },
+  see: { past: 'saw', gerund: 'seeing' },
+  sit: { past: 'sat', gerund: 'sitting' },
+  get: { past: 'got', gerund: 'getting' },
+  make: { past: 'made', gerund: 'making' },
+  buy: { past: 'bought' },
+  sell: { past: 'sold' },
+  sleep: { past: 'slept' },
+  wake: { past: 'woke', gerund: 'waking' },
+  become: { past: 'became', gerund: 'becoming' },
+  hit: { past: 'hit', gerund: 'hitting' },
+  strike: { past: 'struck', gerund: 'striking' },
+  know: { past: 'knew', gerund: 'knowing' },
+  think: { past: 'thought' },
+  teach: { pres3: 'teaches', past: 'taught' },
+  feed: { past: 'fed' },
+  read: { past: 'read' },
+  speak: { past: 'spoke', gerund: 'speaking' },
+  put: { past: 'put', gerund: 'putting' },
+  hurt: { past: 'hurt' },
+  ride: { past: 'rode', gerund: 'riding' },
+  beat: { past: 'beat' },
+  ring: { past: 'rang' },
+  die: { pres3: 'dies', past: 'died', gerund: 'dying' },
+  live: { pres3: 'lives', past: 'lived' },
+  sing: { past: 'sang' },
+  spread: { past: 'spread' },
+  wind: { past: 'wound' },
+  drive: { past: 'drove', gerund: 'driving' },
+};
+
+function enPres3(verb) {
+  if (EN_IRREG[verb] && EN_IRREG[verb].pres3) return EN_IRREG[verb].pres3;
+  if (/[sxz]$|[cs]h$/.test(verb) || /[^aeiou]o$/.test(verb)) return verb + 'es';
+  if (/[^aeiou]y$/.test(verb)) return verb.slice(0, -1) + 'ies';
+  return verb + 's';
+}
+
+function enPastForm(verb) {
+  if (EN_IRREG[verb] && EN_IRREG[verb].past) return EN_IRREG[verb].past;
+  if (verb.endsWith('e')) return verb + 'd';
+  if (/[^aeiou]y$/.test(verb)) return verb.slice(0, -1) + 'ied';
+  if (EN_DOUBLE.has(verb)) return verb + verb.slice(-1) + 'ed';
+  return verb + 'ed';
+}
+
+function enGerund(verb) {
+  if (EN_IRREG[verb] && EN_IRREG[verb].gerund) return EN_IRREG[verb].gerund;
+  if (verb.endsWith('ie')) return verb.slice(0, -2) + 'ying';
+  if (verb.endsWith('e') && !verb.endsWith('ee')) return verb.slice(0, -1) + 'ing';
+  if (EN_DOUBLE.has(verb)) return verb + verb.slice(-1) + 'ing';
+  return verb + 'ing';
+}
+
+function enSenses(en) {
+  return String(en).split(/[,;]/).map(s => s.trim()).filter(Boolean).map(s => s.replace(/^to\s+/, ''));
+}
+
+function enSplitHead(sense) {
+  let note = '';
+  const m = sense.match(/^(.*?)(\s*\([^)]*\))$/);
+  let head = sense;
+  if (m) { head = m[1].trim(); note = m[2]; }
+  if (head === 'be' || head.startsWith('be ')) {
+    return { verb: 'be', rest: head.slice(2).trim(), note };
+  }
+  const i = head.indexOf(' ');
+  return i < 0
+    ? { verb: head, rest: '', note }
+    : { verb: head.slice(0, i), rest: head.slice(i + 1), note };
+}
+
+function enRest(rest, note, pi, forImp) {
+  let r = rest || '';
+  if (r) r = r.replace(/\bone's\b/g, forImp ? 'your' : EN_POSS[pi]);
+  return (r ? ' ' + r : '') + (note || '');
+}
+
+function enFinite(sense, tense, pi) {
+  const { verb, rest, note } = enSplitHead(sense);
+  const subj = EN_SUBJ[pi];
+  const r = enRest(rest, note, pi, false);
+  if (verb === 'be') {
+    if (tense === 'present') return `${subj} ${EN_BE_PRES[pi]}${r}`;
+    if (tense === 'negative') return `${subj} ${EN_BE_PRES[pi]} not${r}`;
+    if (tense === 'past') return `${subj} ${EN_BE_PAST[pi]}${r}`;
+    if (tense === 'pastneg') return `${subj} ${EN_BE_PAST[pi]} not${r}`;
+    if (tense === 'continuous') return `${subj} ${EN_BE_PRES[pi]}${r} right now`;
+  }
+  if (tense === 'present') {
+    const v = pi === 2 ? enPres3(verb) : verb;
+    const now = `${subj} ${v}${r}`;
+    if (EN_NO_FUTURE.has(verb)) return now;
+    return `${now} / ${EN_FUT[pi]} ${verb}${r}`;
+  }
+  if (tense === 'negative') {
+    const aux = pi === 2 ? "doesn't" : "don't";
+    return `${subj} ${aux} ${verb}${r}`;
+  }
+  if (tense === 'past') return `${subj} ${enPastForm(verb)}${r}`;
+  if (tense === 'pastneg') return `${subj} didn't ${verb}${r}`;
+  if (tense === 'continuous') return `${subj} ${EN_BE_PRES[pi]} ${enGerund(verb)}${r} right now`;
+  return `${subj} ${verb}${r}`;
+}
+
+function enCommand(sense, neg, plural) {
+  const { verb, rest, note } = enSplitHead(sense);
+  const r = enRest(rest, note, 1, true);
+  const who = plural ? ' (formal/plural)' : '';
+  if (verb === 'be') {
+    const core = (neg ? "Don't be" : 'Be') + r;
+    return core + '!' + who;
+  }
+  const stem = verb.charAt(0).toUpperCase() + verb.slice(1);
+  const core = (neg ? "Don't " + verb : stem) + r;
+  return core + '!' + who;
+}
+
+function enMeaning(v, tense, pi) {
+  const senses = enSenses(v.en);
+  const isImp = tense === 'imperative' || tense === 'impneg';
+  const parts = senses.map(s => isImp
+    ? enCommand(s, tense === 'impneg', pi === 4)
+    : enFinite(s, tense, pi));
+  const seen = new Set();
+  const uniq = [];
+  for (const p of parts) if (!seen.has(p)) { seen.add(p); uniq.push(p); }
+  return uniq.join(' / ');
+}
+
+function verbCardBreakdown(v, tense, pi) {
+  if (tense === 'infinitive') {
+    return `${v.fa} \u00B7 ${v.pin} \u00B7 infinitive \u2014 dictionary form`;
+  }
+  const t = TENSES.find(x => x.id === tense);
+  const isImp = tense === 'imperative' || tense === 'impneg';
+  const person = isImp
+    ? (pi === 4 ? 'shom\u0101 \u2014 you (pl/formal)' : 'to \u2014 you')
+    : `${PERSONS[pi].pin} \u2014 ${PERSONS[pi].en}`;
+  return `${v.fa} \u00B7 ${v.pin} \u00B7 ${t ? t.label : tense} \u00B7 ${person}<br>${drillBreakdown({ v, tense, pi })}`;
+}
+
+function registerVerbMeaningCards() {
+  const items = [];
+  for (const v of VERBS) {
+    items.push([v.fa, v.pin, v.en, verbCardBreakdown(v, 'infinitive', 0)]);
+    for (const t of TENSES) {
+      if (t.id === 'continuous' && v.noCont) continue;
+      if ((t.id === 'imperative' || t.id === 'impneg') && !v.imp) continue;
+      const pis = (t.id === 'imperative' || t.id === 'impneg') ? [1, 4] : [0, 1, 2, 3, 4, 5];
+      for (const pi of pis) {
+        const form = drillAnswer({ v, tense: t.id, pi });
+        if (!form || !form.fa) continue;
+        const english = `${enMeaning(v, t.id, pi)} \u2014 ${v.pin}`;
+        items.push([form.fa, form.pin, english, verbCardBreakdown(v, t.id, pi)]);
+      }
+    }
+  }
+  for (const item of items) {
+    addCards('verbs', 'verbs', [item], 'farsi-to-english');
+    addCards('verbs', 'verbs', [item], 'english-to-farsi');
+  }
+}
+
+registerVerbMeaningCards();
+
 function browseVerbs() { return VERBS.filter(v => activeVerbs.has(v.id)); }
 
-function newDrillPrompt() {
+function browseList() {
+  const selected = browseVerbs();
+  if (!shuffled) return selected;
+  const sel = new Set(selected.map(v => v.id));
+  if (!browseIds || browseIds.some(id => !sel.has(id)) || selected.some(v => !browseIds.includes(v.id))) {
+    browseIds = selected.map(v => v.id);
+    shuffle(browseIds);
+  }
+  return browseIds.map(id => VERBS.find(v => v.id === id)).filter(Boolean);
+}
+
+function allDrillCombos() {
   const combos = [];
   for (const v of browseVerbs()) {
     for (const t of TENSES) {
@@ -3875,25 +4267,34 @@ function newDrillPrompt() {
       if (t.id === 'continuous' && v.noCont) continue;
       if ((t.id === 'imperative' || t.id === 'impneg') && !v.imp) continue;
       const pis = (t.id === 'imperative' || t.id === 'impneg') ? [1, 4] : [0, 1, 2, 3, 4, 5];
-      for (const pi of pis) combos.push({ v, tense: t.id, pi });
+      for (const pi of pis) {
+        if (!activePersons.has(pi)) continue;
+        combos.push({ v, tense: t.id, pi });
+      }
     }
   }
-  if (!combos.length) { drillPrompt = null; return; }
-  let total = 0;
-  const weights = combos.map(c => {
-    const st = store.drill[drillKey(c)] || { r: 0, w: 0 };
-    let wgt = (1 + 2 * st.w) / (1 + st.r);
-    if (drillPrompt && drillKey(c) === drillKey(drillPrompt)) wgt *= 0.05;
-    total += wgt;
-    return wgt;
-  });
-  let r = Math.random() * total;
-  drillPrompt = combos[combos.length - 1];
-  for (let i = 0; i < combos.length; i++) {
-    r -= weights[i];
-    if (r <= 0) { drillPrompt = combos[i]; break; }
-  }
+  return combos;
 }
+
+function rebuildDrillQueue() {
+  const combos = allDrillCombos();
+  if (shuffled) shuffle(combos);
+  else {
+    combos.sort((a, b) => {
+      const x = store.drill[drillKey(a)] || { r: 0, w: 0 };
+      const y = store.drill[drillKey(b)] || { r: 0, w: 0 };
+      return (y.w - x.w) || (x.r - y.r);
+    });
+  }
+  drillQueue = combos;
+  drillIdx = 0;
+  drillPrompt = drillQueue[0] || null;
+  flipped = false;
+  typedResult = null;
+  typedValue = '';
+}
+
+function newDrillPrompt() { rebuildDrillQueue(); }
 
 // ===== Verb trainer rendering =====
 function conjCell(f) {
@@ -3926,7 +4327,7 @@ function impHTML(v) {
 
 function renderBrowse() {
   const area = document.getElementById('card-area');
-  const list = browseVerbs();
+  const list = browseList();
   if (!list.length) {
     area.innerHTML = '<div class="empty-state"><h2>No verbs selected</h2><p>Pick some verbs above</p></div>';
     document.getElementById('nav-pos').textContent = '0 / 0';
@@ -3970,17 +4371,30 @@ function renderBrowse() {
 
 function renderDrill() {
   const area = document.getElementById('card-area');
-  if (!drillPrompt) newDrillPrompt();
+  if (!drillQueue.length && !drillPrompt) rebuildDrillQueue();
   if (!drillPrompt) {
-    area.innerHTML = '<div class="empty-state"><h2>Nothing to drill</h2><p>Select at least one verb and one tense above</p></div>';
-    document.getElementById('nav-pos').textContent = '\u2014';
+    const tot = drillRight + drillWrong;
+    if (tot) {
+      area.innerHTML = `<div class="empty-state"><h2>Done for now</h2><p><strong>${drillRight}</strong> right &middot; ${drillWrong} again</p>`
+        + `<p><button type="button" class="action-btn" onclick="rebuildDrillQueue();render()">Drill again</button></p></div>`;
+      document.getElementById('progress-fill').style.width = '100%';
+      document.getElementById('progress-text').textContent = `${tot}`;
+    } else {
+      area.innerHTML = '<div class="empty-state"><h2>Nothing to drill</h2><p>Select at least one verb, tense, and person above</p></div>';
+      document.getElementById('progress-fill').style.width = '0%';
+      document.getElementById('progress-text').textContent = '\u2014';
+    }
+    document.getElementById('nav-pos').textContent = '0 / 0';
     document.getElementById('prev-btn').disabled = true;
     document.getElementById('next-btn').disabled = true;
-    document.getElementById('card-count').innerHTML = '';
-    document.getElementById('progress-fill').style.width = '0%';
-    document.getElementById('progress-text').textContent = '\u2014';
+    document.getElementById('card-count').innerHTML = tot
+      ? `<strong>${drillRight}</strong> right &middot; <span style="color:var(--red)">${drillWrong} again</span>`
+      : '';
     return;
   }
+  if (drillIdx >= drillQueue.length) drillIdx = drillQueue.length - 1;
+  if (drillIdx < 0) drillIdx = 0;
+  drillPrompt = drillQueue[drillIdx];
   const d = drillPrompt, v = d.v;
   const t = TENSES.find(x => x.id === d.tense);
   const isImp = d.tense === 'imperative' || d.tense === 'impneg';
@@ -3989,7 +4403,7 @@ function renderDrill() {
     : `${PERSONS[d.pi].pin} \u2014 ${PERSONS[d.pi].en}`;
   const ans = drillAnswer(d);
   area.innerHTML = `<div class="card-wrapper" onclick="flipCard()"><div class="card${flipped ? ' flipped' : ''}" id="card">
-    <div class="card-face card-front">
+    <div class="card-face card-front" id="card-front">
       <span class="card-tag">VERB DRILL</span>
       <div class="front-content">
         <div class="farsi-big" style="font-size:2.4rem">${v.fa}</div>
@@ -4002,7 +4416,7 @@ function renderDrill() {
       </div>
       <span class="tap-hint">tap for answer</span>
     </div>
-    <div class="card-face card-back">
+    <div class="card-face card-back" id="card-back">
       <span class="card-tag">VERB DRILL</span>
       <div class="back-content">
         <div class="farsi-answer">${ans.fa}</div>
@@ -4012,14 +4426,37 @@ function renderDrill() {
       </div>
     </div>
   </div></div>`;
-  document.getElementById('nav-pos').textContent = 'skip \u2192';
-  document.getElementById('prev-btn').disabled = true;
-  document.getElementById('next-btn').disabled = false;
-  document.getElementById('card-count').innerHTML = `<strong>${drillRight}</strong> right &middot; <span style="color:var(--red)">${drillWrong} again</span>`;
-  const tot = drillRight + drillWrong;
-  const pct = tot ? Math.round(drillRight / tot * 100) : 0;
+
+  const front = document.getElementById('card-front');
+  const back = document.getElementById('card-back');
+  if (typedMode) {
+    front.insertAdjacentHTML('beforeend',
+      `<input id="typed-input" class="typed-input" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false"`
+      + ` placeholder="type it in pinglish\u2026" value="${escAttr(typedValue)}" onclick="event.stopPropagation()" onkeydown="typedKey(event)">`);
+    if (typedResult) {
+      const ok = typedResult === 'right';
+      back.insertAdjacentHTML('beforeend',
+        `<div class="typed-banner ${typedResult}">${ok ? '\u2713 correct' : '\u2717 you typed \u201C' + escAttr(typedValue || '\u2014') + '\u201D'}</div>`);
+    }
+  }
+  if (ttsReady() && ans.fa) {
+    back.insertAdjacentHTML('beforeend',
+      '<button type="button" class="speak-btn" title="Hear it (s)" aria-label="Hear it"'
+      + ' onclick="event.stopPropagation();speakCurrent()">\u25B6</button>');
+  }
+
+  document.getElementById('nav-pos').textContent = `${drillIdx + 1} / ${drillQueue.length}`;
+  document.getElementById('prev-btn').disabled = drillIdx === 0;
+  document.getElementById('next-btn').disabled = drillIdx >= drillQueue.length - 1;
+  document.getElementById('card-count').innerHTML = `<strong>${drillQueue.length}</strong> left &middot; <strong>${drillRight}</strong> right &middot; <span style="color:var(--red)">${drillWrong} again</span>`
+    + (shuffled ? ' &middot; shuffled' : ' &middot; weak first');
+  const total = drillRight + drillWrong + drillQueue.length;
+  const pct = total ? Math.round((drillRight + drillWrong) / total * 100) : 0;
   document.getElementById('progress-fill').style.width = pct + '%';
-  document.getElementById('progress-text').textContent = tot ? pct + '%' : '\u2014';
+  document.getElementById('progress-text').textContent = `${drillRight + drillWrong}/${total}`;
+  const input = document.getElementById('typed-input');
+  if (input && !flipped) input.focus();
+  if (flipped) maybeSpeak();
 }
 
 // ===== Tabs, dispatch, init =====
@@ -4028,7 +4465,9 @@ function syncChrome() {
   document.getElementById('tab-verbs').classList.toggle('active', tab === 'verbs');
   document.getElementById('fc-filters').style.display = tab === 'cards' ? '' : 'none';
   document.getElementById('vt-filters').style.display = tab === 'verbs' ? '' : 'none';
-  document.querySelector('.bottom-actions').style.display = tab === 'cards' ? '' : 'none';
+  document.querySelector('.bottom-actions').style.display = '';
+  document.getElementById('mastered-btn').hidden = tab !== 'cards';
+  document.getElementById('newlimit-btn').hidden = tab !== 'cards';
   document.getElementById('score-row').style.display = (tab === 'cards' || vtMode === 'drill') ? '' : 'none';
   document.body.classList.toggle('filters-collapsed', !filtersExpanded);
   const ft = document.getElementById('filter-toggle');
@@ -4039,9 +4478,10 @@ function syncChrome() {
     hint.hidden = standalone || window.innerWidth > 720;
   }
   document.getElementById('shortcuts').innerHTML = tab === 'cards'
-    ? '<span><kbd>Space</kbd> show answer &nbsp; <kbd>1</kbd> again &nbsp; <kbd>2</kbd> hard &nbsp; <kbd>3</kbd> good &nbsp; <kbd>4</kbd> easy &nbsp; <kbd>&#8594;</kbd> skip'
+    ? '<span><kbd>Space</kbd> show answer &nbsp; <kbd>1</kbd> again &nbsp; <kbd>2</kbd> hard &nbsp; <kbd>3</kbd> good &nbsp; <kbd>4</kbd> easy &nbsp; <kbd>b</kbd> bury &nbsp; <kbd>&#8594;</kbd> skip'
       + (ttsReady() ? ' &nbsp; <kbd>s</kbd> hear it' : '') + '</span>'
-    : '<span><kbd>Space</kbd> flip &nbsp; <kbd>&#8592;</kbd><kbd>&#8594;</kbd> navigate &nbsp; <kbd>1</kbd> again &nbsp; <kbd>2</kbd> got it</span>';
+    : '<span><kbd>Space</kbd> show answer &nbsp; <kbd>1</kbd> again &nbsp; <kbd>2</kbd> got it &nbsp; <kbd>&#8592;</kbd><kbd>&#8594;</kbd> skip'
+      + (ttsReady() ? ' &nbsp; <kbd>s</kbd> hear it' : '') + '</span>';
 }
 
 function toggleFilters() {
@@ -4062,7 +4502,7 @@ function render() {
 function setTab(t) {
   tab = t;
   flipped = false;
-  if (t === 'verbs' && vtMode === 'drill' && !drillPrompt) newDrillPrompt();
+  if (t === 'verbs' && vtMode === 'drill' && !drillQueue.length) rebuildDrillQueue();
   render();
 }
 
@@ -4099,38 +4539,69 @@ function buildVtPills() {
     const b = document.createElement('button');
     b.className = 'pill' + (vtMode === m.id ? ' active' : '');
     b.textContent = m.label;
-    b.onclick = () => { vtMode = m.id; flipped = false; if (m.id === 'drill' && !drillPrompt) newDrillPrompt(); buildVtPills(); render(); };
+    b.onclick = () => {
+      vtMode = m.id; flipped = false; typedResult = null; typedValue = '';
+      if (m.id === 'drill') rebuildDrillQueue();
+      buildVtPills(); render();
+    };
     mp.appendChild(b);
   }
   document.getElementById('vt-tense-group').style.display = vtMode === 'drill' ? '' : 'none';
+  const pg = document.getElementById('vt-person-group');
+  if (pg) pg.style.display = vtMode === 'drill' ? '' : 'none';
   const tp = document.getElementById('vt-tense-pills');
   tp.innerHTML = '';
   for (const t of TENSES) {
     const b = document.createElement('button');
     b.className = 'pill' + (activeTenses.has(t.id) ? ' active' : '');
     b.textContent = t.label;
-    b.onclick = () => { toggleSet(activeTenses, t.id); drillPrompt = null; newDrillPrompt(); buildVtPills(); render(); };
+    b.onclick = () => { toggleSet(activeTenses, t.id); rebuildDrillQueue(); buildVtPills(); render(); };
     tp.appendChild(b);
+  }
+  const pp = document.getElementById('vt-person-pills');
+  if (pp) {
+    pp.innerHTML = '';
+    for (let i = 0; i < PERSONS.length; i++) {
+      const b = document.createElement('button');
+      b.className = 'pill' + (activePersons.has(i) ? ' active' : '');
+      b.textContent = PERSONS[i].pin;
+      b.title = PERSONS[i].en;
+      b.onclick = () => { toggleSet(activePersons, i); rebuildDrillQueue(); buildVtPills(); render(); };
+      pp.appendChild(b);
+    }
   }
   const vp = document.getElementById('vt-verb-pills');
   vp.innerHTML = '';
-  const allBtn = document.createElement('button');
-  allBtn.className = 'pill';
-  allBtn.style.borderStyle = 'dashed';
-  allBtn.textContent = activeVerbs.size === VERBS.length ? 'Select none' : 'Select all';
-  allBtn.onclick = () => {
-    if (activeVerbs.size === VERBS.length) activeVerbs.clear();
-    else for (const v of VERBS) activeVerbs.add(v.id);
-    vIdx = 0; drillPrompt = null; newDrillPrompt(); buildVtPills(); render();
-  };
-  vp.appendChild(allBtn);
   for (const v of VERBS) {
     const b = document.createElement('button');
     b.className = 'pill' + (activeVerbs.has(v.id) ? ' active' : '');
     b.textContent = v.pin;
-    b.onclick = () => { toggleSet(activeVerbs, v.id); vIdx = 0; drillPrompt = null; newDrillPrompt(); buildVtPills(); render(); };
+    b.onclick = () => { toggleSet(activeVerbs, v.id); vIdx = 0; browseIds = null; rebuildDrillQueue(); buildVtPills(); render(); };
     vp.appendChild(b);
   }
+}
+
+function setAllTenses(on) {
+  activeTenses = on ? new Set(TENSES.map(t => t.id)) : new Set();
+  rebuildDrillQueue();
+  buildVtPills();
+  render();
+}
+
+function setAllPersons(on) {
+  activePersons = on ? new Set([0, 1, 2, 3, 4, 5]) : new Set();
+  rebuildDrillQueue();
+  buildVtPills();
+  render();
+}
+
+function setAllVtVerbs(on) {
+  activeVerbs = on ? new Set(VERBS.map(v => v.id)) : new Set();
+  vIdx = 0;
+  browseIds = null;
+  rebuildDrillQueue();
+  buildVtPills();
+  render();
 }
 
 // ===== Card states, breakdown meters, filters, audio =====
@@ -4161,7 +4632,8 @@ function sessionStateCounts() {
   const m = new Map();
   for (const c of CARDS) {
     if (!activeTypes.has(c.type)) continue;
-    if (c.type === 'vocabulary' && activeDirection !== 'both' && c.direction !== activeDirection) continue;
+    if ((c.type === 'vocabulary' || c.type === 'verbs') && activeDirection !== 'both' && c.direction !== activeDirection) continue;
+    if (isBuried(c)) continue;
     let e = m.get(c.session);
     if (!e) m.set(c.session, e = emptyCounts());
     e[cardState(c)]++;
@@ -4215,10 +4687,17 @@ function renderScopeBar() {
     + `<span class="legend-pct">${Math.round(pct(st.id))}%</span></span>`).join('');
 
   const leeches = countLeeches();
-  const note = leeches
-    ? `<button type="button" class="scope-note" onclick="studyWeakSpots()">`
-      + `${leeches} leech${leeches === 1 ? '' : 'es'} — study weak spots</button>`
-    : '';
+  const buriedN = countBuried();
+  const notes = [];
+  if (leeches) {
+    notes.push(`<button type="button" class="scope-note" onclick="studyWeakSpots()">`
+      + `${leeches} leech${leeches === 1 ? '' : 'es'} — study weak spots</button>`);
+  }
+  if (buriedN) {
+    notes.push(`<button type="button" class="scope-note" onclick="studyBuried()">`
+      + `${buriedN} buried</button>`);
+  }
+  const note = notes.join('');
 
   el.innerHTML = `<div class="scope-track">${track}</div>`
     + `<div class="scope-legend">${legend}${note}</div>`;
@@ -4241,7 +4720,7 @@ function setAllTypes(on) {
 
 // "Newest" means the last numbered session in the list, not the alphabet.
 function onlyNewestSession() {
-  const numbered = sessions.filter(x => x.id !== 'alphabet');
+  const numbered = sessions.filter(x => x.id !== 'alphabet' && x.id !== 'verbs');
   const newest = numbered[numbered.length - 1];
   if (!newest) return;
   activeSessions = new Set([newest.id]);
@@ -4273,8 +4752,20 @@ function countLeeches() {
   return n;
 }
 
+function countBuried() {
+  let n = 0;
+  for (const c of CARDS) if (matchesFilters(c) && isBuried(c)) n++;
+  return n;
+}
+
 function studyWeakSpots() {
   studyMode = 'weak';
+  buildPills();
+  applyFilters();
+}
+
+function studyBuried() {
+  studyMode = 'buried';
   buildPills();
   applyFilters();
 }
@@ -4333,7 +4824,7 @@ function initVoices() {
   speechSynthesis.addEventListener('voiceschanged', () => {
     pickVoice();
     syncAudioBtn();
-    if (tab === 'cards') render();
+    if (tab === 'cards' || tab === 'verbs') render();
   });
 }
 
@@ -4365,6 +4856,16 @@ function speakFarsi(text) {
 }
 
 function speakCurrent() {
+  if (tab === 'verbs') {
+    if (vtMode === 'drill' && drillPrompt) {
+      const ans = drillAnswer(drillPrompt);
+      if (ans) speakFarsi(ans.fa);
+    } else {
+      const v = browseList()[vIdx];
+      if (v) speakFarsi(v.fa);
+    }
+    return;
+  }
   if (tab !== 'cards') return;
   speakFarsi(speakableText(queue[idx]));
 }
@@ -4372,12 +4873,28 @@ function speakCurrent() {
 // Auto-play fires once per reveal, not on every incidental re-render.
 function maybeSpeak() {
   if (!audioMode || !ttsReady()) return;
-  const c = queue[idx];
-  if (!c) return;
-  const token = cardKey(c) + '|' + reviewedCount;
+  let text = '', token = '';
+  if (tab === 'verbs') {
+    if (vtMode === 'drill' && drillPrompt) {
+      const ans = drillAnswer(drillPrompt);
+      text = ans ? ans.fa : '';
+      token = drillKey(drillPrompt) + '|' + drillRight + '|' + drillWrong;
+    } else if (vtMode === 'browse') {
+      const v = browseList()[vIdx];
+      if (!v) return;
+      text = v.fa;
+      token = 'browse|' + v.id;
+    }
+  } else {
+    const c = queue[idx];
+    if (!c) return;
+    text = speakableText(c);
+    token = cardKey(c) + '|' + reviewedCount;
+  }
+  if (!text) return;
   if (spokenFor === token) return;
   spokenFor = token;
-  speakFarsi(speakableText(c));
+  speakFarsi(text);
 }
 
 function toggleAudio() {
@@ -4425,6 +4942,9 @@ function syncAudioBtn() {
       for (const t of TENSES) if (!knownT.has(t.id)) activeTenses.add(t.id);
     }
   }
+  if (Array.isArray(p.persons) && p.persons.length) {
+    activePersons = new Set(p.persons.filter(n => n >= 0 && n <= 5));
+  }
   if (Array.isArray(p.verbsOff)) for (const id of p.verbsOff) activeVerbs.delete(id);
 
   migrateLegacyMastery();
@@ -4436,7 +4956,7 @@ function syncAudioBtn() {
   syncAudioBtn();
   syncNewLimitBtn();
   pruneLogs();
-  if (tab === 'verbs' && vtMode === 'drill') newDrillPrompt();
+  if (tab === 'verbs' && vtMode === 'drill') rebuildDrillQueue();
   buildPills();
   buildVtPills();
   applyFilters();

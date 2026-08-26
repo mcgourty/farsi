@@ -130,6 +130,18 @@ For every word, phrase, and concept in the teacher's materials:
    - Front: Letter name + sound
    - Back: All 4 forms to write/recall
 
+8. **Verb meanings (every conjugation)**
+   - Generated at runtime from the verb trainer's `VERBS` + `conj()` engine
+   - Session `verbs`, type `verbs`, both directions
+   - Front FA→EN: conjugated Farsi only
+   - Front EN→FA: English meaning (person + tense), with the infinitive pinglish
+     so near-synonyms stay distinct
+   - Back: Farsi + pinglish + person/tense/breakdown
+   - Covers infinitive plus present, negative, past, neg. past, continuous
+     (when the verb allows it), and both imperatives
+   - Do not hand-write these arrays — add the verb to `VERBS` and the cards
+     appear automatically
+
 ### Generation
 
 **`flashcards.html` is the single source of truth for card data.** Both the web
