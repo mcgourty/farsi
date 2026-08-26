@@ -32,6 +32,8 @@ progress in each device's local storage.
   the filters breaks the whole selection down with counts and percentages.
 - **Leeches** — cards you have lapsed 6+ times get flagged with a prompt to re-encode
   them rather than grind them.
+- **Bury** — hide a card that is not worth studying. Buried cards stay hidden until
+  you open the *Buried* study mode and unbury them.
 - **Audio** — on devices with a Persian voice installed, tap the speaker on the answer
   (or press `s`) to hear the word. *Auto-play audio* speaks it on every reveal.
 - **Type answer** — typed recall in pinglish, with tolerant matching for oo/u, ee/i, gh/q.

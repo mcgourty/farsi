@@ -1035,8 +1035,19 @@ header .subtitle {
   font-weight: 550;
   box-shadow: var(--shadow-md);
 }
+.score-btn.bury {
+  background: var(--surface-2);
+  border-color: var(--line);
+  color: var(--ink-muted);
+}
+.score-btn.unbury {
+  background: var(--accent-soft);
+  border-color: var(--accent-line);
+  color: var(--accent);
+}
 .score-btn.again:hover, .score-btn.hard:hover, .score-btn.easy:hover,
-.score-btn.know:hover, .score-btn.dunno:hover, .score-btn.show:hover {
+.score-btn.know:hover, .score-btn.dunno:hover, .score-btn.show:hover,
+.score-btn.bury:hover, .score-btn.unbury:hover {
   transform: translateY(-1px);
   border-color: currentColor;
 }
@@ -1279,6 +1290,32 @@ kbd {
   line-height: 1.5;
   text-align: left;
 }
+.buried-badge {
+  position: absolute;
+  top: 14px;
+  right: 16px;
+  font-family: var(--font-mono);
+  background: var(--surface-2);
+  border: 1px solid var(--line-strong);
+  border-radius: 6px;
+  color: var(--ink-muted);
+  letter-spacing: 0.05em;
+  font-size: 0.55rem;
+  font-weight: 500;
+  padding: 3px 8px;
+  text-transform: uppercase;
+}
+.buried-tip {
+  margin-top: 12px;
+  padding: 9px 12px;
+  border-radius: 9px;
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  color: var(--ink-muted);
+  font-size: 0.76rem;
+  line-height: 1.5;
+  text-align: left;
+}
 
 /* ---------- Audio ---------- */
 
@@ -1356,6 +1393,12 @@ kbd {
   }
   .score-btn { min-width: 0; flex: 1; padding: 10px 6px; }
   .score-btn.show { min-width: 0; width: 100%; }
+  .score-btn.bury, .score-btn.unbury {
+    flex: 1 1 100%;
+    flex-direction: row;
+    gap: 8px;
+    padding: 8px 10px;
+  }
 
   .typed-input { font-size: 16px; max-width: none; }
 
@@ -1515,7 +1558,7 @@ button, .pill, .tab-btn, .action-btn, .score-btn, .nav-btn {
 <div class="score-row" id="score-row"></div>
 
 <div class="shortcuts" id="shortcuts">
-  <span><kbd>Space</kbd> show answer &nbsp; <kbd>1</kbd> again &nbsp; <kbd>2</kbd> hard &nbsp; <kbd>3</kbd> good &nbsp; <kbd>4</kbd> easy &nbsp; <kbd>&#8594;</kbd> skip</span>
+  <span><kbd>Space</kbd> show answer &nbsp; <kbd>1</kbd> again &nbsp; <kbd>2</kbd> hard &nbsp; <kbd>3</kbd> good &nbsp; <kbd>4</kbd> easy &nbsp; <kbd>b</kbd> bury &nbsp; <kbd>&#8594;</kbd> skip</span>
 </div>
 
 <script>
@@ -2926,7 +2969,7 @@ let drillWrong = 0;
 const sessions = [{id:'22',label:'Session 22'},{id:'23',label:'Session 23'},{id:'24-25',label:'Sessions 24-25'},{id:'26',label:'Session 26'},{id:'27',label:'Session 27'},{id:'28',label:'Session 28'},{id:'29',label:'Session 29'},{id:'30',label:'Session 30'},{id:'31',label:'Session 31'},{id:'32',label:'Session 32'},{id:'33',label:'Session 33'},{id:'34',label:'Session 34'},{id:'alphabet',label:'Alphabet'}];
 const types = [{id:'vocabulary',label:'Vocabulary'},{id:'grammar',label:'Grammar'},{id:'phrases',label:'Phrases'},{id:'story',label:'Story'},{id:'alphabet',label:'Alphabet'}];
 const frontModes = [{id:'farsi',label:'Farsi Script'},{id:'pinglish',label:'Pinglish'}];
-const studyModes = [{id:'due',label:'Due & new'},{id:'weak',label:'Weak spots'},{id:'all',label:'All cards'}];
+const studyModes = [{id:'due',label:'Due & new'},{id:'weak',label:'Weak spots'},{id:'all',label:'All cards'},{id:'buried',label:'Buried'}];
 const directions = [{id:'farsi-to-english',label:'Farsi \u2192 English'},{id:'english-to-farsi',label:'English \u2192 Farsi'},{id:'both',label:'Both, mixed'}];
 
 function buildPills() {
@@ -2984,13 +3027,24 @@ function toggleSet(set, val) {
   if (set.has(val)) set.delete(val); else set.add(val);
 }
 
-// Everything the current filters allow, ignoring the hide-mastered toggle —
-// the state breakdown should stay honest about cards you have already banked.
-function inScopeBase(c) {
+function isBuried(c) {
+  return !!(store.buried && store.buried[cardKey(c)]);
+}
+
+// Session / type / direction only — bury and mastery are layered on top.
+function matchesFilters(c) {
   if (!activeSessions.has(c.session)) return false;
   if (!activeTypes.has(c.type)) return false;
   if (c.type === 'vocabulary' && activeDirection !== 'both' && c.direction !== activeDirection) return false;
   return true;
+}
+
+// Everything the current filters allow, ignoring the hide-mastered toggle —
+// the state breakdown should stay honest about cards you have already banked.
+function inScopeBase(c) {
+  if (!matchesFilters(c)) return false;
+  const buried = isBuried(c);
+  return studyMode === 'buried' ? buried : !buried;
 }
 
 function inScope(c) {
@@ -3057,7 +3111,7 @@ function spaceSiblings(list, gap) {
 function applyFilters() {
   const base = CARDS.filter(inScope);
   const now = Date.now();
-  if (studyMode === 'all') {
+  if (studyMode === 'all' || studyMode === 'buried') {
     queue = base.slice();
     if (shuffled) shuffle(queue);
   } else if (studyMode === 'weak') {
@@ -3110,6 +3164,9 @@ function nextDueLabel() {
 }
 
 function statsLine() {
+  if (studyMode === 'buried') {
+    return `<strong>${queue.length}</strong> buried &middot; hidden from study`;
+  }
   const s = scopeStats();
   const streak = studyStreak();
   return `<strong>${queue.length}</strong> left &middot; ${s.due} due &middot; ${s.fresh} new`
@@ -3126,7 +3183,11 @@ function renderCards() {
   if (queue.length === 0) {
     const s = scopeStats();
     let msg;
-    if (reviewedCount > 0) {
+    if (studyMode === 'buried') {
+      msg = reviewedCount > 0
+        ? `<div class="empty-state"><h2>Done for now</h2><p>Restored ${reviewedCount} card${reviewedCount === 1 ? '' : 's'}.</p></div>`
+        : '<div class="empty-state"><h2>Nothing buried</h2><p>Bury a card to hide it from study. It stays gone until you unbury it here.</p></div>';
+    } else if (reviewedCount > 0) {
       const nd = nextDueLabel();
       msg = `<div class="empty-state"><h2>Done for now</h2><p>${reviewedCount} card${reviewedCount === 1 ? '' : 's'} reviewed.`
         + (s.fresh ? ` ${s.fresh} new card${s.fresh === 1 ? '' : 's'} waiting behind today's limit of ${newPerDay}.` : '')
@@ -3138,7 +3199,10 @@ function renderCards() {
         + (s.fresh ? ` ${s.fresh} unseen card${s.fresh === 1 ? '' : 's'} left — raise New/day or switch to All cards to get ahead.` : '')
         + '</p></div>';
     } else {
-      msg = '<div class="empty-state"><h2>No cards match</h2><p>Adjust the filters above</p></div>';
+      const buriedN = countBuried();
+      msg = buriedN
+        ? `<div class="empty-state"><h2>No cards match</h2><p>${buriedN} buried card${buriedN === 1 ? '' : 's'} hidden from study. Open Buried to restore one.</p></div>`
+        : '<div class="empty-state"><h2>No cards match</h2><p>Adjust the filters above</p></div>';
     }
     area.innerHTML = msg;
     document.getElementById('nav-pos').textContent = '0 / 0';
@@ -3190,7 +3254,13 @@ function renderCards() {
     }
   }
 
-  if (isMastered(c)) {
+  if (isBuried(c)) {
+    front.insertAdjacentHTML('beforeend', '<span class="buried-badge">buried</span>');
+    back.insertAdjacentHTML('beforeend', '<span class="buried-badge">buried</span>');
+    const body = back.querySelector('.back-content');
+    if (body) body.insertAdjacentHTML('beforeend',
+      '<div class="buried-tip">Hidden from study. Unbury it if you want this card to come back.</div>');
+  } else if (isMastered(c)) {
     front.insertAdjacentHTML('beforeend', '<span class="mastered-badge">mastered</span>');
     back.insertAdjacentHTML('beforeend', '<span class="mastered-badge">mastered</span>');
   } else if (isLeech(c)) {
@@ -3306,10 +3376,15 @@ function toggleShuffle() {
 }
 
 function resetProgress() {
-  const base = CARDS.filter(inScopeBase);
-  const hasSaved = base.some(c => store.srs[cardKey(c)]);
-  if (hasSaved && !confirm('Reset the review schedule for the cards in this view? They go back to being brand new.')) return;
-  for (const c of base) { delete store.srs[cardKey(c)]; delete store.mastery[cardKey(c)]; }
+  const base = CARDS.filter(matchesFilters);
+  const hasSaved = base.some(c => store.srs[cardKey(c)] || isBuried(c));
+  if (hasSaved && !confirm('Reset the review schedule for the cards in this view? They go back to being brand new, and any buried cards come back.')) return;
+  for (const c of base) {
+    const k = cardKey(c);
+    delete store.srs[k];
+    delete store.mastery[k];
+    if (store.buried) delete store.buried[k];
+  }
   applyFilters();
 }
 
@@ -3325,9 +3400,10 @@ function gradeCard(g) {
   bumpRevToday();
   const st = fsrsReview(prev, g, now);
   store.srs[k] = st;
+  if (store.buried) delete store.buried[k];
   reviewedCount++;
   queue.splice(idx, 1);
-  if (st.due - now <= SITTING_MS) {
+  if (st.due - now <= SITTING_MS && studyMode !== 'buried') {
     const pos = Math.min(queue.length, idx + 3 + Math.floor(Math.random() * 4));
     queue.splice(pos, 0, c);
   }
@@ -3360,6 +3436,40 @@ const GRADES = [
   { g: 4, label: 'Easy', cls: 'easy' },
 ];
 
+function buryBtnHTML() {
+  return isBuried(queue[idx])
+    ? '<button class="score-btn unbury" onclick="unburyCard()"><span>Unbury</span><span class="score-sub">restore</span></button>'
+    : '<button class="score-btn bury" onclick="buryCard()"><span>Bury</span><span class="score-sub">hide</span></button>';
+}
+
+function buryCard() {
+  if (tab !== 'cards' || !queue.length) return;
+  const c = queue[idx];
+  if (isBuried(c)) return;
+  if (!store.buried) store.buried = {};
+  store.buried[cardKey(c)] = Date.now();
+  reviewedCount++;
+  queue.splice(idx, 1);
+  if (idx >= queue.length) idx = 0;
+  flipped = false;
+  typedResult = null;
+  typedValue = '';
+  render();
+}
+
+function unburyCard() {
+  if (tab !== 'cards' || !queue.length) return;
+  const c = queue[idx];
+  if (!isBuried(c)) return;
+  delete store.buried[cardKey(c)];
+  queue.splice(idx, 1);
+  if (idx >= queue.length) idx = 0;
+  flipped = false;
+  typedResult = null;
+  typedValue = '';
+  render();
+}
+
 function renderScoreRow() {
   const row = document.getElementById('score-row');
   if (!row) return;
@@ -3372,7 +3482,7 @@ function renderScoreRow() {
   }
   if (!queue.length) { row.innerHTML = ''; return; }
   if (!flipped) {
-    row.innerHTML = '<button class="score-btn show" onclick="flipCard()">Show answer</button>';
+    row.innerHTML = '<button class="score-btn show" onclick="flipCard()">Show answer</button>' + buryBtnHTML();
     return;
   }
   const prev = store.srs[cardKey(queue[idx])];
@@ -3382,7 +3492,7 @@ function renderScoreRow() {
     const suggest = typedResult === 'wrong' && g === 1 ? ' suggest' : '';
     return `<button class="score-btn ${cls}${suggest}" onclick="gradeCard(${g})">`
       + `<span>${label}</span><span class="score-sub">${fmtIvl(st.due - now)}</span></button>`;
-  }).join('');
+  }).join('') + buryBtnHTML();
 }
 
 document.addEventListener('keydown', e => {
@@ -3397,12 +3507,15 @@ document.addEventListener('keydown', e => {
     if (e.key === '2') markCard(true);
   } else if (e.key >= '1' && e.key <= '4') {
     gradeCard(Number(e.key));
+  } else if (e.key === 'b' || e.key === 'B') {
+    if (queue.length && isBuried(queue[idx])) unburyCard();
+    else buryCard();
   }
 });
 
 // ===== Local storage persistence =====
 const LS_KEY = 'farsi-flashcards-v1';
-let store = { prefs: {}, mastery: {}, drill: {}, srs: {}, newLog: {}, revLog: {}, migratedV2: false };
+let store = { prefs: {}, mastery: {}, drill: {}, srs: {}, buried: {}, newLog: {}, revLog: {}, migratedV2: false };
 try {
   const saved = JSON.parse(localStorage.getItem(LS_KEY));
   if (saved && typeof saved === 'object') {
@@ -3410,6 +3523,7 @@ try {
     store.mastery = saved.mastery || {};
     store.drill = saved.drill || {};
     store.srs = saved.srs || {};
+    store.buried = saved.buried || {};
     store.newLog = saved.newLog || {};
     store.revLog = saved.revLog || {};
     store.migratedV2 = !!saved.migratedV2;
@@ -4039,7 +4153,7 @@ function syncChrome() {
     hint.hidden = standalone || window.innerWidth > 720;
   }
   document.getElementById('shortcuts').innerHTML = tab === 'cards'
-    ? '<span><kbd>Space</kbd> show answer &nbsp; <kbd>1</kbd> again &nbsp; <kbd>2</kbd> hard &nbsp; <kbd>3</kbd> good &nbsp; <kbd>4</kbd> easy &nbsp; <kbd>&#8594;</kbd> skip'
+    ? '<span><kbd>Space</kbd> show answer &nbsp; <kbd>1</kbd> again &nbsp; <kbd>2</kbd> hard &nbsp; <kbd>3</kbd> good &nbsp; <kbd>4</kbd> easy &nbsp; <kbd>b</kbd> bury &nbsp; <kbd>&#8594;</kbd> skip'
       + (ttsReady() ? ' &nbsp; <kbd>s</kbd> hear it' : '') + '</span>'
     : '<span><kbd>Space</kbd> flip &nbsp; <kbd>&#8592;</kbd><kbd>&#8594;</kbd> navigate &nbsp; <kbd>1</kbd> again &nbsp; <kbd>2</kbd> got it</span>';
 }
@@ -4162,6 +4276,7 @@ function sessionStateCounts() {
   for (const c of CARDS) {
     if (!activeTypes.has(c.type)) continue;
     if (c.type === 'vocabulary' && activeDirection !== 'both' && c.direction !== activeDirection) continue;
+    if (isBuried(c)) continue;
     let e = m.get(c.session);
     if (!e) m.set(c.session, e = emptyCounts());
     e[cardState(c)]++;
@@ -4215,10 +4330,17 @@ function renderScopeBar() {
     + `<span class="legend-pct">${Math.round(pct(st.id))}%</span></span>`).join('');
 
   const leeches = countLeeches();
-  const note = leeches
-    ? `<button type="button" class="scope-note" onclick="studyWeakSpots()">`
-      + `${leeches} leech${leeches === 1 ? '' : 'es'} — study weak spots</button>`
-    : '';
+  const buriedN = countBuried();
+  const notes = [];
+  if (leeches) {
+    notes.push(`<button type="button" class="scope-note" onclick="studyWeakSpots()">`
+      + `${leeches} leech${leeches === 1 ? '' : 'es'} — study weak spots</button>`);
+  }
+  if (buriedN) {
+    notes.push(`<button type="button" class="scope-note" onclick="studyBuried()">`
+      + `${buriedN} buried</button>`);
+  }
+  const note = notes.join('');
 
   el.innerHTML = `<div class="scope-track">${track}</div>`
     + `<div class="scope-legend">${legend}${note}</div>`;
@@ -4273,8 +4395,20 @@ function countLeeches() {
   return n;
 }
 
+function countBuried() {
+  let n = 0;
+  for (const c of CARDS) if (matchesFilters(c) && isBuried(c)) n++;
+  return n;
+}
+
 function studyWeakSpots() {
   studyMode = 'weak';
+  buildPills();
+  applyFilters();
+}
+
+function studyBuried() {
+  studyMode = 'buried';
   buildPills();
   applyFilters();
 }
