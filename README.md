@@ -41,6 +41,10 @@ progress in each device's local storage.
 - **Audio** — on devices with a Persian voice installed, tap the speaker on the answer
   (or press `s`) to hear the word. *Auto-play audio* speaks it on every reveal.
 - **Type answer** — typed recall in pinglish, with tolerant matching for oo/u, ee/i, gh/q.
+- **Verb trainer** — browse conjugations or run a conjugation drill. The drill is a
+  real queue (next/prev, progress). Shuffle randomizes it; off sorts weak forms
+  first. Filter by tense and person, type the pinglish, hear the form, and reset
+  drill scores for the current selection.
 
 ## Files
 
