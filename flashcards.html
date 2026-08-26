@@ -2942,8 +2942,8 @@ for (const c of s34_story)   { addCards('34','story',       [c], 'farsi-to-engli
 for (const c of alphabet) { addCards('alphabet','alphabet', [c], 'letter'); }
 
 // State
-let activeSessions = new Set(['22','23','24-25','26','27','28','29','30','31','32','33','34','alphabet']);
-let activeTypes = new Set(['vocabulary','grammar','phrases','story','alphabet']);
+let activeSessions = new Set(['22','23','24-25','26','27','28','29','30','31','32','33','34','alphabet','verbs']);
+let activeTypes = new Set(['vocabulary','grammar','phrases','story','alphabet','verbs']);
 let activeDirection = 'farsi-to-english';
 let frontMode = 'farsi';
 let queue = [];
@@ -2966,8 +2966,8 @@ let drillPrompt = null;
 let drillRight = 0;
 let drillWrong = 0;
 
-const sessions = [{id:'22',label:'Session 22'},{id:'23',label:'Session 23'},{id:'24-25',label:'Sessions 24-25'},{id:'26',label:'Session 26'},{id:'27',label:'Session 27'},{id:'28',label:'Session 28'},{id:'29',label:'Session 29'},{id:'30',label:'Session 30'},{id:'31',label:'Session 31'},{id:'32',label:'Session 32'},{id:'33',label:'Session 33'},{id:'34',label:'Session 34'},{id:'alphabet',label:'Alphabet'}];
-const types = [{id:'vocabulary',label:'Vocabulary'},{id:'grammar',label:'Grammar'},{id:'phrases',label:'Phrases'},{id:'story',label:'Story'},{id:'alphabet',label:'Alphabet'}];
+const sessions = [{id:'22',label:'Session 22'},{id:'23',label:'Session 23'},{id:'24-25',label:'Sessions 24-25'},{id:'26',label:'Session 26'},{id:'27',label:'Session 27'},{id:'28',label:'Session 28'},{id:'29',label:'Session 29'},{id:'30',label:'Session 30'},{id:'31',label:'Session 31'},{id:'32',label:'Session 32'},{id:'33',label:'Session 33'},{id:'34',label:'Session 34'},{id:'alphabet',label:'Alphabet'},{id:'verbs',label:'Verbs'}];
+const types = [{id:'vocabulary',label:'Vocabulary'},{id:'grammar',label:'Grammar'},{id:'phrases',label:'Phrases'},{id:'story',label:'Story'},{id:'alphabet',label:'Alphabet'},{id:'verbs',label:'Verbs'}];
 const frontModes = [{id:'farsi',label:'Farsi Script'},{id:'pinglish',label:'Pinglish'}];
 const studyModes = [{id:'due',label:'Due & new'},{id:'weak',label:'Weak spots'},{id:'all',label:'All cards'},{id:'buried',label:'Buried'}];
 const directions = [{id:'farsi-to-english',label:'Farsi \u2192 English'},{id:'english-to-farsi',label:'English \u2192 Farsi'},{id:'both',label:'Both, mixed'}];
@@ -3035,7 +3035,7 @@ function isBuried(c) {
 function matchesFilters(c) {
   if (!activeSessions.has(c.session)) return false;
   if (!activeTypes.has(c.type)) return false;
-  if (c.type === 'vocabulary' && activeDirection !== 'both' && c.direction !== activeDirection) return false;
+  if ((c.type === 'vocabulary' || c.type === 'verbs') && activeDirection !== 'both' && c.direction !== activeDirection) return false;
   return true;
 }
 
@@ -3219,7 +3219,19 @@ function renderCards() {
   const front = document.getElementById('card-front');
   const back = document.getElementById('card-back');
 
-  if (c.type === 'alphabet') {
+  if (c.type === 'verbs') {
+    const tag = c.direction === 'english-to-farsi' ? 'VERBS / EN\u2192FA' : 'VERBS';
+    if (c.direction === 'english-to-farsi') {
+      front.innerHTML = `<span class="card-tag">${tag}</span><div class="front-content"><div class="english-big">${c.english}</div></div><span class="tap-hint">tap to reveal</span>`;
+      back.innerHTML = `<span class="card-tag">${tag}</span><div class="back-content"><div class="farsi-answer">${c.farsi}</div><div class="pinglish">${c.pinglish}</div><div class="breakdown">${c.breakdown}</div></div>`;
+    } else if (frontMode === 'pinglish') {
+      front.innerHTML = `<span class="card-tag">${tag}</span><div class="front-content"><div class="english-big" style="font-size:1.8rem;font-style:italic;color:var(--blue)">${c.pinglish}</div></div><span class="tap-hint">tap to reveal</span>`;
+      back.innerHTML = `<span class="card-tag">${tag}</span><div class="back-content"><div class="farsi-answer">${c.farsi}</div><div class="meaning">${c.english}</div><div class="breakdown">${c.breakdown}</div></div>`;
+    } else {
+      front.innerHTML = `<span class="card-tag">${tag}</span><div class="front-content"><div class="farsi-big">${c.farsi}</div></div><span class="tap-hint">tap to reveal</span>`;
+      back.innerHTML = `<span class="card-tag">${tag}</span><div class="back-content"><div class="farsi-answer">${c.farsi}</div><div class="pinglish">${c.pinglish}</div><div class="meaning">${c.english}</div><div class="breakdown">${c.breakdown}</div></div>`;
+    }
+  } else if (c.type === 'alphabet') {
     const tag = 'ALPHABET';
     if (frontMode === 'pinglish') {
       front.innerHTML = `<span class="card-tag">${tag}</span><div class="front-content"><div class="english-big">${c.name}</div><div class="pinglish" style="margin-top:8px">Sound: ${c.sound}</div></div><span class="tap-hint">tap to reveal</span>`;
@@ -3979,6 +3991,194 @@ function drillBreakdown(d) {
   return s;
 }
 
+// ===== Verb meaning cards (general flashcards) =====
+//
+// The trainer drills *producing* a form. These cards drill *what it means*,
+// both ways, for every person × tense the engine can build.
+
+const EN_SUBJ = ['I', 'you', 'he/she', 'we', 'you (pl/formal)', 'they'];
+const EN_POSS = ['my', 'your', 'their', 'our', 'your', 'their'];
+const EN_BE_PRES = ['am', 'are', 'is', 'are', 'are', 'are'];
+const EN_BE_PAST = ['was', 'were', 'was', 'were', 'were', 'were'];
+const EN_FUT = ["I'll", "you'll", "he/she'll", "we'll", "you'll", "they'll"];
+const EN_NO_FUTURE = new Set(['be', 'have', 'own', 'know', 'want', 'like', 'love']);
+const EN_DOUBLE = new Set(['shop', 'chat', 'get', 'put', 'hit', 'sit', 'clap', 'stop', 'plan']);
+const EN_IRREG = {
+  be: {},
+  have: { pres3: 'has', past: 'had', gerund: 'having' },
+  do: { pres3: 'does', past: 'did', gerund: 'doing' },
+  go: { past: 'went' },
+  come: { past: 'came' },
+  eat: { past: 'ate' },
+  drink: { past: 'drank' },
+  say: { past: 'said' },
+  tell: { past: 'told' },
+  give: { past: 'gave', gerund: 'giving' },
+  see: { past: 'saw', gerund: 'seeing' },
+  sit: { past: 'sat', gerund: 'sitting' },
+  get: { past: 'got', gerund: 'getting' },
+  make: { past: 'made', gerund: 'making' },
+  buy: { past: 'bought' },
+  sell: { past: 'sold' },
+  sleep: { past: 'slept' },
+  wake: { past: 'woke', gerund: 'waking' },
+  become: { past: 'became', gerund: 'becoming' },
+  hit: { past: 'hit', gerund: 'hitting' },
+  strike: { past: 'struck', gerund: 'striking' },
+  know: { past: 'knew', gerund: 'knowing' },
+  think: { past: 'thought' },
+  teach: { pres3: 'teaches', past: 'taught' },
+  feed: { past: 'fed' },
+  read: { past: 'read' },
+  speak: { past: 'spoke', gerund: 'speaking' },
+  put: { past: 'put', gerund: 'putting' },
+  hurt: { past: 'hurt' },
+  ride: { past: 'rode', gerund: 'riding' },
+  beat: { past: 'beat' },
+  ring: { past: 'rang' },
+  die: { pres3: 'dies', past: 'died', gerund: 'dying' },
+  live: { pres3: 'lives', past: 'lived' },
+  sing: { past: 'sang' },
+  spread: { past: 'spread' },
+  wind: { past: 'wound' },
+  drive: { past: 'drove', gerund: 'driving' },
+};
+
+function enPres3(verb) {
+  if (EN_IRREG[verb] && EN_IRREG[verb].pres3) return EN_IRREG[verb].pres3;
+  if (/[sxz]$|[cs]h$/.test(verb) || /[^aeiou]o$/.test(verb)) return verb + 'es';
+  if (/[^aeiou]y$/.test(verb)) return verb.slice(0, -1) + 'ies';
+  return verb + 's';
+}
+
+function enPastForm(verb) {
+  if (EN_IRREG[verb] && EN_IRREG[verb].past) return EN_IRREG[verb].past;
+  if (verb.endsWith('e')) return verb + 'd';
+  if (/[^aeiou]y$/.test(verb)) return verb.slice(0, -1) + 'ied';
+  if (EN_DOUBLE.has(verb)) return verb + verb.slice(-1) + 'ed';
+  return verb + 'ed';
+}
+
+function enGerund(verb) {
+  if (EN_IRREG[verb] && EN_IRREG[verb].gerund) return EN_IRREG[verb].gerund;
+  if (verb.endsWith('ie')) return verb.slice(0, -2) + 'ying';
+  if (verb.endsWith('e') && !verb.endsWith('ee')) return verb.slice(0, -1) + 'ing';
+  if (EN_DOUBLE.has(verb)) return verb + verb.slice(-1) + 'ing';
+  return verb + 'ing';
+}
+
+function enSenses(en) {
+  return String(en).split(/[,;]/).map(s => s.trim()).filter(Boolean).map(s => s.replace(/^to\s+/, ''));
+}
+
+function enSplitHead(sense) {
+  let note = '';
+  const m = sense.match(/^(.*?)(\s*\([^)]*\))$/);
+  let head = sense;
+  if (m) { head = m[1].trim(); note = m[2]; }
+  if (head === 'be' || head.startsWith('be ')) {
+    return { verb: 'be', rest: head.slice(2).trim(), note };
+  }
+  const i = head.indexOf(' ');
+  return i < 0
+    ? { verb: head, rest: '', note }
+    : { verb: head.slice(0, i), rest: head.slice(i + 1), note };
+}
+
+function enRest(rest, note, pi, forImp) {
+  let r = rest || '';
+  if (r) r = r.replace(/\bone's\b/g, forImp ? 'your' : EN_POSS[pi]);
+  return (r ? ' ' + r : '') + (note || '');
+}
+
+function enFinite(sense, tense, pi) {
+  const { verb, rest, note } = enSplitHead(sense);
+  const subj = EN_SUBJ[pi];
+  const r = enRest(rest, note, pi, false);
+  if (verb === 'be') {
+    if (tense === 'present') return `${subj} ${EN_BE_PRES[pi]}${r}`;
+    if (tense === 'negative') return `${subj} ${EN_BE_PRES[pi]} not${r}`;
+    if (tense === 'past') return `${subj} ${EN_BE_PAST[pi]}${r}`;
+    if (tense === 'pastneg') return `${subj} ${EN_BE_PAST[pi]} not${r}`;
+    if (tense === 'continuous') return `${subj} ${EN_BE_PRES[pi]}${r} right now`;
+  }
+  if (tense === 'present') {
+    const v = pi === 2 ? enPres3(verb) : verb;
+    const now = `${subj} ${v}${r}`;
+    if (EN_NO_FUTURE.has(verb)) return now;
+    return `${now} / ${EN_FUT[pi]} ${verb}${r}`;
+  }
+  if (tense === 'negative') {
+    const aux = pi === 2 ? "doesn't" : "don't";
+    return `${subj} ${aux} ${verb}${r}`;
+  }
+  if (tense === 'past') return `${subj} ${enPastForm(verb)}${r}`;
+  if (tense === 'pastneg') return `${subj} didn't ${verb}${r}`;
+  if (tense === 'continuous') return `${subj} ${EN_BE_PRES[pi]} ${enGerund(verb)}${r} right now`;
+  return `${subj} ${verb}${r}`;
+}
+
+function enCommand(sense, neg, plural) {
+  const { verb, rest, note } = enSplitHead(sense);
+  const r = enRest(rest, note, 1, true);
+  const who = plural ? ' (formal/plural)' : '';
+  if (verb === 'be') {
+    const core = (neg ? "Don't be" : 'Be') + r;
+    return core + '!' + who;
+  }
+  const stem = verb.charAt(0).toUpperCase() + verb.slice(1);
+  const core = (neg ? "Don't " + verb : stem) + r;
+  return core + '!' + who;
+}
+
+function enMeaning(v, tense, pi) {
+  const senses = enSenses(v.en);
+  const isImp = tense === 'imperative' || tense === 'impneg';
+  const parts = senses.map(s => isImp
+    ? enCommand(s, tense === 'impneg', pi === 4)
+    : enFinite(s, tense, pi));
+  const seen = new Set();
+  const uniq = [];
+  for (const p of parts) if (!seen.has(p)) { seen.add(p); uniq.push(p); }
+  return uniq.join(' / ');
+}
+
+function verbCardBreakdown(v, tense, pi) {
+  if (tense === 'infinitive') {
+    return `${v.fa} \u00B7 ${v.pin} \u00B7 infinitive \u2014 dictionary form`;
+  }
+  const t = TENSES.find(x => x.id === tense);
+  const isImp = tense === 'imperative' || tense === 'impneg';
+  const person = isImp
+    ? (pi === 4 ? 'shom\u0101 \u2014 you (pl/formal)' : 'to \u2014 you')
+    : `${PERSONS[pi].pin} \u2014 ${PERSONS[pi].en}`;
+  return `${v.fa} \u00B7 ${v.pin} \u00B7 ${t ? t.label : tense} \u00B7 ${person}<br>${drillBreakdown({ v, tense, pi })}`;
+}
+
+function registerVerbMeaningCards() {
+  const items = [];
+  for (const v of VERBS) {
+    items.push([v.fa, v.pin, v.en, verbCardBreakdown(v, 'infinitive', 0)]);
+    for (const t of TENSES) {
+      if (t.id === 'continuous' && v.noCont) continue;
+      if ((t.id === 'imperative' || t.id === 'impneg') && !v.imp) continue;
+      const pis = (t.id === 'imperative' || t.id === 'impneg') ? [1, 4] : [0, 1, 2, 3, 4, 5];
+      for (const pi of pis) {
+        const form = drillAnswer({ v, tense: t.id, pi });
+        if (!form || !form.fa) continue;
+        const english = `${enMeaning(v, t.id, pi)} \u2014 ${v.pin}`;
+        items.push([form.fa, form.pin, english, verbCardBreakdown(v, t.id, pi)]);
+      }
+    }
+  }
+  for (const item of items) {
+    addCards('verbs', 'verbs', [item], 'farsi-to-english');
+    addCards('verbs', 'verbs', [item], 'english-to-farsi');
+  }
+}
+
+registerVerbMeaningCards();
+
 function browseVerbs() { return VERBS.filter(v => activeVerbs.has(v.id)); }
 
 function newDrillPrompt() {
@@ -4275,7 +4475,7 @@ function sessionStateCounts() {
   const m = new Map();
   for (const c of CARDS) {
     if (!activeTypes.has(c.type)) continue;
-    if (c.type === 'vocabulary' && activeDirection !== 'both' && c.direction !== activeDirection) continue;
+    if ((c.type === 'vocabulary' || c.type === 'verbs') && activeDirection !== 'both' && c.direction !== activeDirection) continue;
     if (isBuried(c)) continue;
     let e = m.get(c.session);
     if (!e) m.set(c.session, e = emptyCounts());
@@ -4363,7 +4563,7 @@ function setAllTypes(on) {
 
 // "Newest" means the last numbered session in the list, not the alphabet.
 function onlyNewestSession() {
-  const numbered = sessions.filter(x => x.id !== 'alphabet');
+  const numbered = sessions.filter(x => x.id !== 'alphabet' && x.id !== 'verbs');
   const newest = numbered[numbered.length - 1];
   if (!newest) return;
   activeSessions = new Set([newest.id]);

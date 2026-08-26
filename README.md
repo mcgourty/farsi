@@ -27,6 +27,10 @@ progress in each device's local storage.
 - **Vocab direction** — Farsi → English, English → Farsi, or **Both, mixed**. Mixed mode
   keeps the two directions of the same word at least 8 cards apart, so the second one
   isn't a freebie.
+- **Verbs** — a *Verbs* session and card type with meaning practice for every
+  infinitive and every person × tense the trainer can build, both directions.
+  The verb trainer still drills *producing* a form; these cards drill *what it
+  means*. Turn the Verbs pills off if you want a lesson-only sitting.
 - **Session filters** — *All* / *None* / *Newest only*, and each session pill carries a
   meter showing how much of it is mature, young, learning, or still new. The bar under
   the filters breaks the whole selection down with counts and percentages.
