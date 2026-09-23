@@ -1575,7 +1575,7 @@ button, .pill, .tab-btn, .action-btn, .score-btn, .nav-btn {
   <button class="action-btn" id="audio-btn" onclick="toggleAudio()" hidden>Auto-play audio</button>
   <button class="action-btn" id="shuffle-btn" onclick="toggleShuffle()">Shuffle</button>
   <button class="action-btn" id="mastered-btn" onclick="toggleHideMastered()">Hide mastered</button>
-  <button class="action-btn" id="newlimit-btn" onclick="cycleNewLimit()">New/day: 20</button>
+  <button class="action-btn" id="newlimit-btn" title="New cards per day, counted separately for each vocab direction" onclick="cycleNewLimit()">New/day: 20</button>
   <button class="action-btn" onclick="resetProgress()">Reset</button>
 </div>
 
@@ -3159,8 +3159,8 @@ function applyFilters() {
     }
     due.sort((a, b) => srsOf(a).due - srsOf(b).due);
     if (shuffled) { shuffle(due); shuffle(fresh); }
-    const allowance = Math.max(0, newPerDay - newToday());
-    queue = interleave(due, fresh.slice(0, allowance));
+    const allowance = { fa: newPerDay - newToday('fa'), en: newPerDay - newToday('en') };
+    queue = interleave(due, fresh.filter(c => allowance[newBucket(c)]-- > 0));
   }
   if (activeDirection === 'both') queue = spaceSiblings(queue, SIBLING_GAP);
   reviewedCount = 0;
@@ -3217,7 +3217,7 @@ function renderCards() {
     } else if (reviewedCount > 0) {
       const nd = nextDueLabel();
       msg = `<div class="empty-state"><h2>Done for now</h2><p>${reviewedCount} card${reviewedCount === 1 ? '' : 's'} reviewed.`
-        + (s.fresh ? ` ${s.fresh} new card${s.fresh === 1 ? '' : 's'} waiting behind today's limit of ${newPerDay}.` : '')
+        + (s.fresh ? ` ${s.fresh} new card${s.fresh === 1 ? '' : 's'} waiting behind today's limit of ${newPerDay}${activeDirection === 'both' ? ' per direction' : ''}.` : '')
         + (nd ? ` Next review in ${nd}.` : '') + '</p></div>';
     } else if (s.fresh || s.later) {
       const nd = nextDueLabel();
@@ -3466,7 +3466,7 @@ function gradeCard(g) {
   const k = cardKey(c);
   const prev = store.srs[k];
   const now = Date.now();
-  if (!prev) bumpNewToday();
+  if (!prev) bumpNewToday(newBucket(c));
   bumpRevToday();
   const st = fsrsReview(prev, g, now);
   store.srs[k] = st;
@@ -3770,8 +3770,21 @@ function todayKey() {
   const d = new Date();
   return `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`;
 }
-function newToday() { return store.newLog[todayKey()] || 0; }
-function bumpNewToday() { store.newLog[todayKey()] = newToday() + 1; }
+// Each direction gets its own New/day budget. Every English → Farsi card is new
+// until you pick that direction, so a shared budget spent on Farsi → English
+// left the switch with nothing to show.
+function newBucket(c) { return c.direction === 'english-to-farsi' ? 'en' : 'fa'; }
+function newToday(bucket) {
+  const day = store.newLog[todayKey()];
+  if (typeof day === 'number') return bucket === 'fa' ? day : 0;   // log from before the split
+  return (day && day[bucket]) || 0;
+}
+function bumpNewToday(bucket) {
+  const day = store.newLog[todayKey()];
+  const next = typeof day === 'number' ? { fa: day } : { ...day };
+  next[bucket] = (next[bucket] || 0) + 1;
+  store.newLog[todayKey()] = next;
+}
 
 // Carries pre-SRS streak progress over instead of throwing it away
 function migrateLegacyMastery() {
