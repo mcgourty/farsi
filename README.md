@@ -24,9 +24,9 @@ progress in each device's local storage.
 
 - **Study modes** — *Due & new* for daily review, *Weak spots* for everything you have
   lapsed on or that FSRS rates as hard (worst first), *All cards* to browse.
-- **Vocab direction** — Farsi → English, English → Farsi, or **Both, mixed**. Mixed mode
-  keeps the two directions of the same word at least 8 cards apart, so the second one
-  isn't a freebie.
+- **Direction** — Farsi → English, English → Farsi, or **Both, mixed**. This covers
+  vocabulary, grammar, phrases, story, and verbs. Mixed mode keeps the two directions
+  of the same card at least 8 cards apart, so the second one isn't a freebie.
 - **Verbs** — a *Verbs* session and card type with meaning practice for every
   infinitive and every person × tense the trainer can build, both directions.
   The verb trainer still drills *producing* a form; these cards drill *what it
