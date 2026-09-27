@@ -110,13 +110,18 @@ For every word, phrase, and concept in the teacher's materials:
    - Front: English meaning ONLY
    - Back: Farsi script + Pinglish + breakdown
 
-3. **Reading Practice (Phrases/Sentences)**
-   - Front: Farsi text ONLY
-   - Back: Pinglish + English translation + word-by-word breakdown
+3. **Reading Practice (Phrases/Sentences)** — both directions, same as vocabulary
+   - Farsi → English front: Farsi text ONLY
+   - English → Farsi front: English translation ONLY
+   - Back: the other language, plus pinglish and the word-by-word breakdown
 
-4. **Grammar/Conjugation**
-   - Front: Farsi conjugated form ONLY
-   - Back: Pinglish + English + grammatical explanation
+4. **Grammar/Conjugation** — both directions
+   - Farsi → English front: Farsi form ONLY
+   - English → Farsi front: English meaning ONLY
+   - Back: the other language, plus pinglish and the grammatical explanation
+
+Story lines follow the same both-directions pattern. Alphabet cards are the
+exception: they are a letter drill and ignore the direction filter.
 
 5. **Alphabet - Letter Recognition**
    - Front: Isolated letter form ONLY

@@ -1503,7 +1503,7 @@ button, .pill, .tab-btn, .action-btn, .score-btn, .nav-btn {
     <div class="pills" id="front-pills"></div>
   </div>
   <div class="filter-group">
-    <label>Vocab Direction</label>
+    <label>Direction</label>
     <div class="pills" id="dir-pills"></div>
   </div>
 </div>
@@ -1575,7 +1575,7 @@ button, .pill, .tab-btn, .action-btn, .score-btn, .nav-btn {
   <button class="action-btn" id="audio-btn" onclick="toggleAudio()" hidden>Auto-play audio</button>
   <button class="action-btn" id="shuffle-btn" onclick="toggleShuffle()">Shuffle</button>
   <button class="action-btn" id="mastered-btn" onclick="toggleHideMastered()">Hide mastered</button>
-  <button class="action-btn" id="newlimit-btn" title="New cards per day, counted separately for each vocab direction" onclick="cycleNewLimit()">New/day: 20</button>
+  <button class="action-btn" id="newlimit-btn" title="New cards per day, counted separately for each direction" onclick="cycleNewLimit()">New/day: 20</button>
   <button class="action-btn" onclick="resetProgress()">Reset</button>
 </div>
 
@@ -1890,14 +1890,14 @@ const alphabet = [
 
 // Build card set
 for (const c of s22_vocab)   { addCards('22','vocabulary',  [c], 'farsi-to-english'); addCards('22','vocabulary',  [c], 'english-to-farsi'); }
-for (const c of s22_grammar) { addCards('22','grammar',     [c], 'farsi-to-english'); }
-for (const c of s22_phrases) { addCards('22','phrases',     [c], 'farsi-to-english'); }
+for (const c of s22_grammar) { addCards('22','grammar',     [c], 'farsi-to-english'); addCards('22','grammar',     [c], 'english-to-farsi'); }
+for (const c of s22_phrases) { addCards('22','phrases',     [c], 'farsi-to-english'); addCards('22','phrases',     [c], 'english-to-farsi'); }
 for (const c of s23_vocab)   { addCards('23','vocabulary',  [c], 'farsi-to-english'); addCards('23','vocabulary',  [c], 'english-to-farsi'); }
-for (const c of s23_grammar) { addCards('23','grammar',     [c], 'farsi-to-english'); }
-for (const c of s23_phrases) { addCards('23','phrases',     [c], 'farsi-to-english'); }
+for (const c of s23_grammar) { addCards('23','grammar',     [c], 'farsi-to-english'); addCards('23','grammar',     [c], 'english-to-farsi'); }
+for (const c of s23_phrases) { addCards('23','phrases',     [c], 'farsi-to-english'); addCards('23','phrases',     [c], 'english-to-farsi'); }
 for (const c of s2425_vocab)   { addCards('24-25','vocabulary',  [c], 'farsi-to-english'); addCards('24-25','vocabulary',  [c], 'english-to-farsi'); }
-for (const c of s2425_grammar) { addCards('24-25','grammar',     [c], 'farsi-to-english'); }
-for (const c of s2425_phrases) { addCards('24-25','phrases',     [c], 'farsi-to-english'); }
+for (const c of s2425_grammar) { addCards('24-25','grammar',     [c], 'farsi-to-english'); addCards('24-25','grammar',     [c], 'english-to-farsi'); }
+for (const c of s2425_phrases) { addCards('24-25','phrases',     [c], 'farsi-to-english'); addCards('24-25','phrases',     [c], 'english-to-farsi'); }
 
 // SESSION 26 DATA
 const s26_vocab = [
@@ -2030,8 +2030,8 @@ const s26_phrases = [
 ];
 
 for (const c of s26_vocab)   { addCards('26','vocabulary',  [c], 'farsi-to-english'); addCards('26','vocabulary',  [c], 'english-to-farsi'); }
-for (const c of s26_grammar) { addCards('26','grammar',     [c], 'farsi-to-english'); }
-for (const c of s26_phrases) { addCards('26','phrases',     [c], 'farsi-to-english'); }
+for (const c of s26_grammar) { addCards('26','grammar',     [c], 'farsi-to-english'); addCards('26','grammar',     [c], 'english-to-farsi'); }
+for (const c of s26_phrases) { addCards('26','phrases',     [c], 'farsi-to-english'); addCards('26','phrases',     [c], 'english-to-farsi'); }
 
 // SESSION 27 DATA — moods, feelings (sardam-e...), weather, infinitives as nouns, because/why
 const s27_vocab = [
@@ -2937,31 +2937,31 @@ const s34_story = [
 ];
 
 for (const c of s27_vocab)   { addCards('27','vocabulary',  [c], 'farsi-to-english'); addCards('27','vocabulary',  [c], 'english-to-farsi'); }
-for (const c of s27_grammar) { addCards('27','grammar',     [c], 'farsi-to-english'); }
-for (const c of s27_phrases) { addCards('27','phrases',     [c], 'farsi-to-english'); }
+for (const c of s27_grammar) { addCards('27','grammar',     [c], 'farsi-to-english'); addCards('27','grammar',     [c], 'english-to-farsi'); }
+for (const c of s27_phrases) { addCards('27','phrases',     [c], 'farsi-to-english'); addCards('27','phrases',     [c], 'english-to-farsi'); }
 for (const c of s28_vocab)   { addCards('28','vocabulary',  [c], 'farsi-to-english'); addCards('28','vocabulary',  [c], 'english-to-farsi'); }
-for (const c of s28_grammar) { addCards('28','grammar',     [c], 'farsi-to-english'); }
-for (const c of s28_phrases) { addCards('28','phrases',     [c], 'farsi-to-english'); }
+for (const c of s28_grammar) { addCards('28','grammar',     [c], 'farsi-to-english'); addCards('28','grammar',     [c], 'english-to-farsi'); }
+for (const c of s28_phrases) { addCards('28','phrases',     [c], 'farsi-to-english'); addCards('28','phrases',     [c], 'english-to-farsi'); }
 for (const c of s29_vocab)   { addCards('29','vocabulary',  [c], 'farsi-to-english'); addCards('29','vocabulary',  [c], 'english-to-farsi'); }
-for (const c of s29_grammar) { addCards('29','grammar',     [c], 'farsi-to-english'); }
-for (const c of s29_phrases) { addCards('29','phrases',     [c], 'farsi-to-english'); }
+for (const c of s29_grammar) { addCards('29','grammar',     [c], 'farsi-to-english'); addCards('29','grammar',     [c], 'english-to-farsi'); }
+for (const c of s29_phrases) { addCards('29','phrases',     [c], 'farsi-to-english'); addCards('29','phrases',     [c], 'english-to-farsi'); }
 for (const c of s30_vocab)   { addCards('30','vocabulary',  [c], 'farsi-to-english'); addCards('30','vocabulary',  [c], 'english-to-farsi'); }
-for (const c of s30_grammar) { addCards('30','grammar',     [c], 'farsi-to-english'); }
-for (const c of s30_phrases) { addCards('30','phrases',     [c], 'farsi-to-english'); }
+for (const c of s30_grammar) { addCards('30','grammar',     [c], 'farsi-to-english'); addCards('30','grammar',     [c], 'english-to-farsi'); }
+for (const c of s30_phrases) { addCards('30','phrases',     [c], 'farsi-to-english'); addCards('30','phrases',     [c], 'english-to-farsi'); }
 for (const c of s31_vocab)   { addCards('31','vocabulary',  [c], 'farsi-to-english'); addCards('31','vocabulary',  [c], 'english-to-farsi'); }
-for (const c of s31_grammar) { addCards('31','grammar',     [c], 'farsi-to-english'); }
-for (const c of s31_phrases) { addCards('31','phrases',     [c], 'farsi-to-english'); }
+for (const c of s31_grammar) { addCards('31','grammar',     [c], 'farsi-to-english'); addCards('31','grammar',     [c], 'english-to-farsi'); }
+for (const c of s31_phrases) { addCards('31','phrases',     [c], 'farsi-to-english'); addCards('31','phrases',     [c], 'english-to-farsi'); }
 for (const c of s32_vocab)   { addCards('32','vocabulary',  [c], 'farsi-to-english'); addCards('32','vocabulary',  [c], 'english-to-farsi'); }
-for (const c of s32_grammar) { addCards('32','grammar',     [c], 'farsi-to-english'); }
-for (const c of s32_phrases) { addCards('32','phrases',     [c], 'farsi-to-english'); }
-for (const c of s32_story)   { addCards('32','story',       [c], 'farsi-to-english'); }
+for (const c of s32_grammar) { addCards('32','grammar',     [c], 'farsi-to-english'); addCards('32','grammar',     [c], 'english-to-farsi'); }
+for (const c of s32_phrases) { addCards('32','phrases',     [c], 'farsi-to-english'); addCards('32','phrases',     [c], 'english-to-farsi'); }
+for (const c of s32_story)   { addCards('32','story',       [c], 'farsi-to-english'); addCards('32','story',       [c], 'english-to-farsi'); }
 for (const c of s33_vocab)   { addCards('33','vocabulary',  [c], 'farsi-to-english'); addCards('33','vocabulary',  [c], 'english-to-farsi'); }
-for (const c of s33_grammar) { addCards('33','grammar',     [c], 'farsi-to-english'); }
-for (const c of s33_phrases) { addCards('33','phrases',     [c], 'farsi-to-english'); }
+for (const c of s33_grammar) { addCards('33','grammar',     [c], 'farsi-to-english'); addCards('33','grammar',     [c], 'english-to-farsi'); }
+for (const c of s33_phrases) { addCards('33','phrases',     [c], 'farsi-to-english'); addCards('33','phrases',     [c], 'english-to-farsi'); }
 for (const c of s34_vocab)   { addCards('34','vocabulary',  [c], 'farsi-to-english'); addCards('34','vocabulary',  [c], 'english-to-farsi'); }
-for (const c of s34_grammar) { addCards('34','grammar',     [c], 'farsi-to-english'); }
-for (const c of s34_phrases) { addCards('34','phrases',     [c], 'farsi-to-english'); }
-for (const c of s34_story)   { addCards('34','story',       [c], 'farsi-to-english'); }
+for (const c of s34_grammar) { addCards('34','grammar',     [c], 'farsi-to-english'); addCards('34','grammar',     [c], 'english-to-farsi'); }
+for (const c of s34_phrases) { addCards('34','phrases',     [c], 'farsi-to-english'); addCards('34','phrases',     [c], 'english-to-farsi'); }
+for (const c of s34_story)   { addCards('34','story',       [c], 'farsi-to-english'); addCards('34','story',       [c], 'english-to-farsi'); }
 
 for (const c of alphabet) { addCards('alphabet','alphabet', [c], 'letter'); }
 
@@ -3058,11 +3058,17 @@ function isBuried(c) {
   return !!(store.buried && store.buried[cardKey(c)]);
 }
 
+// Alphabet is a letter drill, not a translation, so direction does not apply.
+// Vocabulary, grammar, phrases, story, and verbs each exist in both directions.
+function directionExcluded(c) {
+  return c.type !== 'alphabet' && activeDirection !== 'both' && c.direction !== activeDirection;
+}
+
 // Session / type / direction only — bury and mastery are layered on top.
 function matchesFilters(c) {
   if (!activeSessions.has(c.session)) return false;
   if (!activeTypes.has(c.type)) return false;
-  if ((c.type === 'vocabulary' || c.type === 'verbs') && activeDirection !== 'both' && c.direction !== activeDirection) return false;
+  if (directionExcluded(c)) return false;
   return true;
 }
 
@@ -3348,7 +3354,10 @@ function typedAnswerPin() {
 
 function typedRecallActive(c) {
   if (tab === 'verbs') return typedMode && vtMode === 'drill' && !!drillPrompt;
-  if (!typedMode || !c || c.type === 'alphabet' || frontMode === 'pinglish') return false;
+  if (!typedMode || !c || c.type === 'alphabet') return false;
+  // Pinglish on the front means the answer is already showing. English → Farsi
+  // still prompts in English, so typing the pinglish stays a real recall.
+  if (frontMode === 'pinglish' && c.direction !== 'english-to-farsi') return false;
   // Skip rule-of-thumb cards whose "pinglish" is an explanation rather than a word to type
   return !/[=\u0600-\u06FF]/.test(c.pinglish);
 }
@@ -4645,7 +4654,7 @@ function sessionStateCounts() {
   const m = new Map();
   for (const c of CARDS) {
     if (!activeTypes.has(c.type)) continue;
-    if ((c.type === 'vocabulary' || c.type === 'verbs') && activeDirection !== 'both' && c.direction !== activeDirection) continue;
+    if (directionExcluded(c)) continue;
     if (isBuried(c)) continue;
     let e = m.get(c.session);
     if (!e) m.set(c.session, e = emptyCounts());
