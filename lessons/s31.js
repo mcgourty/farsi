@@ -3,7 +3,8 @@
 F.lesson({
   id: "31",
   label: "Session 31",
-  summary: "transport & savār, place names (-gāh / -khooneh), makeup & ahl-e, buying & selling, -forushi shops, travel, near & far",
+  title: "Getting around and shopping",
+  summary: "Transport and savār, place names in -gāh and -khooneh, makeup and ahl-e, buying and selling, -forushi shops, travel, near and far.",
   items: [
     // Vocabulary
     { id: "31.v.docharkheh", type: "vocabulary", fa: "دوچرخه", pin: "docharkheh", en: "bicycle, bike", notes: "د-و-چرخه (چرخ = wheel)",

@@ -3,7 +3,8 @@
 F.lesson({
   id: "33",
   label: "Session 33",
-  summary: "cheshm/chashm, time-ago (pish/ghabl), hame, ZADAN and its compounds",
+  title: "Zadan and time ago",
+  summary: "Cheshm / chashm, time ago (pish / ghabl), hame, zadan and its compounds.",
   items: [
     // Vocabulary
     { id: "33.v.cheshm-chashm", type: "vocabulary", fa: "چشم", pin: "cheshm / chashm", en: "eye; (as a reply) yes, gladly / as you wish", notes: "چشم = I'll do it, it's on my eyes. چَشم is more formal/poetic; چِشم is everyday",

@@ -4,7 +4,7 @@ F.lesson({
   id: "34",
   label: "Session 34",
   title: "Comparison",
-  summary: "comparatives (-tar), superlatives (-tarin), adjective pairs, the یادداشت passage",
+  summary: "Comparatives (-tar), superlatives (-tarin), adjective pairs and the یادداشت passage.",
   notes: "ALEX-SESSION-34_formatted.md",
   items: [
     // Vocabulary

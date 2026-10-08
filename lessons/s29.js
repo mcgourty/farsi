@@ -3,7 +3,8 @@
 F.lesson({
   id: "29",
   label: "Session 29",
-  summary: "residan, ki/che kasi, māl-e possessives, reflexives, morāgheb",
+  title: "Arriving, whose and myself",
+  summary: "Residan, ki and che kasi, possessives with māl-e, reflexives, morāgheb.",
   items: [
     // Vocabulary
     { id: "29.v.residan", type: "vocabulary", fa: "رسیدن", pin: "residan", en: "to arrive", notes: "present stem: رس (res)",

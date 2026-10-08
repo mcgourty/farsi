@@ -3,7 +3,8 @@
 F.lesson({
   id: "27",
   label: "Session 27",
-  summary: "moods, feelings (sardam-e...), weather, infinitives as nouns, because/why",
+  title: "Moods, feelings and weather",
+  summary: "Feelings (sardam-e…), weather, infinitives as nouns, because and why.",
   items: [
     // Vocabulary
     { id: "27.v.khoshhal", type: "vocabulary", fa: "خوشحال", pin: "khoshhāl", en: "happy", notes: "خوش (pleasant) + حال (state)",

@@ -3,7 +3,8 @@
 F.lesson({
   id: "32",
   label: "Session 32",
-  summary: "komak, oomadan, THE PAST TENSE, bāz/baste/band, dard + body parts, bidār shodan, khābidan, delam tang shodeh",
+  title: "The past tense",
+  summary: "Komak, oomadan, the past tense, bāz / baste / band, dard and body parts, bidār shodan, khābidan, delam tang shodeh.",
   items: [
     // Vocabulary
     { id: "32.v.komak", type: "vocabulary", fa: "کمک", pin: "komak", en: "help", notes: "ک-م-ک",

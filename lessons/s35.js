@@ -4,7 +4,7 @@ F.lesson({
   id: "35",
   label: "Session 35",
   title: "Where things are",
-  summary: "where things are: prepositions of place, the kitchen, برداشتن / گذاشتن, directions, geography, قرار",
+  summary: "Prepositions of place, the kitchen, برداشتن / گذاشتن, directions, geography and قرار.",
   notes: "ALEX-SESSION-35_formatted.md",
   items: [
     // Vocabulary

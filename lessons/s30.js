@@ -3,7 +3,8 @@
 F.lesson({
   id: "30",
   label: "Session 30",
-  summary: "counting times (bār), \"per\" suffix (-i), didan, prepositions, az...tā, walking & driving",
+  title: "How often and how far",
+  summary: "Counting times (bār), the -i “per” suffix, didan, prepositions, az…tā, walking and driving.",
   items: [
     // Vocabulary
     { id: "30.v.dobareh", type: "vocabulary", fa: "دوباره", pin: "dobāreh", en: "again", notes: "د-و-باره",

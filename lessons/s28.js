@@ -3,7 +3,8 @@
 F.lesson({
   id: "28",
   label: "Session 28",
-  summary: "demonstratives, present continuous, dige, hamdige, future time, raftan + be",
+  title: "This, that and right now",
+  summary: "Demonstratives, the present continuous, dige and hamdige, future time, raftan + be.",
   items: [
     // Vocabulary
     { id: "28.v.inha-ina", type: "vocabulary", fa: "اینها / اینا", pin: "inhā / inā", en: "these", notes: "این (this) + ها (plural)" },
