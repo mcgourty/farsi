@@ -22,6 +22,9 @@ js/ui/study.js        F.study + view 'cards': queue, card rendering, grading, bu
 js/ui/drill.js        F.drill + view 'verbs': verb browse tables and conjugation drill
 js/ui/settings.js     F.settings: filter panels (#fc-filters, #vt-filters), bulk buttons
 js/ui/backup.js       F.backupUI: backup/restore panel (#backup-panel), backup reminder
+js/md.js              F.md: small XSS-safe markdown renderer for the lesson notes (pure, node-loadable)
+js/ui/notes.js        F.notes + view 'notes': lesson notes list, search, reader; card-back link; Today section
+css/notes.css         styles for the notes view and the card-back link
 js/app.js             F.app: boot, view switching, render pass, click + key dispatch (load last)
 tools/                node tooling and tests (no npm dependencies)
 ```
@@ -112,6 +115,13 @@ if you register after boot.
 `id, label, title?, summary?, kind, notesFiles[], items[]`) and
 `F.cards.sessions` (`{id, label, kind, lesson?}` in deck order, including
 `verbs`). `F.cards.newestLesson()` is the last numbered lesson.
+
+**Lesson notes** (`js/ui/notes.js`). `F.notes.open(lessonId, {find, from})` opens a
+lesson's notes (`find`: text to scroll to and highlight; `from`: view name for
+the "Back to ..." button). `F.notes.lessons()` lists lessons with notes, newest
+first; `F.notes.search(q)` resolves to `[{lesson, file, unit, heading, snippetHTML}]`.
+Markup can use `data-action="notes-open" data-arg="<lessonId>"` (optional `data-find`).
+The .md files are fetched at runtime (same origin). Pref field: `notesLesson`.
 
 ## Data shapes
 

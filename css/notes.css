@@ -1,0 +1,310 @@
+/* ============================================================
+   Lesson notes (js/ui/notes.js, js/md.js).
+   Colours come from the app tokens; each has a fallback to the older
+   token names so this file works before and after the new palette.
+   ============================================================ */
+
+.notes {
+  --n-ink: var(--ink, var(--text));
+  --n-ink-2: var(--ink-2, var(--ink-muted));
+  --n-ink-3: var(--ink-3, var(--ink-light));
+  --n-paper: var(--paper, var(--bg));
+  --n-surface: var(--surface);
+  --n-line: var(--line);
+  --n-accent: var(--firuzeh, var(--accent));
+  --n-accent-soft: var(--firuzeh-soft, var(--accent-soft));
+  --n-mark: color-mix(in srgb, var(--saffron, var(--warn)) 26%, transparent);
+  --n-farsi: var(--font-farsi, "Vazirmatn", "SF Arabic", "Geeza Pro", Tahoma, sans-serif);
+  color: var(--n-ink);
+  font-size: 1rem;
+  line-height: 1.6;
+}
+
+/* The notes view is a reading page: drop the study chrome around it. */
+body[data-view="notes"] .stats-bar,
+body[data-view="notes"] .nav-row,
+body[data-view="notes"] .scope-bar,
+body[data-view="notes"] .score-row,
+body[data-view="notes"] .shortcuts,
+body[data-view="notes"] .filter-toggle,
+body[data-view="notes"] #backup-settings { display: none !important; }
+body[data-view="notes"] .card-area { max-width: 760px; perspective: none; }
+
+.visually-hidden {
+  position: absolute !important;
+  width: 1px; height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+/* ---------- Persian runs ---------- */
+.notes .fa,
+.notes-link .fa {
+  font-family: var(--n-farsi);
+  font-size: 1.25em;
+  line-height: 1.5;
+  unicode-bidi: isolate;
+  font-weight: inherit;
+}
+.notes .fa-line { unicode-bidi: isolate; }
+.notes [lang="fa"][dir="rtl"]:not(.fa) { font-family: var(--n-farsi); }
+.notes h1 .fa, .notes h2 .fa, .notes h3 .fa { font-size: 1.12em; }
+.notes code .fa, .notes pre .fa { font-size: 1.2em; }
+
+/* ---------- List ---------- */
+.notes-list-head { margin: 4px 0 14px; }
+.notes-h {
+  font-size: 1.35rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  margin-bottom: 12px;
+}
+.notes-search input {
+  width: 100%;
+  min-height: 46px;
+  padding: 10px 14px;
+  font: inherit;
+  font-size: 16px;            /* no iOS zoom on focus */
+  color: var(--n-ink);
+  background: var(--n-surface);
+  border: 1px solid var(--n-line);
+  border-radius: 12px;
+  outline: none;
+  -webkit-appearance: none;
+  appearance: none;
+}
+.notes-search input:focus { border-color: var(--n-accent); box-shadow: 0 0 0 3px var(--n-accent-soft); }
+
+.notes-lessons, .notes-hits { list-style: none; display: grid; gap: 10px; }
+.notes-lessons[hidden] { display: none; }
+.notes-lesson, .notes-hit {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  width: 100%;
+  min-height: 56px;
+  padding: 12px 16px;
+  text-align: left;
+  font: inherit;
+  color: var(--n-ink);
+  background: var(--n-surface);
+  border: 1px solid var(--n-line);
+  border-radius: 14px;
+  cursor: pointer;
+}
+.notes-lesson:hover, .notes-hit:hover { border-color: var(--n-accent); }
+.notes-lesson-label { font-weight: 600; }
+.notes-lesson-title { color: var(--n-ink); }
+.notes-lesson-summary, .notes-hit-where { color: var(--n-ink-2); font-size: 0.88rem; }
+.notes-lesson-summary .fa { font-size: 1.15em; }
+.notes-hit-text { line-height: 1.7; overflow-wrap: anywhere; }
+.notes-hit mark, .notes-mark {
+  background: var(--n-mark);
+  color: inherit;
+  border-radius: 4px;
+  padding: 0 2px;
+}
+.notes-count, .notes-status, .notes-foot { color: var(--n-ink-2); font-size: 0.9rem; margin: 10px 2px; }
+.notes-foot { margin-top: 18px; }
+.notes-notice {
+  margin: 12px 0;
+  padding: 10px 14px;
+  border-radius: 12px;
+  background: var(--n-accent-soft);
+  color: var(--n-ink);
+  font-size: 0.92rem;
+}
+.notes-retry, .notes-today-btn {
+  min-height: 44px;
+  padding: 10px 18px;
+  font: inherit;
+  font-weight: 500;
+  border: 0;
+  border-radius: 12px;
+  background: var(--n-accent, var(--firuzeh, var(--accent)));
+  color: var(--paper, var(--accent-contrast, #fff));
+  cursor: pointer;
+}
+
+/* ---------- Lesson page ---------- */
+.notes-bar {
+  position: sticky;
+  top: var(--notes-top, 0px);
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0 -20px 8px;
+  padding: 8px 20px;
+  background: color-mix(in srgb, var(--n-paper) 92%, transparent);
+  -webkit-backdrop-filter: saturate(180%) blur(14px);
+  backdrop-filter: saturate(180%) blur(14px);
+  border-bottom: 1px solid var(--n-line);
+}
+.notes-bar-title { display: flex; flex-direction: column; min-width: 0; flex: 1; line-height: 1.3; }
+.notes-bar-label { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.notes-bar-sub { color: var(--n-ink-2); font-size: 0.85rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.notes-back {
+  flex: none;
+  min-height: 44px;
+  padding: 8px 10px;
+  font: inherit;
+  font-size: 0.86rem;
+  white-space: nowrap;
+  color: var(--n-accent);
+  background: var(--n-accent-soft);
+  border: 0;
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+.notes-toc {
+  margin: 8px 0 18px;
+  border: 1px solid var(--n-line);
+  border-radius: 14px;
+  background: var(--n-surface);
+}
+.notes-toc summary {
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  padding: 10px 16px;
+  font-weight: 600;
+  cursor: pointer;
+  list-style: none;
+}
+.notes-toc summary::-webkit-details-marker { display: none; }
+.notes-toc summary::after { content: "▾"; margin-left: auto; color: var(--n-ink-3); }
+.notes-toc[open] summary::after { content: "▴"; }
+.notes-toc ol { list-style: none; padding: 0 8px 10px; }
+.notes-toc-file { padding: 8px 8px 2px; color: var(--n-ink-3); font-size: 0.82rem; }
+.notes-toc-link {
+  display: block;
+  width: 100%;
+  min-height: 44px;
+  padding: 8px 8px;
+  text-align: left;
+  font: inherit;
+  font-size: 0.95rem;
+  color: var(--n-ink);
+  background: none;
+  border: 0;
+  border-radius: 10px;
+  cursor: pointer;
+}
+.notes-toc-link:hover { background: var(--n-accent-soft); color: var(--n-accent); }
+
+/* ---------- Rendered markdown ---------- */
+.md { overflow-wrap: break-word; }
+.md + .md { margin-top: 32px; padding-top: 24px; border-top: 2px solid var(--n-line); }
+.md h1, .md h2, .md h3, .md h4 { line-height: 1.35; letter-spacing: -0.015em; scroll-margin-top: calc(var(--notes-top, 0px) + 72px); }
+.md h1 { font-size: 1.45rem; font-weight: 650; margin: 8px 0 12px; }
+.md h2 { font-size: 1.2rem; font-weight: 620; margin: 28px 0 10px; color: var(--n-ink); }
+.md h3 { font-size: 1.04rem; font-weight: 600; margin: 20px 0 8px; color: var(--n-ink); }
+.md h4, .md h5, .md h6 { font-size: 0.98rem; font-weight: 600; margin: 16px 0 6px; }
+.md p, .md ul, .md ol, .md blockquote, .md pre, .md .md-table-wrap { margin: 0 0 12px; }
+.md p[dir="rtl"] { text-align: right; }
+.md ul, .md ol { padding-left: 1.4em; }
+.md li { margin: 3px 0; }
+.md li[dir="rtl"] { list-style-position: inside; text-align: right; }
+.md strong { font-weight: 650; }
+.md hr { border: 0; border-top: 1px solid var(--n-line); margin: 22px 0; }
+.md blockquote {
+  padding: 10px 14px;
+  border-left: 3px solid var(--n-accent);
+  background: var(--n-accent-soft);
+  border-radius: 0 12px 12px 0;
+}
+.md blockquote > :last-child { margin-bottom: 0; }
+.md blockquote h3 { margin-top: 4px; }
+.md code {
+  font-family: var(--font-mono, ui-monospace, monospace);
+  font-size: 0.86em;
+  padding: 1px 5px;
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--n-ink) 7%, transparent);
+}
+.md pre {
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: var(--n-surface);
+  border: 1px solid var(--n-line);
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  line-height: 1.9;
+}
+.md pre code { padding: 0; background: none; font-size: 0.86rem; white-space: pre; }
+
+/* Tables scroll inside their own box on a narrow screen. */
+.md-table-wrap {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-x: contain;
+  border: 1px solid var(--n-line);
+  border-radius: 12px;
+  background: var(--n-surface);
+}
+.md-table { border-collapse: collapse; width: max-content; min-width: 100%; font-size: 0.92rem; line-height: 1.45; }
+.md-table th, .md-table td {
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--n-line);
+  vertical-align: middle;
+  text-align: left;
+}
+.md-table th {
+  font-weight: 600;
+  font-size: 0.82rem;
+  color: var(--n-ink-2);
+  background: color-mix(in srgb, var(--n-ink) 4%, transparent);
+  white-space: nowrap;
+}
+.md-table tr:last-child td { border-bottom: 0; }
+.md-table td { min-width: 4.5em; max-width: 15em; }
+.md-table th { max-width: 15em; }
+.md-table td.fa-cell { white-space: nowrap; }
+.md-table td.fa-cell .fa { font-size: 1.3em; }
+
+/* Highlight after a jump. */
+.notes-flash { animation: notes-flash 2.2s var(--ease, ease-out); border-radius: 8px; }
+@keyframes notes-flash {
+  0%, 35% { background: var(--n-mark); box-shadow: 0 0 0 4px var(--n-mark); }
+  100% { background: transparent; box-shadow: 0 0 0 4px transparent; }
+}
+tr.notes-flash td { animation: notes-flash-cell 2.2s var(--ease, ease-out); }
+@keyframes notes-flash-cell { 0%, 35% { background: var(--n-mark); } 100% { background: transparent; } }
+
+/* ---------- Card back link ---------- */
+.notes-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  margin-top: 14px;
+  padding: 8px 14px;
+  font: inherit;
+  font-size: 0.86rem;
+  color: var(--firuzeh, var(--accent));
+  background: transparent;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  cursor: pointer;
+}
+.notes-link:hover { background: var(--firuzeh-soft, var(--accent-soft)); }
+
+/* ---------- Today section ---------- */
+.notes-today-h { font-size: 1rem; font-weight: 600; margin-bottom: 4px; }
+.notes-today-sub { color: var(--ink-2, var(--ink-muted)); font-size: 0.9rem; margin-bottom: 10px; }
+.notes-today-sub .fa { font-family: var(--font-farsi); font-size: 1.15em; }
+
+@media (max-width: 720px) {
+  .notes-bar { margin: 0 -16px 8px; padding: 6px 16px; }
+  .notes-h { font-size: 1.2rem; }
+  .md-table { font-size: 0.88rem; }
+  .md-table th, .md-table td { padding: 7px 10px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .notes-flash, tr.notes-flash td { animation: none; background: var(--n-mark); }
+}
