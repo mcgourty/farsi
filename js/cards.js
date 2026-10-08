@@ -257,31 +257,46 @@
         }
         if (o.eligibleNew) fresh = fresh.filter(o.eligibleNew);
         const deferred = Array.isArray(o.deferred) ? o.deferred : [];
-        if (o.siblingRule) {
-          const taken = new Set();
-          const keep = c => {
-            const k = api.siblingKey(c);
-            if (taken.has(k) || (o.siblingSeenToday && o.siblingSeenToday(c))) { deferred.push(c); return false; }
-            taken.add(k);
-            return true;
-          };
-          // Due cards claim their key first; a new twin waits for tomorrow.
-          due = due.filter(keep);
-          fresh = fresh.filter(keep);
-        }
         const allowance = Object.assign({}, o.allowance);
+        const learnLeft = () => (allowance.learn === undefined ? Infinity : allowance.learn);
         const introItems = new Set();
+        const intro = c => !!(o.needsIntro && o.needsIntro(c));
+        const hasBudget = c => (intro(c)
+          ? !introItems.has(c.itemId) && learnLeft() > 0 && allowance[api.newBucket(c)] > 0
+          : allowance[api.newBucket(c)] > 0);
         const take = c => {
-          if (o.needsIntro && o.needsIntro(c)) {
-            if (introItems.has(c.itemId)) return false;
-            if (!((allowance.learn === undefined ? Infinity : allowance.learn) > 0)) return false;
+          if (intro(c)) {
+            // A presentation also counts against its own direction's budget,
+            // so the new cards per direction per day never exceed the limit.
+            if (!hasBudget(c)) return false;
+            allowance[api.newBucket(c)]--;
             introItems.add(c.itemId);
             if (allowance.learn !== undefined) allowance.learn--;
             return true;
           }
           return allowance[api.newBucket(c)]-- > 0;
         };
-        queue = api.interleave(due, fresh.filter(take));
+        if (o.siblingRule) {
+          // Due cards claim their key first (most overdue first); a sibling
+          // that was reviewed today, or a twin of a card already in today's
+          // queue, waits for tomorrow.
+          const taken = new Set();
+          const blocked = c => taken.has(api.siblingKey(c)) || !!(o.siblingSeenToday && o.siblingSeenToday(c));
+          due = due.filter(c => {
+            if (blocked(c)) { deferred.push(c); return false; }
+            taken.add(api.siblingKey(c));
+            return true;
+          });
+          fresh = fresh.filter(c => {
+            if (blocked(c)) { if (hasBudget(c)) deferred.push(c); return false; }
+            if (!take(c)) return false;
+            taken.add(api.siblingKey(c));
+            return true;
+          });
+          queue = api.interleave(due, fresh);
+        } else {
+          queue = api.interleave(due, fresh.filter(take));
+        }
       }
       if (o.direction === 'both') queue = api.spaceSiblings(queue, api.SIBLING_GAP);
       return queue;
