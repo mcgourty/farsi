@@ -144,28 +144,63 @@ exception: they are a letter drill and ignore the direction filter.
    - Back: Farsi + pinglish + person/tense/breakdown
    - Covers infinitive plus present, negative, past, neg. past, continuous
      (when the verb allows it), and both imperatives
-   - Do not hand-write these arrays — add the verb to `VERBS` and the cards
-     appear automatically
+   - Do not hand-write these cards — add the verb to `VERBS` in `js/verbs.js`
+     and the cards appear automatically. A verb's `id` is part of its card ids,
+     so never rename one that has shipped
 
 ### Generation
 
-**`flashcards.html` is the single source of truth for card data.** Both the web
-app and the Anki deck read from it, so a new session is added there once:
+**`lessons/*.js` is the single source of truth for card data.** Both the web
+app and the Anki deck read from it. A new session is one new file plus one
+`<script>` tag:
 
-1. Add `sNN_vocab` / `sNN_grammar` / `sNN_phrases` arrays alongside the existing ones
-2. Add the matching `for (const c of sNN_...) { addCards('NN', ...) }` lines
-3. Add `{id:'NN',label:'Session NN'}` to the `sessions` array and `'NN'` to the
-   default `activeSessions` set
+1. Create `lessons/sNN.js`:
 
-`generate_anki.py` parses those `addCards` registration lines and the arrays they
-name — it holds no card data of its own and picks up new sessions automatically.
+   ```js
+   // Session 36: <theme>.
+   // Item ids are permanent. Never change or reuse one; add new items with new ids.
+   F.lesson({
+     id: '36',
+     label: 'Session 36',
+     title: 'Short theme in sentence case',      // optional
+     notes: 'ALEX-SESSION-36_formatted.md',       // the formatted lesson file
+     items: [
+       // Vocabulary
+       { id: '36.v.yakhchal', type: 'vocabulary', fa: 'یخچال', pin: 'yakhchāl', en: 'fridge', notes: 'ی-خ-چ-ا-ل' },
+       // Grammar
+       { id: '36.g.mizaram', type: 'grammar', fa: '…', pin: '…', en: '…', notes: '…' },
+       // Phrases
+       { id: '36.p.ketab-ru-miz-e', type: 'phrases', fa: '…', pin: '…', en: '…', notes: '…' },
+     ],
+   });
+   ```
 
-Run: `python3 generate_anki.py` (needs `pip install genanki`)  
+   - `type` is `vocabulary`, `grammar`, `phrases` or `story`. Every item becomes
+     two cards (Farsi → English and English → Farsi).
+   - `notes` is the back-of-card breakdown (letters, word-by-word, usage).
+   - Write Persian as real text, not `\u` escapes.
+   - **Every item needs a unique `id`, written literally**: `<session>.<v|g|p|s>.<pinglish-slug>`,
+     adding `-2`, `-3` if the slug is taken. The id is what review progress is
+     stored under, so it must never change afterwards, even if the Farsi or
+     pinglish is corrected. Do not reuse an id for a different word.
+2. Add `<script src="lessons/sNN.js"></script>` to `index.html` after the
+   previous session (before `lessons/alphabet.js`).
+3. Run `node tools/test.js`. The session filter, the default selection and
+   *Newest only* update themselves.
+
+Correcting a card later: edit its text in place and keep its `id`.
+
+`generate_anki.py` reads the lesson files through `node tools/dump-cards.js`
+and sets each note's guid from the card id. It holds no card data of its own.
+
+Run: `python3 generate_anki.py` (needs node and `pip install genanki`)  
 Output: `farsi_cursor_agent.apkg`  
 Import: Double-click the `.apkg` file to import into Anki
 
-The deck and model IDs are fixed, so re-importing a regenerated deck updates the
-existing cards in place rather than creating duplicates.
+The deck and model IDs are fixed and every note has a stable guid from its card
+id, so re-importing a regenerated deck updates the existing cards in place
+rather than creating duplicates. (Decks imported before guids were added will
+duplicate once; delete the old notes after that first re-import.)
 
 ---
 
@@ -199,19 +234,19 @@ existing cards in place rather than creating duplicates.
 ```
 .
 ├── AGENT_STUDY_PROTOCOL.md     # This file
-├── README.md                    # Repository overview
-├── Lesson_01.pdf               # Teacher's PDF
-├── Lesson_01.txt               # Converted text
-├── Lesson_01_formatted.md      # Fully explained/formatted content
-├── Lesson_02.pdf
-├── Lesson_02.txt
-├── Lesson_02_formatted.md
-└── ...
+├── ARCHITECTURE.md             # How the web app is built
+├── README.md                   # Repository overview
+├── ALEX-SESSION-NN.pdf         # Teacher's PDF
+├── ALEX-SESSION-NN.txt         # Converted text
+├── ALEX-SESSION-NN_formatted.md# Fully explained/formatted content
+├── lessons/sNN.js              # Card data for the session (see Generation)
+├── index.html, js/, css/       # The web app
+├── tools/                      # Tests and data tools (node)
+└── generate_anki.py            # Anki deck from lessons/*.js
 ```
 
-Keep it simple - PDFs, their text conversions, and formatted versions all at the root level (or organize by lesson number if it gets large).
-
----
+PDFs, text conversions and formatted lessons stay at the root; card data goes
+in `lessons/`.
 
 ## Important Reminders
 

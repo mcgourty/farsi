@@ -20,7 +20,7 @@ Personal Farsi study repo. Drop teacher PDFs here → agent formats everything w
 ## Studying
 
 The web app schedules with **FSRS-6** (the same algorithm modern Anki uses) and keeps
-progress in each device's local storage.
+progress in each device's local storage, with every grade also written to a review log.
 
 - **Study modes** — *Due & new* for daily review, *Weak spots* for everything you have
   lapsed on or that FSRS rates as hard (worst first), *All cards* to browse.
@@ -41,6 +41,11 @@ progress in each device's local storage.
 - **Audio** — on devices with a Persian voice installed, tap the speaker on the answer
   (or press `s`) to hear the word. *Auto-play audio* speaks it on every reveal.
 - **Type answer** — typed recall in pinglish, with tolerant matching for oo/u, ee/i, gh/q.
+- **Backup** — *Export backup* (in the filters panel) saves progress and the review
+  log to a JSON file; on iPhone it opens the share sheet so it can go to Files or
+  iCloud. *Restore from file* shows what the file contains before replacing anything.
+  The home-screen app and Safari keep separate progress, so use a backup to move it
+  between them or to a new phone. A reminder appears after a week without a backup.
 - **Verb trainer** — browse conjugations or run a conjugation drill. The drill is a
   real queue (next/prev, progress). Shuffle randomizes it; off sorts weak forms
   first. Filter by tense and person, type the pinglish, hear the form, and reset
@@ -48,8 +53,14 @@ progress in each device's local storage.
 
 ## Files
 
+- `index.html` — the app (`flashcards.html` just redirects to it)
+- `lessons/sNN.js` — one file per session: every card's Farsi, pinglish, English and notes
+- `js/`, `css/` — app code and styles; see `ARCHITECTURE.md`
+- `tools/` — `node tools/test.js` runs the tests; `node tools/dump-cards.js` prints the deck
+- `generate_anki.py` — builds the Anki deck from the lesson files
 - `*.pdf` - Original teacher materials
 - `*.txt` - Text conversion of PDFs
 - `*_formatted.md` - Full breakdown and explanation
 
-See `AGENT_STUDY_PROTOCOL.md` for detailed agent instructions.
+See `AGENT_STUDY_PROTOCOL.md` for detailed agent instructions and `ARCHITECTURE.md`
+for how the app is put together.
