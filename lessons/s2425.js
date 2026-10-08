@@ -3,6 +3,7 @@
 F.lesson({
   id: "24-25",
   label: "Sessions 24-25",
+  title: "Imperatives, reading, time and love",
   notes: ["ALEX-SESSION-24_formatted.md", "ALEX-SESSION-25_formatted.md"],
   items: [
     // Vocabulary

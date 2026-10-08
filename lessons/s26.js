@@ -3,6 +3,7 @@
 F.lesson({
   id: "26",
   label: "Session 26",
+  title: "Telling the time, numbers and meals",
   notes: "ALEX-SESSION-26_formatted.md",
   items: [
     // Vocabulary
