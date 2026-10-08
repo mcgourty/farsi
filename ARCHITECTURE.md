@@ -18,7 +18,10 @@ js/store.js           F.store: localStorage store, v1 migration, review log (Ind
 js/legacy-keys.js     F.LEGACY_KEYS: frozen v1 key -> card id map; loaded only to migrate
 js/audio.js           F.audio: Web Speech TTS (only when a Persian voice exists)
 js/ui/typed.js        F.typed: typed-recall input, tolerant pinglish matching
-js/ui/study.js        F.study + view 'cards': queue, card rendering, grading, bury, scope bar
+js/ui/study.js        F.study + view 'cards': queue, card rendering, grading, card menu (bury), undo toast, scope bar
+js/ui/learn.js        F.learn + view 'learn' (tab: false): present new lesson items, then one check
+js/ui/cloze.js        F.cloze: fill-in-the-blank generator + renderer (cards type 'cloze')
+css/study.css         study card, typed diff, cloze, learn, menu and toast styles (after app.css)
 js/ui/drill.js        F.drill + view 'verbs': verb browse tables and conjugation drill
 js/ui/settings.js     F.settings: filter panels (#fc-filters, #vt-filters), bulk buttons
 js/ui/backup.js       F.backupUI: backup/restore panel (#backup-panel), backup reminder
@@ -97,16 +100,48 @@ and hook `card:rendered` are applied after the renderer.
 | `card:graded` | `{card, rating, before, after, review}` |
 | `card:buried`, `card:unburied` | `{card}` |
 | `drill:marked` | `{prompt, known}` |
+| `learn:completed` | `{itemId, card, rating, after, review}` (also emits `card:graded`) |
+| `card:undone` | `{card, kind: 'grade'\|'bury'\|'learn'}` |
 | `shuffle:changed` | `{shuffled}` |
 
 **Prefs** (`F.store.registerPrefs({save(prefs), load(prefs)})`). `save` writes
 the module's fields into the shared prefs object; `load` reads them at boot.
 Keep field names unique across modules.
 
-**Generated decks** (`F.cards.registerGenerator({session, type, items, extra})`).
-How the Verbs session is made; `items()` returns `{id, fa, pin, en, notes}`
-and each item becomes a fa-en and an en-fa card. Call `F.cards.build()` again
-if you register after boot.
+**Generated decks** (`F.cards.registerGenerator({session?, type, items, dirs?, extra})`).
+How the Verbs session is made; `items()` returns `{id, fa, pin, en, notes, session?}`
+and each item becomes one card per direction in `dirs` (default fa-en and
+en-fa). Without `session` each item names the session it belongs to (cloze
+cards use `dirs: ['cloze']` and the phrase's session). Call `F.cards.build()`
+again if you register after boot. `js/ui/typed.js`, `learn.js` and `cloze.js`
+are DOM-free at load, so tests load them too (`loadStudy()` in tools/test.js).
+
+**Items and examples.** `F.cards.item(itemId)` is the source item,
+`F.cards.cardsOf(itemId)` its cards. `F.cards.examplesFor(itemId)` returns
+`[{fa, pin, en, source}]` from `item.examples` or `F.examples[itemId]` (a plain
+object or Map; whoever loads examples.json sets it), never throws on missing
+data; `F.cards.exampleFor(itemId, n)` rotates by review count.
+
+**Queue** (`F.cards.buildQueue`): the study view passes `newOrder: 'newest'`
+(newest numbered lesson first, then older lessons, alphabet, generated),
+`siblingRule` (in 'due' mode one card per `siblingKey` per day: a twin of a
+card reviewed or presented today, or of an earlier card in the queue, goes to
+`deferred`; "Study them anyway" lifts it for the sitting), `needsIntro` (a new
+lesson item enters once and is presented) and `eligibleNew` (a cloze waits
+until its phrase was learnt on an earlier day). Without these options the
+order is the legacy one, which the legacy queue test pins.
+
+**Learn** (`F.learn`): `pending(sessionId)`, `start(sessionId)`, `nextSession()`,
+`budget()`, `needsIntro(card)`, `isIntroduced(itemId)`. The presentation's
+check is English -> Farsi (Farsi -> English when the direction filter is
+Farsi -> English only) and records an ordinary first FSRS review (Got it =
+Good, Not yet = Again); the other direction waits until tomorrow. Items
+reviewed before learn mode count as introduced. If `F.today.registerSection`
+exists, learn.js adds a 'learn' section ("Learn session 35").
+
+**Typed** (`F.typed`): `canonFa`, `diff`, `checkFarsi(value, farsi, pin)` ->
+`{kind, grade, ops}`; a view with `typedCheck(value)` gets the diff and a
+suggested grade (`F.state.suggestGrade`, highlighted on the grade buttons).
 
 **Lesson metadata** for a notes viewer or home screen: `F.lessons` (each has
 `id, label, title?, summary?, kind, notesFiles[], items[]`) and
@@ -168,7 +203,10 @@ verb cards add `{verb, tense, pi}`.
 - `meta`: `createdAt`, `lastBackupAt`, `backupSnoozedAt`, `migratedFrom`,
   `migratedAt`, `v1Hash`, `importedAt`, `legacyOrphans` (v1 records whose
   card no longer existed).
-- Review log entry: `{cardId, ts, rating (1-4), elapsedDays (null if new), durationMs, stateBefore, sBefore, dBefore, stateAfter, sAfter, dAfter, dueAfter}`.
+- Review log entry: `{cardId, ts, rating (1-4), elapsedDays (null if new), durationMs, stateBefore, sBefore, dBefore, stateAfter, sAfter, dAfter, dueAfter}`
+  (`source: 'learn'` on the check after a presentation). `F.store.reviews.remove(entry)` deletes one (Undo).
+- `learned[itemId] = timestamp` of the learn presentation (created lazily; part of the store, so backups carry it).
+  `newLog[day]` also counts `learn` (items presented) and `cloze` (new cloze cards).
 - Backup file: `{app: 'farsi-flashcards', kind: 'backup', format: 1, exportedAt, store, reviews}`.
   Restore also accepts a raw v1 blob and migrates it.
 
