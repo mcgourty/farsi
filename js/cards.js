@@ -6,7 +6,8 @@
   const F = root.F = root.F || {};
 
   // Direction codes used in card ids: `${itemId}:${code}`
-  const DIR_CODE = { 'farsi-to-english': 'fa-en', 'english-to-farsi': 'en-fa', letter: 'letter' };
+  // 'cloze' is the single direction of a fill-in-the-blank card (js/ui/cloze.js).
+  const DIR_CODE = { 'farsi-to-english': 'fa-en', 'english-to-farsi': 'en-fa', letter: 'letter', cloze: 'cloze' };
   const BOTH = ['farsi-to-english', 'english-to-farsi'];
 
   const TYPES = [
@@ -16,11 +17,16 @@
     { id: 'story', label: 'Story' },
     { id: 'alphabet', label: 'Alphabet' },
     { id: 'verbs', label: 'Verbs' },
+    { id: 'cloze', label: 'Fill in the blank' },
   ];
 
-  // Decks generated from code rather than written in lessons/*.js. Each one
-  // becomes a session after all the lessons. items() returns objects with
-  // {id, fa, pin, en, notes, ...extra}; every item becomes a fa-en and an en-fa card.
+  // Decks generated from code rather than written in lessons/*.js.
+  //   {session?, type, items(), dirs?, extra?(item)}
+  // items() returns objects with {id, fa, pin, en, notes, session?, ...}. Every
+  // item becomes one card per direction in `dirs` (default fa-en and en-fa).
+  // With `session` the deck is its own session after all the lessons; without
+  // it each item names the session it belongs to (cloze cards sit in the
+  // session of the phrase they were made from).
   const generators = [];
   function registerGenerator(def) { generators.push(def); }
   registerGenerator({
@@ -53,6 +59,8 @@
     return out;
   }
 
+  let rankCache = null;
+
   const api = F.cards = {
     DIR_CODE, TYPES, SIBLING_GAP: 8,
     all: [],
@@ -70,26 +78,76 @@
         sessions.push({ id: lesson.id, label: lesson.label || lesson.id, kind: lesson.kind || 'lesson', lesson });
         all.push(...lessonCards(lesson));
       }
+      const items = new Map();
+      for (const lesson of F.lessons) for (const it of lesson.items) items.set(it.id, it);
       for (const g of generators) {
-        sessions.push(Object.assign({}, g.session));
+        if (g.session) sessions.push(Object.assign({}, g.session));
         for (const it of g.items()) {
-          for (const direction of BOTH) {
+          items.set(it.id, it);
+          for (const direction of g.dirs || BOTH) {
             all.push(Object.assign({
-              id: cardId(it.id, direction), itemId: it.id, session: g.session.id, type: g.type, direction,
+              id: cardId(it.id, direction), itemId: it.id, session: it.session || g.session.id, type: g.type, direction,
               farsi: it.fa, pinglish: it.pin, english: it.en, breakdown: it.notes || '',
             }, g.extra ? g.extra(it) : {}));
           }
         }
       }
       const byId = new Map();
+      const byItem = new Map();
       for (const c of all) {
         if (byId.has(c.id)) throw new Error(`duplicate card id ${c.id}`);
         byId.set(c.id, c);
+        if (!byItem.has(c.itemId)) byItem.set(c.itemId, []);
+        byItem.get(c.itemId).push(c);
       }
       api.all = all;
       api.byId = byId;
+      api.byItem = byItem;
+      api.items = items;
       api.sessions = sessions;
+      rankCache = null;
       return all;
+    },
+
+    // The source item of a card (lesson item or generated item), by item id.
+    item(itemId) { return api.items.get(itemId) || null; },
+    cardsOf(itemId) { return api.byItem.get(itemId) || []; },
+
+    // Example sentences for an item: [{fa, pin, en, source}]. They come from
+    // the item itself (`examples` in a lesson file) or from F.examples
+    // (itemId -> array), whichever has them. Always returns an array.
+    examplesFor(itemId) {
+      const it = api.item(itemId);
+      let ex = it && Array.isArray(it.examples) ? it.examples : null;
+      if (!ex && F.examples && typeof F.examples === 'object') {
+        const x = typeof F.examples.get === 'function' ? F.examples.get(itemId) : F.examples[itemId];
+        if (Array.isArray(x)) ex = x;
+      }
+      return (ex || []).filter(e => e && typeof e.fa === 'string' && e.fa);
+    },
+    // The example to show on a given review: rotates with the review count so
+    // each review meets the word in a different sentence.
+    exampleFor(itemId, n) {
+      const ex = api.examplesFor(itemId);
+      if (!ex.length) return null;
+      const i = ((Math.floor(n) || 0) % ex.length + ex.length) % ex.length;
+      return ex[i];
+    },
+
+    // New-card order: the newest numbered lesson first, then older lessons,
+    // then other lesson-like decks (alphabet), then generated decks (verbs).
+    sessionRank(sessionId) {
+      if (!rankCache) {
+        rankCache = new Map();
+        const lessons = api.sessions.filter(s => s.kind === 'lesson');
+        lessons.slice().reverse().forEach((s, i) => rankCache.set(s.id, i));
+        let r = lessons.length;
+        for (const s of api.sessions) if (s.kind !== 'lesson' && s.kind !== 'generated') rankCache.set(s.id, r);
+        r++;
+        for (const s of api.sessions) if (s.kind === 'generated') rankCache.set(s.id, r);
+      }
+      const v = rankCache.get(sessionId);
+      return v === undefined ? 1e6 : v;
     },
 
     // The newest numbered lesson: the last one registered with kind 'lesson'.
@@ -100,7 +158,10 @@
 
     // ---------- Filters ----------
     // Alphabet is a letter drill, not a translation, so direction does not apply.
+    // Cloze cards are Farsi sentences with an English hint, so they show in
+    // either direction too.
     directionExcluded(c, direction) {
+      if (c.direction === 'letter' || c.direction === 'cloze') return false;
       return c.type !== 'alphabet' && direction !== 'both' && c.direction !== direction;
     },
     // f = {sessions: Set, types: Set, direction}
@@ -111,7 +172,11 @@
       return true;
     },
     // Each direction gets its own New/day budget.
-    newBucket(c) { return c.direction === 'english-to-farsi' ? 'en' : 'fa'; },
+    // Cloze cards have their own bucket so they never eat into the word budget.
+    newBucket(c) {
+      if (c.direction === 'cloze') return 'cloze';
+      return c.direction === 'english-to-farsi' ? 'en' : 'fa';
+    },
 
     // ---------- Queue building ----------
     // Spreads the day's new cards evenly through the due cards.
@@ -130,7 +195,8 @@
     },
 
     // Two directions of one item are the same fact, so keep them `gap` apart.
-    siblingKey(c) { return c.itemId; },
+    // A cloze card is a sibling of the phrase it was cut from.
+    siblingKey(c) { return c.clozeOf || c.itemId; },
     spaceSiblings(list, gap) {
       const out = [];
       const held = [];
@@ -150,7 +216,18 @@
       return out;
     },
 
-    // o = {base, mode, shuffled, direction, now, srsOf(c), isWeak(c), allowance: {fa, en}}
+    // o = {base, mode, shuffled, direction, now, srsOf(c), isWeak(c), allowance: {fa, en, cloze?, learn?}}
+    // Optional, all off by default (the legacy order):
+    //   newOrder: 'newest'      new cards from the newest lesson first (sessionRank)
+    //   siblingRule: true       in 'due' mode, at most one card per sibling key
+    //                           today; siblingSeenToday(c) says a sibling of c was
+    //                           already reviewed (or introduced) today
+    //   needsIntro(c)           a new card whose item has not been presented yet;
+    //                           only one such card per item enters, and it uses
+    //                           allowance.learn (items/day) instead of its bucket
+    //   eligibleNew(c)          false keeps a new card out today (e.g. a cloze
+    //                           whose phrase has not been learnt yet)
+    //   deferred: []            receives the cards held back by the sibling rule
     buildQueue(o) {
       const shuffle = F.util.shuffle;
       let queue;
@@ -165,7 +242,7 @@
         });
         if (o.shuffled) shuffle(queue);
       } else {
-        const due = [], fresh = [];
+        let due = [], fresh = [];
         for (const c of o.base) {
           const st = o.srsOf(c);
           if (!st) fresh.push(c);
@@ -173,8 +250,38 @@
         }
         due.sort((a, b) => o.srsOf(a).due - o.srsOf(b).due);
         if (o.shuffled) { shuffle(due); shuffle(fresh); }
+        if (o.newOrder === 'newest') {
+          const rank = new Map();
+          for (const c of fresh) if (!rank.has(c.session)) rank.set(c.session, api.sessionRank(c.session));
+          fresh.sort((a, b) => rank.get(a.session) - rank.get(b.session));   // stable: file order within a lesson
+        }
+        if (o.eligibleNew) fresh = fresh.filter(o.eligibleNew);
+        const deferred = Array.isArray(o.deferred) ? o.deferred : [];
+        if (o.siblingRule) {
+          const taken = new Set();
+          const keep = c => {
+            const k = api.siblingKey(c);
+            if (taken.has(k) || (o.siblingSeenToday && o.siblingSeenToday(c))) { deferred.push(c); return false; }
+            taken.add(k);
+            return true;
+          };
+          // Due cards claim their key first; a new twin waits for tomorrow.
+          due = due.filter(keep);
+          fresh = fresh.filter(keep);
+        }
         const allowance = Object.assign({}, o.allowance);
-        queue = api.interleave(due, fresh.filter(c => allowance[api.newBucket(c)]-- > 0));
+        const introItems = new Set();
+        const take = c => {
+          if (o.needsIntro && o.needsIntro(c)) {
+            if (introItems.has(c.itemId)) return false;
+            if (!((allowance.learn === undefined ? Infinity : allowance.learn) > 0)) return false;
+            introItems.add(c.itemId);
+            if (allowance.learn !== undefined) allowance.learn--;
+            return true;
+          }
+          return allowance[api.newBucket(c)]-- > 0;
+        };
+        queue = api.interleave(due, fresh.filter(take));
       }
       if (o.direction === 'both') queue = api.spaceSiblings(queue, api.SIBLING_GAP);
       return queue;
