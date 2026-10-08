@@ -1,66 +1,50 @@
-# Farsi Study Repository
+# Farsi
 
-Personal Farsi study repo. Drop teacher PDFs here → agent formats everything with full explanations → generate Anki cards.
+A personal Farsi study app, built from my lessons with my teacher. It runs in
+the browser and works offline as an iPhone home-screen app.
 
-**Phone / web:** [mcgourty.github.io/farsi](https://mcgourty.github.io/farsi/) — open in Safari, then Share → Add to Home Screen. Push to `main` and the site updates in about a minute. Review progress stays on each device.
+**Open it:** [mcgourty.github.io/farsi](https://mcgourty.github.io/farsi/). In
+Safari, tap Share, then Add to Home Screen. Pushing to `main` updates the site
+in about a minute; the app shows "Update ready · Reload" when a new version is in.
 
-## How It Works
+## What it does
 
-1. **Add PDF** from teacher
-2. **Agent converts** PDF to text
-3. **Agent extracts** every word, phrase, conjugation, concept
-4. **Agent formats** with:
-   - Farsi script
-   - Pinglish (pronunciation)
-   - English translation
-   - Letter-by-letter breakdown
-   - Grammar explanations
-5. **Request Anki cards** → added to "Farsi" deck
+- **Today** puts the day in order: the next new lesson, reviews due (with a time
+  estimate), a verb drill, a story to read, the lesson notes and how far you have come.
+- **Learn** shows each new item before testing it: Farsi, pinglish, meaning,
+  breakdown and an example sentence, then one quick check. Ten at a time, within
+  the new-per-day limit.
+- **Study** schedules reviews with FSRS-6 (the scheduler modern Anki uses). Cards
+  come in both directions, one direction per word per day. Type the answer to see a
+  letter-by-letter diff and a suggested grade, fill in the blanks of lesson
+  sentences, bury a card from its menu, and undo the last grade or bury.
+- **Verbs** runs mixed sets of 10 prompts across verbs, tenses and persons, weighted
+  toward forms you miss and the newest lessons, with a summary at the end. You can
+  also practise one verb at a time or browse the conjugation tables.
+- **Read** has short practice stories written from the words you have studied (tap a
+  word for its meaning, a sentence for its English) and the teacher's lesson notes,
+  searchable, with a link from the back of every card.
+- **Progress** counts the words you actually know (stable for three weeks or more),
+  the week ahead, your history and a streak that allows rest days.
+- **Settings** (top right) holds what to study, practice options, the theme
+  (system, light or dark), backup and a reset that tells you exactly what it resets.
 
-## Studying
+## Adding a lesson
 
-The web app schedules with **FSRS-6** (the same algorithm modern Anki uses) and keeps
-progress in each device's local storage, with every grade also written to a review log.
+Drop the teacher's PDF in the repo and ask the agent to follow
+`AGENT_STUDY_PROTOCOL.md`: it writes the formatted notes
+(`ALEX-SESSION-NN_formatted.md`) and a `lessons/sNN.js` file, adds it to
+`index.html` and `sw.js`, and runs `node tools/test.js`. The new lesson shows up
+on Today by itself. `python3 generate_anki.py` builds the same deck for Anki.
+How the app is put together is in `ARCHITECTURE.md`.
 
-- **Study modes** — *Due & new* for daily review, *Weak spots* for everything you have
-  lapsed on or that FSRS rates as hard (worst first), *All cards* to browse.
-- **Direction** — Farsi → English, English → Farsi, or **Both, mixed**. This covers
-  vocabulary, grammar, phrases, story, and verbs. Mixed mode keeps the two directions
-  of the same card at least 8 cards apart, so the second one isn't a freebie.
-- **Verbs** — a *Verbs* session and card type with meaning practice for every
-  infinitive and every person × tense the trainer can build, both directions.
-  The verb trainer still drills *producing* a form; these cards drill *what it
-  means*. Turn the Verbs pills off if you want a lesson-only sitting.
-- **Session filters** — *All* / *None* / *Newest only*, and each session pill carries a
-  meter showing how much of it is mature, young, learning, or still new. The bar under
-  the filters breaks the whole selection down with counts and percentages.
-- **Leeches** — cards you have lapsed 6+ times get flagged with a prompt to re-encode
-  them rather than grind them.
-- **Bury** — hide a card that is not worth studying. Buried cards stay hidden until
-  you open the *Buried* study mode and unbury them.
-- **Audio** — on devices with a Persian voice installed, tap the speaker on the answer
-  (or press `s`) to hear the word. *Auto-play audio* speaks it on every reveal.
-- **Type answer** — typed recall in pinglish, with tolerant matching for oo/u, ee/i, gh/q.
-- **Backup** — *Export backup* (in the filters panel) saves progress and the review
-  log to a JSON file; on iPhone it opens the share sheet so it can go to Files or
-  iCloud. *Restore from file* shows what the file contains before replacing anything.
-  The home-screen app and Safari keep separate progress, so use a backup to move it
-  between them or to a new phone. A reminder appears after a week without a backup.
-- **Verb trainer** — browse conjugations or run a conjugation drill. The drill is a
-  real queue (next/prev, progress). Shuffle randomizes it; off sorts weak forms
-  first. Filter by tense and person, type the pinglish, hear the form, and reset
-  drill scores for the current selection.
+## Keep a backup
 
-## Files
+Progress lives only on the device, in the browser's storage. On iPhone the
+home-screen app and Safari keep **separate** progress, and deleting the
+home-screen icon deletes its progress with it. So:
 
-- `index.html` — the app (`flashcards.html` just redirects to it)
-- `lessons/sNN.js` — one file per session: every card's Farsi, pinglish, English and notes
-- `js/`, `css/` — app code and styles; see `ARCHITECTURE.md`
-- `tools/` — `node tools/test.js` runs the tests; `node tools/dump-cards.js` prints the deck
-- `generate_anki.py` — builds the Anki deck from the lesson files
-- `*.pdf` - Original teacher materials
-- `*.txt` - Text conversion of PDFs
-- `*_formatted.md` - Full breakdown and explanation
-
-See `AGENT_STUDY_PROTOCOL.md` for detailed agent instructions and `ARCHITECTURE.md`
-for how the app is put together.
+- Export a backup now and then (Settings → Backup → Export backup, then Save to
+  Files or iCloud). The app reminds you after a week without one.
+- Always export a backup **before deleting the home-screen icon** or moving to a
+  new phone, then restore it with Restore from file in the new place.

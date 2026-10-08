@@ -162,7 +162,8 @@ app and the Anki deck read from it. A new session is one new file plus one
    F.lesson({
      id: '36',
      label: 'Session 36',
-     title: 'Short theme in sentence case',      // optional
+     title: 'Short theme in sentence case',      // shown on Today and in Notes
+     summary: 'One sentence, sentence case, not repeating the title.',
      notes: 'ALEX-SESSION-36_formatted.md',       // the formatted lesson file
      items: [
        // Vocabulary
@@ -185,8 +186,10 @@ app and the Anki deck read from it. A new session is one new file plus one
      pinglish is corrected. Do not reuse an id for a different word.
 2. Add `<script src="lessons/sNN.js"></script>` to `index.html` after the
    previous session (before `lessons/alphabet.js`).
-3. Run `node tools/test.js`. The session filter, the default selection and
-   *Newest only* update themselves.
+3. If the lesson has a notes file, add it to `STATIC` in `sw.js` so it works
+   offline (the tests fail until you do).
+4. Run `node tools/bump-sw-version.js`, then `node tools/test.js`. The session
+   filter, the default selection and *Newest only* update themselves.
 
 Correcting a card later: edit its text in place and keep its `id`.
 

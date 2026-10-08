@@ -8,7 +8,7 @@ modules into a `vm`).
 ```
 index.html            shell markup + <script> tags (the load order is the module order)
 flashcards.html       redirect to ./ (keeps query and hash) for old home-screen icons
-css/app.css           tokens (light + dark + html[data-theme]), layout, theme, shell (top bar, sheet, pages)
+css/app.css           tokens (light + dark + html[data-theme]; the only colour names feature stylesheets use), layout, shell (top bar, tab bar, sheet, pages)
 js/core.js            F namespace: F.util, F.state, F.hooks, F.lesson/F.lessons, F.views, F.actions
 js/fsrs.js            F.fsrs: FSRS-6 scheduler, pure functions
 js/verbs.js           F.verbs: VERBS, TENSES, PERSONS, conj(), English glosses, meaningItems() (trimmed deck), lessonUsage(), buildSet()
@@ -24,18 +24,18 @@ js/ui/study.js        F.study + view 'cards': queue, card rendering, grading, ca
 js/ui/learn.js        F.learn + view 'learn' (tab: false): present new lesson items, then one check
 js/ui/cloze.js        F.cloze: fill-in-the-blank generator + renderer (cards type 'cloze')
 css/study.css         study card, typed diff, cloze, learn, menu and toast styles (after app.css)
-js/ui/drill.js        F.drill + view 'verbs': mixed 10-prompt sets, one-verb practice, browse; #drill-panel; Today section
+js/ui/drill.js        F.drill + view 'verbs': mixed 10-prompt sets, one-verb practice, browse; #drill-panel; reset plan; Today section
 css/drill.css         styles for the verb trainer (panel, verb list, set summary)
-js/ui/settings.js     F.settings: filter panels (#fc-filters, #vt-filters) in the sheet, quick buttons, theme
+js/ui/settings.js     F.settings: the study panel (#fc-filters) in the sheet, quick buttons, theme
 js/ui/backup.js       F.backupUI: backup/restore panel (#backup-panel), backup reminder
 js/ui/sheet.js        F.sheet: settings sheet (bottom sheet / side panel), two-step reset
 js/ui/today.js        F.today + view 'today' (the view the app opens on): sections registry
 js/ui/progress.js     F.progress + view 'progress': known words, forecast, history, streak, study meter
 js/md.js              F.md: small XSS-safe markdown renderer for the lesson notes (pure, node-loadable)
-js/ui/notes.js        F.notes + view 'notes': lesson notes list, search, reader; card-back link; Today section
+js/ui/notes.js        F.notes + view 'notes' (under the Read tab): lesson notes list, search, reader; card-back link; Today section
 css/notes.css         styles for the notes view and the card-back link
 js/ui/reader.js       F.reader + view 'read': story list, reader, word glosses, Today section
-js/app.js             F.app: boot, view switching, render pass, click + key dispatch (load last)
+js/app.js             F.app: boot, main navigation (tab bar), view switching, render pass, click + key dispatch (load last)
 js/pwa.js             F.pwa: registers sw.js, "Update ready · Reload" banner (deferred, in <head>)
 sw.js                 service worker: offline app shell (see "Offline and updates")
 manifest.webmanifest  home-screen app manifest; icons/ holds the app icons
@@ -72,9 +72,22 @@ Each feature should be able to add a file plus a `<script>` tag (before
 bar, `#nav-pos`, the prev/next buttons, `#scope-bar` and `#score-row` while it
 is active, and must fill or clear them in `render()`.
 
+**Navigation.** `#tabbar` holds at most five places, built from the views in
+`order`: Today · Study · Verbs · Read · Progress. On phones (≤720px) it is a
+bottom tab bar (icon over a short label, above the home indicator; the
+grading row sits fixed just above it); on wider screens it is a segmented bar
+centred in the top bar. The top bar keeps only the brand (goes to Today) and
+the settings button. Views behind another tab set `tab: false` and `navAs`:
+Lesson notes (`notes`) sit under Read, with a Stories | Lesson notes switch
+at the top of both pages (`F.app.segmentsHTML(items, active)`,
+`F.notes.readHeadHTML(active)`); Learn lights up Study. `setView` keeps the
+URL hash in step (Today is the bare URL).
+
 | Field | Meaning |
 |---|---|
 | `label`, `order` | tab text and position; `tab: false` hides it from the tab bar |
+| `navAs` | name of the tab to light up while this view shows (a `tab: false` view) |
+| `navIcon` | inline SVG for its tab (app.js has icons for the five built-in tabs) |
 | `panel` | id of its settings element, shown only while the view is active |
 | `init()` | once at boot, after prefs are loaded |
 | `enter()` / `leave()` | on switching to / away from the view |
@@ -82,14 +95,14 @@ is active, and must fill or clear them in `render()`.
 | `renderScoreRow()` | redraw only `#score-row` (called after a flip) |
 | `syncChrome()` | show/hide shared buttons (`#mastered-btn`, `#newlimit-btn`, `#score-row`) |
 | `shortcutsHTML()` | keyboard hint line |
-| `next()`, `prev()`, `keydown(e)` | arrows and other keys (Space and `s` are handled by the app) |
-| `onShuffle()`, `reset()` | Shuffle and Reset buttons |
+| `next()`, `prev()`, `keydown(e)` | arrows and other keys (Space flips when a card is on screen, `s` speaks; page views get every key and Space scrolls) |
+| `onShuffle()` | Shuffle toggle |
 | `typedActive()`, `typedAnswer()` | opt into typed recall |
 | `speech()` | `{text, token}` for TTS; token dedupes auto-play |
 | `hideActions` | true hides the practice toggles (`.bottom-actions`, now in the settings sheet) |
-| `page` | true: the view draws a whole page into `#card-area`; the app clears and hides the study chrome (stats, meter, scope bar, nav, grading row, shortcuts) |
+| `page` | true: the view draws a whole page into `#card-area`; the app clears and hides the study chrome (stats, meter, scope bar, nav, grading row, shortcuts). Today, Read, Notes and Progress are pages |
 | `tabLabel` | short tab text (falls back to `label`; `cards` shows as Study, `verbs` as Verbs) |
-| `resetPlan()` | `{title, lines: [html], count, confirmLabel, run()}` for the sheet's two-step reset; without it the sheet resets the study selection (or drill scores on `verbs`) |
+| `resetPlan()` | `{title, intro?, askLabel?, lines: [html], count, confirmLabel, run()}` for the sheet's two-step reset; without it the sheet resets the study selection. `verbs` resets the drill scores of the forms its settings drill |
 
 Switch with `F.app.setView(name)`; the active view name is `F.state.tab` and
 `document.body.dataset.view`. The app opens on `today` (or the view named in
@@ -101,11 +114,16 @@ practice toggles, theme, backup and reset. `body.filters-collapsed` is set while
 it is closed.
 
 **Today sections** (`F.today.registerSection({id, order, visible(), html() | render(el), lead})`).
-Built-ins: `new-lesson` 10 (lead), `reviews` 20, `progress` 90. Markup classes:
-`.t-k .t-big .t-sub .t-meta .t-row(.t-row-label/.t-row-val) .t-acts .btn-primary
-.btn-secondary .btn-link`. The new-lesson section calls `F.learn.start(sessionId)`
-and shows `F.learn.pending(sessionId)` (a number) when `F.learn` exists; otherwise
-it filters the study view to that session. `F.today.queueEstimate(sessionsSet)`
+Today is one sequence: `new-lesson` 10 (lead, today.js), `reviews` 20
+(today.js), `verb-drill` 30 (drill.js), `read` 40 (reader.js), `notes` 50
+(notes.js), `progress` 90 (today.js). Markup classes:
+`.t-k .t-big .t-sub .t-meta .t-row(.t-row-label/.t-row-val, .t-row-small) .t-acts .btn-primary
+.btn-secondary .btn-link`; sections should use these rather than their own boxes.
+The new-lesson section leads with `F.learn.nextSession()` (the newest lesson with
+items still to meet), its `pending` count and today's budget, and starts
+`F.learn.start(sessionId)`; when every item has been met it offers the newest
+lesson's cards in the study view. Modules loaded before today.js register their
+section from `init()` or the `boot` hook. `F.today.queueEstimate(sessionsSet)`
 gives `{due, fresh, freshTotal, total, nextDue}` for the Due & new queue.
 
 **Progress** (`F.progress`): `stats()` (cached item counts per session: a word is
@@ -179,8 +197,8 @@ order is the legacy one, which the legacy queue test pins.
 check is English -> Farsi (Farsi -> English when the direction filter is
 Farsi -> English only) and records an ordinary first FSRS review (Got it =
 Good, Not yet = Again); the other direction waits until tomorrow. Items
-reviewed before learn mode count as introduced. If `F.today.registerSection`
-exists, learn.js adds a 'learn' section ("Learn session 35").
+reviewed before learn mode count as introduced. Today's new-lesson section
+(today.js) is the way in; learn.js has no Today section of its own.
 
 **Typed** (`F.typed`): `canonFa`, `diff`, `checkFarsi(value, farsi, pin)` ->
 `{kind, grade, ops}`; a view with `typedCheck(value)` gets the diff and a
@@ -196,7 +214,8 @@ lesson's notes (`find`: text to scroll to and highlight; `from`: view name for
 the "Back to ..." button). `F.notes.lessons()` lists lessons with notes, newest
 first; `F.notes.search(q)` resolves to `[{lesson, file, unit, heading, snippetHTML}]`.
 Markup can use `data-action="notes-open" data-arg="<lessonId>"` (optional `data-find`).
-The .md files are fetched at runtime (same origin). Pref field: `notesLesson`.
+The .md files are fetched at runtime (same origin) and precached by sw.js
+(`STATIC`; a test checks every lesson's notes file is listed). Pref field: `notesLesson`.
 
 **Reader** (`js/ui/reader.js`): `F.reader.open(storyId)` opens a story in the
 Read view; `F.reader.analyse(story)` gives `{total, known, learning, new,
@@ -297,7 +316,8 @@ changes later (an old cached page), the next boot folds in newer reviews.
    Give every item a new, unique, literal `id`.
 2. Add `<script src="lessons/s36.js"></script>` after the last lesson in
    `index.html` (before `alphabet.js`).
-3. `node tools/bump-sw-version.js`, then `node tools/test.js`. The session list, the default selection and
+3. If it has notes, add the `.md` file to `STATIC` in `sw.js`.
+4. `node tools/bump-sw-version.js`, then `node tools/test.js`. The session list, the default selection and
    "Newest only" come from the registry; existing users get the new session
    switched on automatically. `python3 generate_anki.py` picks it up too.
 
@@ -313,10 +333,13 @@ changes later (an old cached page), the next boot folds in newer reviews.
 
 `sw.js` precaches the app shell at install: every relative `<script src>` and
 `<link href>` in `index.html`, the `STATIC` list in `sw.js` (manifest, icons,
-`flashcards.html`, `js/legacy-keys.js` for the v1 migration, `css/fonts.css`)
+`flashcards.html`, `js/legacy-keys.js` for the v1 migration, `css/fonts.css`,
+the lesson notes `.md` files)
 and the `url()`s inside those stylesheets (the fonts). Shell files are served
 cache-first; navigations get the cached `index.html`. Other same-origin GETs
-(lesson notes `.md`) are stale-while-revalidate in the `farsi-runtime` cache.
+are stale-while-revalidate in the `farsi-runtime` cache. A new lesson's notes
+file must be added to `STATIC` (the test fails until it is; keep apostrophes
+out of that block, the bump script reads it).
 localStorage and IndexedDB are never touched.
 
 `VERSION` in `sw.js` is a hash of the shell files. **Before deploying, run
