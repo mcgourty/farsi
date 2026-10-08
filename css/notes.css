@@ -1,33 +1,16 @@
 /* ============================================================
    Lesson notes (js/ui/notes.js, js/md.js).
-   Colours come from the app tokens; each has a fallback to the older
-   token names so this file works before and after the new palette.
+   Colours come from the app.css tokens. A page view (body[data-page]),
+   so the study chrome is hidden.
    ============================================================ */
 
 .notes {
-  --n-ink: var(--ink, var(--text));
-  --n-ink-2: var(--ink-2, var(--ink-muted));
-  --n-ink-3: var(--ink-3, var(--ink-light));
-  --n-paper: var(--paper, var(--bg));
-  --n-surface: var(--surface);
-  --n-line: var(--line);
-  --n-accent: var(--firuzeh, var(--accent));
-  --n-accent-soft: var(--firuzeh-soft, var(--accent-soft));
-  --n-mark: color-mix(in srgb, var(--saffron, var(--warn)) 26%, transparent);
-  --n-farsi: var(--font-farsi, "Vazirmatn", "SF Arabic", "Geeza Pro", Tahoma, sans-serif);
-  color: var(--n-ink);
+  --n-mark: color-mix(in srgb, var(--saffron) 26%, transparent);
+  color: var(--ink);
   font-size: 1rem;
   line-height: 1.6;
 }
 
-/* The notes view is a reading page: drop the study chrome around it. */
-body[data-view="notes"] .stats-bar,
-body[data-view="notes"] .nav-row,
-body[data-view="notes"] .scope-bar,
-body[data-view="notes"] .score-row,
-body[data-view="notes"] .shortcuts,
-body[data-view="notes"] .filter-toggle,
-body[data-view="notes"] #backup-settings { display: none !important; }
 body[data-view="notes"] .card-area { max-width: 760px; perspective: none; }
 
 .visually-hidden {
@@ -41,14 +24,14 @@ body[data-view="notes"] .card-area { max-width: 760px; perspective: none; }
 /* ---------- Persian runs ---------- */
 .notes .fa,
 .notes-link .fa {
-  font-family: var(--n-farsi);
+  font-family: var(--font-farsi);
   font-size: 1.25em;
   line-height: 1.5;
   unicode-bidi: isolate;
   font-weight: inherit;
 }
 .notes .fa-line { unicode-bidi: isolate; }
-.notes [lang="fa"][dir="rtl"]:not(.fa) { font-family: var(--n-farsi); }
+.notes [lang="fa"][dir="rtl"]:not(.fa) { font-family: var(--font-farsi); }
 .notes h1 .fa, .notes h2 .fa, .notes h3 .fa { font-size: 1.12em; }
 .notes code .fa, .notes pre .fa { font-size: 1.2em; }
 
@@ -66,15 +49,15 @@ body[data-view="notes"] .card-area { max-width: 760px; perspective: none; }
   padding: 10px 14px;
   font: inherit;
   font-size: 16px;            /* no iOS zoom on focus */
-  color: var(--n-ink);
-  background: var(--n-surface);
-  border: 1px solid var(--n-line);
+  color: var(--ink);
+  background: var(--surface);
+  border: 1px solid var(--line);
   border-radius: 12px;
   outline: none;
   -webkit-appearance: none;
   appearance: none;
 }
-.notes-search input:focus { border-color: var(--n-accent); box-shadow: 0 0 0 3px var(--n-accent-soft); }
+.notes-search input:focus { border-color: var(--firuzeh); box-shadow: 0 0 0 3px var(--firuzeh-soft); }
 
 .notes-lessons, .notes-hits { list-style: none; display: grid; gap: 10px; }
 .notes-lessons[hidden] { display: none; }
@@ -88,16 +71,16 @@ body[data-view="notes"] .card-area { max-width: 760px; perspective: none; }
   padding: 12px 16px;
   text-align: left;
   font: inherit;
-  color: var(--n-ink);
-  background: var(--n-surface);
-  border: 1px solid var(--n-line);
+  color: var(--ink);
+  background: var(--surface);
+  border: 1px solid var(--line);
   border-radius: 14px;
   cursor: pointer;
 }
-.notes-lesson:hover, .notes-hit:hover { border-color: var(--n-accent); }
+.notes-lesson:hover, .notes-hit:hover { border-color: var(--firuzeh); }
 .notes-lesson-label { font-weight: 600; }
-.notes-lesson-title { color: var(--n-ink); }
-.notes-lesson-summary, .notes-hit-where { color: var(--n-ink-2); font-size: 0.88rem; }
+.notes-lesson-title { color: var(--ink); }
+.notes-lesson-summary, .notes-hit-where { color: var(--ink-2); font-size: 0.88rem; }
 .notes-lesson-summary .fa { font-size: 1.15em; }
 .notes-hit-text { line-height: 1.7; overflow-wrap: anywhere; }
 .notes-hit mark, .notes-mark {
@@ -106,14 +89,14 @@ body[data-view="notes"] .card-area { max-width: 760px; perspective: none; }
   border-radius: 4px;
   padding: 0 2px;
 }
-.notes-count, .notes-status, .notes-foot { color: var(--n-ink-2); font-size: 0.9rem; margin: 10px 2px; }
+.notes-count, .notes-status, .notes-foot { color: var(--ink-2); font-size: 0.9rem; margin: 10px 2px; }
 .notes-foot { margin-top: 18px; }
 .notes-notice {
   margin: 12px 0;
   padding: 10px 14px;
   border-radius: 12px;
-  background: var(--n-accent-soft);
-  color: var(--n-ink);
+  background: var(--firuzeh-soft);
+  color: var(--ink);
   font-size: 0.92rem;
 }
 .notes-retry, .notes-today-btn {
@@ -123,8 +106,8 @@ body[data-view="notes"] .card-area { max-width: 760px; perspective: none; }
   font-weight: 500;
   border: 0;
   border-radius: 12px;
-  background: var(--n-accent, var(--firuzeh, var(--accent)));
-  color: var(--paper, var(--accent-contrast, #fff));
+  background: var(--firuzeh);
+  color: var(--paper);
   cursor: pointer;
 }
 
@@ -138,14 +121,14 @@ body[data-view="notes"] .card-area { max-width: 760px; perspective: none; }
   gap: 10px;
   margin: 0 -20px 8px;
   padding: 8px 20px;
-  background: color-mix(in srgb, var(--n-paper) 92%, transparent);
+  background: color-mix(in srgb, var(--paper) 92%, transparent);
   -webkit-backdrop-filter: saturate(180%) blur(14px);
   backdrop-filter: saturate(180%) blur(14px);
-  border-bottom: 1px solid var(--n-line);
+  border-bottom: 1px solid var(--line);
 }
 .notes-bar-title { display: flex; flex-direction: column; min-width: 0; flex: 1; line-height: 1.3; }
 .notes-bar-label { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.notes-bar-sub { color: var(--n-ink-2); font-size: 0.85rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.notes-bar-sub { color: var(--ink-2); font-size: 0.85rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .notes-back {
   flex: none;
   min-height: 44px;
@@ -153,8 +136,8 @@ body[data-view="notes"] .card-area { max-width: 760px; perspective: none; }
   font: inherit;
   font-size: 0.86rem;
   white-space: nowrap;
-  color: var(--n-accent);
-  background: var(--n-accent-soft);
+  color: var(--firuzeh);
+  background: var(--firuzeh-soft);
   border: 0;
   border-radius: 10px;
   cursor: pointer;
@@ -162,9 +145,9 @@ body[data-view="notes"] .card-area { max-width: 760px; perspective: none; }
 
 .notes-toc {
   margin: 8px 0 18px;
-  border: 1px solid var(--n-line);
+  border: 1px solid var(--line);
   border-radius: 14px;
-  background: var(--n-surface);
+  background: var(--surface);
 }
 .notes-toc summary {
   min-height: 44px;
@@ -176,10 +159,10 @@ body[data-view="notes"] .card-area { max-width: 760px; perspective: none; }
   list-style: none;
 }
 .notes-toc summary::-webkit-details-marker { display: none; }
-.notes-toc summary::after { content: "▾"; margin-left: auto; color: var(--n-ink-3); }
+.notes-toc summary::after { content: "▾"; margin-left: auto; color: var(--ink-3); }
 .notes-toc[open] summary::after { content: "▴"; }
 .notes-toc ol { list-style: none; padding: 0 8px 10px; }
-.notes-toc-file { padding: 8px 8px 2px; color: var(--n-ink-3); font-size: 0.82rem; }
+.notes-toc-file { padding: 8px 8px 2px; color: var(--ink-3); font-size: 0.82rem; }
 .notes-toc-link {
   display: block;
   width: 100%;
@@ -188,21 +171,21 @@ body[data-view="notes"] .card-area { max-width: 760px; perspective: none; }
   text-align: left;
   font: inherit;
   font-size: 0.95rem;
-  color: var(--n-ink);
+  color: var(--ink);
   background: none;
   border: 0;
   border-radius: 10px;
   cursor: pointer;
 }
-.notes-toc-link:hover { background: var(--n-accent-soft); color: var(--n-accent); }
+.notes-toc-link:hover { background: var(--firuzeh-soft); color: var(--firuzeh); }
 
 /* ---------- Rendered markdown ---------- */
 .md { overflow-wrap: break-word; }
-.md + .md { margin-top: 32px; padding-top: 24px; border-top: 2px solid var(--n-line); }
+.md + .md { margin-top: 32px; padding-top: 24px; border-top: 2px solid var(--line); }
 .md h1, .md h2, .md h3, .md h4 { line-height: 1.35; letter-spacing: -0.015em; scroll-margin-top: calc(var(--notes-top, 0px) + 72px); }
 .md h1 { font-size: 1.45rem; font-weight: 650; margin: 8px 0 12px; }
-.md h2 { font-size: 1.2rem; font-weight: 620; margin: 28px 0 10px; color: var(--n-ink); }
-.md h3 { font-size: 1.04rem; font-weight: 600; margin: 20px 0 8px; color: var(--n-ink); }
+.md h2 { font-size: 1.2rem; font-weight: 620; margin: 28px 0 10px; color: var(--ink); }
+.md h3 { font-size: 1.04rem; font-weight: 600; margin: 20px 0 8px; color: var(--ink); }
 .md h4, .md h5, .md h6 { font-size: 0.98rem; font-weight: 600; margin: 16px 0 6px; }
 .md p, .md ul, .md ol, .md blockquote, .md pre, .md .md-table-wrap { margin: 0 0 12px; }
 .md p[dir="rtl"] { text-align: right; }
@@ -210,27 +193,27 @@ body[data-view="notes"] .card-area { max-width: 760px; perspective: none; }
 .md li { margin: 3px 0; }
 .md li[dir="rtl"] { list-style-position: inside; text-align: right; }
 .md strong { font-weight: 650; }
-.md hr { border: 0; border-top: 1px solid var(--n-line); margin: 22px 0; }
+.md hr { border: 0; border-top: 1px solid var(--line); margin: 22px 0; }
 .md blockquote {
   padding: 10px 14px;
-  border-left: 3px solid var(--n-accent);
-  background: var(--n-accent-soft);
+  border-left: 3px solid var(--firuzeh);
+  background: var(--firuzeh-soft);
   border-radius: 0 12px 12px 0;
 }
 .md blockquote > :last-child { margin-bottom: 0; }
 .md blockquote h3 { margin-top: 4px; }
 .md code {
-  font-family: var(--font-mono, ui-monospace, monospace);
+  font-family: var(--font-mono);
   font-size: 0.86em;
   padding: 1px 5px;
   border-radius: 6px;
-  background: color-mix(in srgb, var(--n-ink) 7%, transparent);
+  background: color-mix(in srgb, var(--ink) 7%, transparent);
 }
 .md pre {
   padding: 12px 14px;
   border-radius: 12px;
-  background: var(--n-surface);
-  border: 1px solid var(--n-line);
+  background: var(--surface);
+  border: 1px solid var(--line);
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
   line-height: 1.9;
@@ -242,22 +225,22 @@ body[data-view="notes"] .card-area { max-width: 760px; perspective: none; }
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
   overscroll-behavior-x: contain;
-  border: 1px solid var(--n-line);
+  border: 1px solid var(--line);
   border-radius: 12px;
-  background: var(--n-surface);
+  background: var(--surface);
 }
 .md-table { border-collapse: collapse; width: max-content; min-width: 100%; font-size: 0.92rem; line-height: 1.45; }
 .md-table th, .md-table td {
   padding: 8px 12px;
-  border-bottom: 1px solid var(--n-line);
+  border-bottom: 1px solid var(--line);
   vertical-align: middle;
   text-align: left;
 }
 .md-table th {
   font-weight: 600;
   font-size: 0.82rem;
-  color: var(--n-ink-2);
-  background: color-mix(in srgb, var(--n-ink) 4%, transparent);
+  color: var(--ink-2);
+  background: color-mix(in srgb, var(--ink) 4%, transparent);
   white-space: nowrap;
 }
 .md-table tr:last-child td { border-bottom: 0; }
@@ -267,12 +250,12 @@ body[data-view="notes"] .card-area { max-width: 760px; perspective: none; }
 .md-table td.fa-cell .fa { font-size: 1.3em; }
 
 /* Highlight after a jump. */
-.notes-flash { animation: notes-flash 2.2s var(--ease, ease-out); border-radius: 8px; }
+.notes-flash { animation: notes-flash 2.2s var(--ease); border-radius: 8px; }
 @keyframes notes-flash {
   0%, 35% { background: var(--n-mark); box-shadow: 0 0 0 4px var(--n-mark); }
   100% { background: transparent; box-shadow: 0 0 0 4px transparent; }
 }
-tr.notes-flash td { animation: notes-flash-cell 2.2s var(--ease, ease-out); }
+tr.notes-flash td { animation: notes-flash-cell 2.2s var(--ease); }
 @keyframes notes-flash-cell { 0%, 35% { background: var(--n-mark); } 100% { background: transparent; } }
 
 /* ---------- Card back link ---------- */
@@ -285,17 +268,17 @@ tr.notes-flash td { animation: notes-flash-cell 2.2s var(--ease, ease-out); }
   padding: 8px 14px;
   font: inherit;
   font-size: 0.86rem;
-  color: var(--firuzeh, var(--accent));
+  color: var(--firuzeh);
   background: transparent;
   border: 1px solid var(--line);
   border-radius: 999px;
   cursor: pointer;
 }
-.notes-link:hover { background: var(--firuzeh-soft, var(--accent-soft)); }
+.notes-link:hover { background: var(--firuzeh-soft); }
 
 /* ---------- Today section ---------- */
 .notes-today-h { font-size: 1rem; font-weight: 600; margin-bottom: 4px; }
-.notes-today-sub { color: var(--ink-2, var(--ink-muted)); font-size: 0.9rem; margin-bottom: 10px; }
+.notes-today-sub { color: var(--ink-2); font-size: 0.9rem; margin-bottom: 10px; }
 .notes-today-sub .fa { font-family: var(--font-farsi); font-size: 1.15em; }
 
 @media (max-width: 720px) {
