@@ -47,6 +47,15 @@
              negSg: pinP + ' nazan', negSgFa: faP + ' نزن', negPl: pinP + ' nazanid', negPlFa: faP + ' نزنید' } };
   }
 
+  // A verb whose prefix is written joined to it (بر + می‌دارم = برمی‌دارم).
+  // Imperatives take no be- after the prefix: بردار, برندار.
+  function joinedVerb(id, faP, pinP, pastPin, pastFa, stem, stemFa, en) {
+    return { id, fa: faP + pastFa + 'ن', pin: pinP + pastPin + 'an', en,
+      pre: { fa: faP, pin: pinP, join: true }, stem, stemFa, pastStem: pastPin, pastStemFa: pastFa,
+      imp: { sg: pinP + stem, sgFa: faP + stemFa, pl: pinP + stem + 'id', plFa: faP + stemFa + 'ید',
+             negSg: pinP + 'na' + stem, negSgFa: faP + 'ن' + stemFa, negPl: pinP + 'na' + stem + 'id', negPlFa: faP + 'ن' + stemFa + 'ید' } };
+  }
+
   const VERBS = [
     { id: 'boodan', fa: 'بودن', pin: 'boodan', en: 'to be', noCont: true,
       irregular: {
@@ -154,17 +163,9 @@
     kardanVerb('asb-savari-kardan', 'اسب‌سواری', 'asb savāri', 'to ride a horse'),
     kardanVerb('sohbat-kardan', 'صحبت', 'sohbat', 'to talk, to speak'),
     kardanVerb('tosif-kardan', 'توصیف', 'tosif', 'to describe'),
-    // بر- is a prefix written joined to the verb (برمی‌دارم, برنداشتم), so the
-    // spaced `pre` mechanism can't build it. Present/negative are listed out;
-    // past, neg. past and the imperatives come from the normal fields.
-    { id: 'bardashtan', fa: 'برداشتن', pin: 'bardāshtan', en: 'to pick up, to take, to remove',
-      irregular: {
-        pres: ['barmidāram','barmidāri','barmidāreh','barmidārim','barmidārid','barmidāran'],
-        presFa: ['برمی‌دارم','برمی‌داری','برمی‌داره','برمی‌داریم','برمی‌دارید','برمی‌دارن'],
-        neg: ['barnemidāram','barnemidāri','barnemidāreh','barnemidārim','barnemidārid','barnemidāran'],
-        negFa: ['برنمی‌دارم','برنمی‌داری','برنمی‌داره','برنمی‌داریم','برنمی‌دارید','برنمی‌دارن'] },
-      negPast: 'barnadāsht', negPastFa: 'برنداشت',
-      imp: { sg:'bardār', sgFa:'بردار', pl:'bardārid', plFa:'بردارید', negSg:'barnadār', negSgFa:'برندار', negPl:'barnadārid', negPlFa:'برندارید' } },
+    // بر- is a prefix written joined to the verb (برمی‌دارم, برنداشتم, بردار):
+    // `join: true` glues it on with no space, before mi-/nemi-/na-.
+    joinedVerb('bardashtan', 'بر', 'bar', 'dāsht', 'داشت', 'dār', 'دار', 'to pick up, to take, to remove'),
     // Present stem گذار is spoken ذار: می‌ذارم (formal می‌گذارم), بذار (formal بگذار)
     { id: 'gozashtan', fa: 'گذاشتن', pin: 'gozāshtan', en: 'to put, to place', stem: 'zār', stemFa: 'ذار',
       imp: { sg:'bezār', sgFa:'بذار', pl:'bezārid', plFa:'بذارید', negSg:'nazār', negSgFa:'نذار', negPl:'nazārid', negPlFa:'نذارید' } },
@@ -207,6 +208,11 @@
     return { pin: pinTok.replace(/an$/, ''), fa: faTok.replace(/ن$/, '') };
   }
 
+  // The prefix of a compound or prefixed verb, ready to put before the verb:
+  // 'doost ' (spaced) or 'bar' (joined, pre.join).
+  function prePin(v) { return v.pre ? v.pre.pin + (v.pre.join ? '' : ' ') : ''; }
+  function preFa(v) { return v.pre ? v.pre.fa + (v.pre.join ? '' : ' ') : ''; }
+
   function conj(v, tense, pi) {
     if (tense === 'continuous') {
       if (v.noCont) return null;
@@ -218,10 +224,7 @@
       const ps = pastStem(v);
       const sPin = neg ? (v.negPast || ('na' + ps.pin)) : ps.pin;
       const sFa = neg ? (v.negPastFa || ('ن' + ps.fa)) : ps.fa;
-      return {
-        pin: (v.pre ? v.pre.pin + ' ' : '') + sPin + PAST_END_PIN[pi],
-        fa: (v.pre ? v.pre.fa + ' ' : '') + sFa + PAST_END_FA[pi],
-      };
+      return { pin: prePin(v) + sPin + PAST_END_PIN[pi], fa: preFa(v) + sFa + PAST_END_FA[pi] };
     }
     if (v.irregular) {
       const p = tense === 'present' ? v.irregular.pres : v.irregular.neg;
@@ -238,10 +241,7 @@
       core = (tense === 'negative' ? 'nemi' : 'mi') + v.stem + end;
       coreFa = (tense === 'negative' ? 'نمی\u200C' : 'می\u200C') + v.stemFa + endFa;
     }
-    return {
-      pin: (v.pre ? v.pre.pin + ' ' : '') + core,
-      fa: (v.pre ? v.pre.fa + ' ' : '') + coreFa,
-    };
+    return { pin: prePin(v) + core, fa: preFa(v) + coreFa };
   }
 
   function drillKey(d) { return `${d.v.id}|${d.tense}|${d.pi}`; }
@@ -261,6 +261,13 @@
 
   function drillBreakdown(d) {
     const v = d.v;
+    if ((d.tense === 'imperative' || d.tense === 'impneg') && v.pre && v.pre.join) {
+      const parts = [v.pre.pin];
+      if (d.tense === 'impneg') parts.push('na');
+      parts.push(v.stem);
+      if (d.pi === 4) parts.push('id');
+      return parts.join(' + ') + `  —  ${d.tense === 'impneg' ? 'negative ' : ''}imperative of ${v.pin} (no be- after ${v.pre.pin}-)`;
+    }
     if (d.tense === 'imperative') return 'imperative of ' + v.pin;
     if (d.tense === 'impneg') return 'negative imperative of ' + v.pin;
     if (d.tense === 'past' || d.tense === 'pastneg') {
@@ -450,10 +457,11 @@
   // Person codes used in verb card ids: verb.<verbId>.<tense>.<person>
   const PERSON_CODES = ['1sg', '2sg', '3sg', '1pl', '2pl', '3pl'];
 
-  // Every verb-meaning item, in deck order. Each one becomes two cards
-  // (fa-en and en-fa) in cards.js. The item id is stable: verb id + form,
-  // e.g. verb.boodan.inf, verb.boodan.past.3pl, verb.raftan.imperative.2pl.
-  function meaningItems() {
+  // Every possible verb-meaning item, in deck order. Each one becomes two
+  // cards (fa-en and en-fa) in cards.js. The item id is stable: verb id +
+  // form, e.g. verb.boodan.inf, verb.boodan.past.3pl, verb.raftan.imperative.2pl.
+  // The deck itself uses meaningItems(), which trims this list.
+  function allMeaningItems() {
     const items = [];
     for (const v of VERBS) {
       items.push({ id: `verb.${v.id}.inf`, verb: v.id, tense: 'infinitive', pi: null,
@@ -481,10 +489,220 @@
       : `${PERSONS[pi].pin} \u2014 ${PERSONS[pi].en}`;
   }
 
+  // ===== Which forms the lessons use =====
+  //
+  // Every form the engine can build is matched against the Persian and
+  // pinglish text of every lesson item (vocabulary, grammar, phrases, story).
+  // The verb deck defaults to the forms a learner has met; the drill uses the
+  // same scan to group verbs by lesson and to find "recent" verbs.
+
+  function isImpTense(t) { return t === 'imperative' || t === 'impneg'; }
+  function tensePersons(t) { return isImpTense(t) ? [1, 4] : [0, 1, 2, 3, 4, 5]; }
+  function hasTense(v, t) {
+    if (t === 'continuous' && v.noCont) return false;
+    if (isImpTense(t) && !v.imp) return false;
+    return true;
+  }
+  // Every {v, tense, pi} the engine can build for one verb, in table order.
+  function formsOf(v, tenses) {
+    const out = [];
+    for (const t of TENSES) {
+      if (tenses && !tenses.has(t.id)) continue;
+      if (!hasTense(v, t.id)) continue;
+      for (const pi of tensePersons(t.id)) out.push({ v, tense: t.id, pi });
+    }
+    return out;
+  }
+
+  function normFa(s) {
+    return ' ' + String(s || '')
+      .replace(/ي/g, 'ی').replace(/ك/g, 'ک')       // Arabic yeh/kaf
+      .replace(/[ً-ْٰ]/g, '')                           // short-vowel marks
+      .replace(/‌/g, '')                                          // ZWNJ
+      .replace(/[^ء-غف-يپچژکگیآ]+/g, ' ')
+      .replace(/(^| )(ن?می) /g, '$1$2')                                // "می رم" = "می‌رم"
+      .trim() + ' ';
+  }
+  function normPin(s) {
+    return ' ' + String(s || '').toLowerCase()
+      .normalize('NFD').replace(/[̀-ͯ]/g, '')
+      .replace(/[-‑]/g, '')
+      .replace(/[^a-z]+/g, ' ')
+      .replace(/(^| )((?:ne)?mi) /g, '$1$2')
+      .trim() + ' ';
+  }
+
+  let usageCache = null;
+  // {byVerb: Map(verbId -> {lessons: [lessonId], forms: Set('tense|pi')}),
+  //  lessons: [lesson ids in deck order that are numbered lessons]}
+  function lessonUsage() {
+    const lessons = (F.lessons || []).filter(l => l.kind !== 'alphabet');
+    const sig = lessons.map(l => l.id + ':' + l.items.length).join(',');
+    if (usageCache && usageCache.sig === sig) return usageCache;
+    const texts = lessons.map(l => {
+      const its = l.items.filter(it => it.type !== 'letter');
+      return { id: l.id, fa: its.map(it => normFa(it.fa)).join(' '), pin: its.map(it => normPin(it.pin)).join(' ') };
+    });
+    const found = (t, f) => {
+      const fa = normFa(f.fa), pin = normPin(f.pin);
+      return (fa.trim() && t.fa.includes(fa)) || (pin.trim().length > 2 && t.pin.includes(pin));
+    };
+    const byVerb = new Map();
+    for (const v of VERBS) {
+      const u = { lessons: [], forms: new Set() };
+      for (const t of texts) {
+        let hit = found(t, { fa: v.fa, pin: v.pin.replace(/\s*\([^)]*\)/g, '') });
+        for (const d of formsOf(v)) {
+          const f = drillAnswer(d);
+          // Colloquial 3pl past is spelled like the infinitive (رفتن): a vocab
+          // entry for the verb is not a use of "they went".
+          if (!f || normFa(f.fa) === normFa(v.fa)) continue;
+          if (found(t, f)) { u.forms.add(d.tense + '|' + d.pi); hit = true; }
+        }
+        if (hit) u.lessons.push(t.id);
+      }
+      byVerb.set(v.id, u);
+    }
+    usageCache = { sig, byVerb, lessons: lessons.filter(l => l.kind === 'lesson').map(l => l.id) };
+    return usageCache;
+  }
+
+  // Verbs that appear in the newest `n` numbered lessons.
+  function recentVerbIds(n) {
+    const u = lessonUsage();
+    const recent = new Set(u.lessons.slice(-(n || 3)));
+    return VERBS.filter(v => u.byVerb.get(v.id).lessons.some(l => recent.has(l))).map(v => v.id);
+  }
+
+  // Verbs grouped by the lesson they first appear in, newest lesson first,
+  // then the verbs no lesson uses yet: [{lessonId|null, verbs: [verb]}].
+  function verbsByLesson() {
+    const u = lessonUsage();
+    const groups = new Map(u.lessons.map(id => [id, []]));
+    const other = [];
+    for (const v of VERBS) {
+      const first = u.byVerb.get(v.id).lessons.find(id => groups.has(id));
+      if (first) groups.get(first).push(v); else other.push(v);
+    }
+    const out = [...groups.entries()].reverse().filter(([, vs]) => vs.length).map(([lessonId, verbs]) => ({ lessonId, verbs }));
+    if (other.length) out.push({ lessonId: null, verbs: other });
+    return out;
+  }
+
+  // The default verb deck: for every verb its infinitive and every form the
+  // lessons use; for verbs the lessons use at all, also present and simple
+  // past for man/to/oon.
+  const CORE_TENSES = ['present', 'past'];
+  function coreItemIds() {
+    const u = lessonUsage();
+    const ids = new Set();
+    for (const v of VERBS) {
+      ids.add(`verb.${v.id}.inf`);
+      const use = u.byVerb.get(v.id);
+      for (const k of use.forms) {
+        const [tense, pi] = k.split('|');
+        ids.add(`verb.${v.id}.${tense}.${PERSON_CODES[+pi]}`);
+      }
+      if (use.lessons.length) {
+        for (const t of CORE_TENSES) for (const pi of [0, 1, 2]) ids.add(`verb.${v.id}.${t}.${PERSON_CODES[pi]}`);
+      }
+    }
+    return ids;
+  }
+
+  // allForms: the "All verb forms" setting (ui/drill.js sets it from prefs).
+  // keep(itemId): true keeps a trimmed item anyway. By default that is any
+  // item with review history or a bury, so trimming never takes away a card
+  // the learner has already studied.
+  const config = {
+    allForms: false,
+    keep(itemId) {
+      const d = F.store && F.store.data;
+      if (!d) return false;
+      for (const dir of ['fa-en', 'en-fa']) {
+        const id = itemId + ':' + dir;
+        if ((d.srs && d.srs[id]) || (d.buried && d.buried[id])) return true;
+      }
+      return false;
+    },
+  };
+
+  // The items the verb deck actually has (see config).
+  function meaningItems() {
+    const all = allMeaningItems();
+    if (config.allForms) return all;
+    const core = coreItemIds();
+    return all.filter(it => core.has(it.id) || (config.keep && config.keep(it.id)));
+  }
+
+  // ===== Mixed drill sets =====
+  //
+  // buildSet picks `size` prompts from `combos` ({v, tense, pi}), weighted
+  // toward forms with a poor right/wrong record and toward `recent` verbs,
+  // then orders them so the same verb never comes twice in a row (and the
+  // same tense rarely does) when the pool allows it.
+  function promptWeight(d, scores, recent) {
+    const s = (scores && scores[drillKey(d)]) || { r: 0, w: 0 };
+    const err = (s.w + 1) / (s.r + s.w + 2);       // 0.5 for an unseen form
+    let w = 0.25 + 4 * err;
+    if (s.w > s.r) w += 1;
+    if (recent && recent.has(d.v.id)) w *= 2.5;
+    return w;
+  }
+
+  function orderInterleaved(picked, rng) {
+    const left = picked.slice();
+    const out = [];
+    while (left.length) {
+      const last = out[out.length - 1];
+      const count = {};
+      for (const d of left) count[d.v.id] = (count[d.v.id] || 0) + 1;
+      let best = null, bestScore = -Infinity;
+      for (const d of left) {
+        let sc = count[d.v.id] * 10 + rng();
+        if (last && d.v.id === last.v.id) sc -= 1000;
+        if (last && d.tense === last.tense) sc -= 5;
+        if (sc > bestScore) { bestScore = sc; best = d; }
+      }
+      out.push(best);
+      left.splice(left.indexOf(best), 1);
+    }
+    return out;
+  }
+
+  function buildSet(o) {
+    const size = o.size || 10;
+    const rng = o.rng || Math.random;
+    const pool = o.combos.map(d => ({ d, w: promptWeight(d, o.scores, o.recent) }));
+    const nVerbs = new Set(o.combos.map(d => d.v.id)).size;
+    const nTenses = new Set(o.combos.map(d => d.tense)).size;
+    const verbCap = nVerbs >= size ? 2 : Math.ceil(size / Math.max(1, nVerbs));
+    const tenseCap = nTenses > 1 ? Math.ceil(size / nTenses) + 1 : size;
+    const picked = [];
+    const perVerb = {}, perTense = {};
+    for (const capped of [true, false]) {
+      while (picked.length < size && pool.length) {
+        const ok = pool.filter(p => !capped
+          || ((perVerb[p.d.v.id] || 0) < verbCap && (perTense[p.d.tense] || 0) < tenseCap));
+        if (!ok.length) break;
+        let r = rng() * ok.reduce((a, p) => a + p.w, 0);
+        let choice = ok[ok.length - 1];
+        for (const p of ok) { r -= p.w; if (r <= 0) { choice = p; break; } }
+        pool.splice(pool.indexOf(choice), 1);
+        picked.push(choice.d);
+        perVerb[choice.d.v.id] = (perVerb[choice.d.v.id] || 0) + 1;
+        perTense[choice.d.tense] = (perTense[choice.d.tense] || 0) + 1;
+      }
+    }
+    return orderInterleaved(picked, rng);
+  }
+
   F.verbs = {
     PERSONS, TENSES, VERBS, PERSON_CODES, DARAM_PIN, DARAM_FA,
     pastStem, conj, drillKey, drillAnswer, drillBreakdown,
-    enMeaning, verbCardBreakdown, meaningItems, personLabel,
+    enMeaning, verbCardBreakdown, meaningItems, allMeaningItems, personLabel,
+    config, lessonUsage, coreItemIds, recentVerbIds, verbsByLesson,
+    formsOf, hasTense, isImpTense, buildSet, promptWeight, normFa, normPin,
     byId: id => VERBS.find(v => v.id === id) || null,
   };
 })(typeof window !== 'undefined' ? window : globalThis);

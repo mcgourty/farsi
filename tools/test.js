@@ -72,6 +72,8 @@ test('no duplicate card ids; card id = itemId:direction', () => {
 
 test('verb card ids are verb id + form', () => {
   const { F } = loadApp();
+  F.verbs.config.allForms = true;
+  F.cards.build();
   ok(F.cards.byId.has('verb.boodan.inf:fa-en'));
   ok(F.cards.byId.has('verb.boodan.past.3pl:en-fa'));
   ok(F.cards.byId.get('verb.boodan.past.3pl:fa-en').farsi === F.cards.byId.get('verb.boodan.inf:fa-en').farsi,
@@ -87,8 +89,10 @@ test('sessions and default selection come from the registry', () => {
 });
 
 // ---------------------------------------------------------------- counts
-test('card counts per session/type match the legacy app', () => {
+test('card counts per session/type match the legacy app (all verb forms on)', () => {
   const { F } = loadApp();
+  F.verbs.config.allForms = true;
+  F.cards.build();
   const now = countBy(F.cards.all);
   let expected;
   const o = legacy();
@@ -111,6 +115,8 @@ test('every card the legacy app had still exists with identical text (pairing)',
 
 test('legacy key map points only at existing cards and covers every old key', () => {
   const app = loadApp();
+  app.F.verbs.config.allForms = true;   // the full verb deck; trimmed forms are opt-in
+  app.F.cards.build();
   const map = withLegacyKeys(app);
   const missing = [];
   for (const ids of Object.values(map)) for (const id of ids) if (!app.F.cards.byId.has(id)) missing.push(id);
@@ -123,6 +129,176 @@ test('legacy key map points only at existing cards and covers every old key', ()
     for (const k of keys) ok(map[k], `old key not mapped: ${k}`);
     eq(Object.keys(map).length, keys.length, 'map size');
   }
+});
+
+// ---------------------------------------------------------------- verbs
+// The verb meaning deck is trimmed on purpose: by default it holds each
+// verb's infinitive, every form the lessons use (conj() output matched
+// against lesson text), and present + simple past for man/to/oon of verbs
+// the lessons use. All 5,644 legacy verb cards stay reachable with the
+// "All verb forms" setting (F.verbs.config.allForms), and the legacy checks
+// above run with it on. These pins move when a lesson uses new verb forms:
+// update them deliberately (node -e to print the new numbers) after adding
+// a lesson.
+const VERB_CARDS_DEFAULT = 1320;   // was 5,644 (all forms); deck 8,254 -> 3,930
+const VERB_CARDS_ALL = 5644;
+
+test('verb deck: trimmed to the forms the lessons use, all forms opt-in', () => {
+  const { F } = loadApp();
+  const V = F.verbs;
+  const verbCards = () => F.cards.all.filter(c => c.type === 'verbs');
+  eq(verbCards().length, VERB_CARDS_DEFAULT, 'default verb cards (see VERB_CARDS_DEFAULT)');
+  const def = new Set(verbCards().map(c => c.id));
+  for (const v of V.VERBS) ok(def.has(`verb.${v.id}.inf:fa-en`) && def.has(`verb.${v.id}.inf:en-fa`), `infinitive of ${v.id}`);
+  const u = V.lessonUsage();
+  for (const v of V.VERBS) {
+    if (!u.byVerb.get(v.id).lessons.length) continue;
+    for (const t of ['present', 'past']) for (const p of ['1sg', '2sg', '3sg']) ok(def.has(`verb.${v.id}.${t}.${p}:fa-en`), `${v.id} ${t} ${p}`);
+  }
+  // forms met in lessons: s35 uses برمی‌دارم and برنداشتم; nobody uses nooshidan
+  ok(def.has('verb.bardashtan.present.1sg:fa-en') && def.has('verb.bardashtan.pastneg.1sg:en-fa'), 'lesson forms kept');
+  ok(def.has('verb.oomadan.continuous.1sg:fa-en'), 'continuous from lessons kept');
+  ok(!def.has('verb.nooshidan.continuous.3pl:fa-en') && !def.has('verb.nooshidan.present.1sg:fa-en'), 'unused verb trimmed to its infinitive');
+  ok(!def.has('verb.boodan.past.3pl:fa-en'), 'infinitive homograph is not counted as a lesson use');
+  // card text of the kept cards is the full deck's text, unchanged
+  F.verbs.config.allForms = true;
+  F.cards.build();
+  eq(verbCards().length, VERB_CARDS_ALL, 'all verb forms');
+  for (const id of def) ok(F.cards.byId.has(id), `default card ${id} missing from the full deck`);
+});
+
+test('verb deck: trimmed cards with review history or a bury stay in the deck', async () => {
+  const srsRec = { d: 5, s: 3, due: Date.UTC(2026, 9, 1), last: Date.UTC(2026, 8, 28), state: 'review', step: 0, reps: 2, lapses: 0 };
+  const store = {
+    version: 2,
+    srs: { 'verb.nooshidan.continuous.3pl:en-fa': srsRec, '35.v.bala:fa-en': srsRec },
+    buried: { 'verb.tarsidan.past.2pl:fa-en': 1 },
+    drill: {}, newLog: {}, revLog: {}, prefs: {}, meta: { createdAt: 1 },
+  };
+  const app = loadApp({ storage: { 'farsi-v2': JSON.stringify(store) } });
+  await app.F.store.init();
+  app.F.cards.build();
+  const has = id => app.F.cards.byId.has(id);
+  // reviewed in one direction: both directions of the item stay
+  ok(has('verb.nooshidan.continuous.3pl:en-fa') && has('verb.nooshidan.continuous.3pl:fa-en'), 'reviewed trimmed card kept');
+  ok(has('verb.tarsidan.past.2pl:fa-en') && has('verb.tarsidan.past.2pl:en-fa'), 'buried trimmed card kept');
+  ok(!has('verb.nooshidan.continuous.2pl:fa-en'), 'unreviewed neighbours still trimmed');
+  eq(app.F.cards.all.filter(c => c.type === 'verbs').length, VERB_CARDS_DEFAULT + 4);
+});
+
+test('prefixed verbs: every form matches the legacy engine; bardāshtan gets a real breakdown', () => {
+  const { F } = loadApp();
+  const V = F.verbs;
+  const o = legacy();
+  if (o) {
+    const oldForms = JSON.parse(o.run(`JSON.stringify((() => { const m = {};
+      for (const v of VERBS) for (const t of ['present','negative','past','pastneg','continuous','imperative','impneg'])
+        for (const pi of [0,1,2,3,4,5]) {
+          if ((t === 'imperative' || t === 'impneg') && (!v.imp || (pi !== 1 && pi !== 4))) continue;
+          if (t === 'continuous' && v.noCont) continue;
+          const d = { v, tense: t, pi };
+          m[v.id + '|' + t + '|' + pi] = { f: drillAnswer(d), b: drillBreakdown(d) };
+        }
+      return m; })())`));
+    let n = 0;
+    for (const [k, was] of Object.entries(oldForms)) {
+      const [id, tense, pi] = k.split('|');
+      const d = { v: V.byId(id), tense, pi: +pi };
+      eq(V.drillAnswer(d), was.f, `form ${k}`);
+      if (id !== 'bardashtan') eq(V.drillBreakdown(d), was.b, `breakdown ${k}`);
+      n++;
+    }
+    ok(n >= 2740, `only ${n} forms compared`);
+  } else warnings.push('git unavailable: verb forms checked for bardāshtan only');
+  const b = V.byId('bardashtan');
+  const form = (tense, pi) => V.drillAnswer({ v: b, tense, pi });
+  const bd = (tense, pi) => V.drillBreakdown({ v: b, tense, pi });
+  eq(form('present', 0), { pin: 'barmidāram', fa: 'برمی‌دارم' });
+  eq(form('negative', 2), { pin: 'barnemidāreh', fa: 'برنمی‌داره' });
+  eq(form('past', 0), { pin: 'bardāshtam', fa: 'برداشتم' });
+  eq(form('pastneg', 0), { pin: 'barnadāshtam', fa: 'برنداشتم' });
+  eq(form('continuous', 0), { pin: 'dāram barmidāram', fa: 'دارم برمی‌دارم' });
+  eq(form('imperative', 1), { pin: 'bardār', fa: 'بردار' });
+  eq(form('impneg', 4), { pin: 'barnadārid', fa: 'برندارید' });
+  eq(bd('present', 0), 'bar + mi + dār + am');
+  eq(bd('negative', 0), 'bar + nemi + dār + am');
+  ok(bd('pastneg', 0).startsWith('bar + na + dāsht + am'), bd('pastneg', 0));
+  ok(bd('imperative', 1).startsWith('bar + dār  '), bd('imperative', 1));
+  for (const t of V.TENSES) ok(!/irregular/.test(bd(t.id, 1)), `${t.id} still says irregular`);
+  eq(V.pastStem(b), { pin: 'dāsht', fa: 'داشت' });
+});
+
+function setPool(V, ids, tenses) {
+  const out = [];
+  for (const id of ids) out.push(...V.formsOf(V.byId(id), tenses && new Set(tenses)));
+  return out;
+}
+
+test('drill sets: 10 prompts, no repeats, never the same verb twice in a row', () => {
+  const { F } = loadApp();
+  const V = F.verbs;
+  const rng = seeded(7);
+  const pools = [
+    setPool(V, V.VERBS.map(v => v.id)),
+    setPool(V, ['raftan', 'khordan', 'kardan']),
+    setPool(V, ['raftan', 'boodan'], ['present', 'past']),
+  ];
+  for (const combos of pools) {
+    for (let i = 0; i < 200; i++) {
+      const set = V.buildSet({ combos, scores: {}, recent: new Set(), size: 10, rng });
+      eq(set.length, 10, 'set size');
+      eq(new Set(set.map(V.drillKey)).size, 10, 'no repeated prompt');
+      for (let j = 1; j < set.length; j++) ok(set[j].v.id !== set[j - 1].v.id, `same verb twice: ${set.map(d => d.v.id).join(',')}`);
+    }
+  }
+  // a wide pool mixes tenses and verbs within one set
+  const set = V.buildSet({ combos: pools[0], scores: {}, recent: new Set(), size: 10, rng });
+  ok(new Set(set.map(d => d.tense)).size >= 3, 'tenses mixed');
+  ok(new Set(set.map(d => d.v.id)).size >= 5, 'verbs mixed');
+  // a pool smaller than the set gives what there is
+  eq(V.buildSet({ combos: setPool(V, ['raftan'], ['past']), scores: {}, size: 10, rng }).length, 6);
+});
+
+test('drill sets: weighted toward missed forms and recent verbs', () => {
+  const { F } = loadApp();
+  const V = F.verbs;
+  const rng = seeded(11);
+  const ids = V.VERBS.slice(0, 20).map(v => v.id);
+  const combos = setPool(V, ids, ['present']);   // 120 prompts
+  const scores = {};
+  const missed = new Set(), known = new Set();
+  combos.forEach((d, i) => {
+    if (i % 6 === 0) { scores[V.drillKey(d)] = { r: 0, w: 3 }; missed.add(V.drillKey(d)); }
+    if (i % 6 === 1) { scores[V.drillKey(d)] = { r: 6, w: 0 }; known.add(V.drillKey(d)); }
+  });
+  let m = 0, k = 0;
+  for (let i = 0; i < 400; i++) {
+    for (const d of V.buildSet({ combos, scores, recent: new Set(), rng })) {
+      if (missed.has(V.drillKey(d))) m++;
+      if (known.has(V.drillKey(d))) k++;
+    }
+  }
+  ok(m > 4 * k, `missed ${m} vs known ${k}`);
+  const recent = new Set(ids.slice(0, 4));   // 20% of the pool
+  let r = 0, total = 0;
+  for (let i = 0; i < 400; i++) {
+    for (const d of V.buildSet({ combos, scores: {}, recent, rng })) { total++; if (recent.has(d.v.id)) r++; }
+  }
+  ok(r / total > 0.3, `recent share ${(r / total).toFixed(2)}`);
+});
+
+test('verb list: grouped by lesson, newest first; recent verbs come from the newest 3 lessons', () => {
+  const { F } = loadApp();
+  const V = F.verbs;
+  const groups = V.verbsByLesson();
+  eq(groups[0].lessonId, '35');
+  eq(groups[groups.length - 1].lessonId, null, 'verbs not in any lesson last');
+  const all = groups.flatMap(g => g.verbs.map(v => v.id));
+  eq(all.length, V.VERBS.length, 'each verb listed once');
+  eq(new Set(all).size, V.VERBS.length);
+  const recent = V.recentVerbIds(3);
+  ok(recent.includes('bardashtan') && recent.includes('gozashtan') && recent.includes('zadan'), recent.join(','));
+  ok(!recent.includes('nooshidan'));
 });
 
 // ---------------------------------------------------------------- FSRS
@@ -285,6 +461,8 @@ test('due/new queue matches the legacy app for the same store', () => {
   if (!s) { warnings.push('git unavailable: skipped queue comparison'); return; }
   const at = Date.UTC(2026, 7, 14, 9);
   const app = loadApp();
+  app.F.verbs.config.allForms = true;   // compare like for like with the legacy deck
+  app.F.cards.build();
   const map = withLegacyKeys(app);
   const F = app.F;
   const { store } = F.store.migrateV1(s.store, map, at);

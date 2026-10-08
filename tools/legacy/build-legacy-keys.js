@@ -10,11 +10,17 @@ const path = require('path');
 const { loadOldApp, LEGACY_REF } = require('./old-app');
 const { loadApp, ROOT } = require('../load');
 
+// Breakdowns rewritten on purpose since the split (text is unchanged):
+// bardāshtan is built as bar + verb instead of "irregular — memorize it".
+const BREAKDOWN_FIXED = /^verb\.bardashtan\./;
+
 function pairDecks() {
   const old = loadOldApp();
   if (!old) throw new Error('git show failed; run inside the repo');
   const oldCards = JSON.parse(old.run('JSON.stringify(CARDS.map(c => Object.assign({ key: cardKey(c) }, c)))'));
   const { F } = loadApp();
+  // The legacy app had every verb form; the default deck is trimmed now.
+  if (F.verbs.config) { F.verbs.config.allForms = true; F.cards.build(); }
   const cards = F.cards.all;
   if (oldCards.length !== cards.length) throw new Error(`card count differs: old ${oldCards.length}, new ${cards.length}`);
   const FIELDS = ['session', 'type', 'direction', 'farsi', 'pinglish', 'english', 'breakdown',
@@ -22,6 +28,7 @@ function pairDecks() {
   oldCards.forEach((o, i) => {
     const n = cards[i];
     for (const f of FIELDS) {
+      if (f === 'breakdown' && BREAKDOWN_FIXED.test(n.id)) continue;
       if ((o[f] ?? null) !== (n[f] ?? null)) {
         throw new Error(`card ${i} (${n.id}) field ${f} differs: ${JSON.stringify(o[f])} vs ${JSON.stringify(n[f])}`);
       }
