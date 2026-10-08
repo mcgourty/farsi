@@ -352,6 +352,27 @@
       return db().then(d => (d ? idbAll(d).then(arr => arr.concat(fallbackLeftovers(arr))) : fallbackRead()))
         .catch(e => { console.error('review log read failed', e); return fallbackRead(); });
     },
+    // Deletes the entry with this cardId + ts + rating (Undo of a grade).
+    remove(entry) {
+      const same = r => r.cardId === entry.cardId && r.ts === entry.ts && r.rating === entry.rating;
+      const fb = () => { const arr = fallbackRead(); const next = arr.filter(r => !same(r)); if (next.length !== arr.length) fallbackWrite(next); };
+      return db().then(d => {
+        fb();
+        if (!d) return;
+        return new Promise((resolve, reject) => {
+          const tx = d.transaction(IDB_STORE, 'readwrite');
+          const req = tx.objectStore(IDB_STORE).index('cardId').openCursor(entry.cardId);
+          req.onsuccess = () => {
+            const cur = req.result;
+            if (!cur) return;
+            if (same(cur.value)) cur.delete();
+            cur.continue();
+          };
+          tx.oncomplete = () => resolve();
+          tx.onerror = () => reject(tx.error);
+        });
+      }).catch(e => console.error('review log remove failed', e));
+    },
     // Adds entries not already present (same cardId + ts + rating).
     merge(entries) {
       return api.reviews.all().then(existing => {
