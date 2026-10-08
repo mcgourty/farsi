@@ -355,6 +355,8 @@ test('backup: build -> inspect -> apply round trip; bad files rejected', async (
   }
 });
 
+require('./test-stories')(test, { eq, ok, loadApp });
+
 // ---------------------------------------------------------------- run
 (async () => {
   let failed = 0;
