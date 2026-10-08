@@ -1,0 +1,11 @@
+{
+  "35.v.miz": [
+    { "fa": "کتاب روی میزه.", "pin": "Ketāb ruye miz-eh.", "en": "The book is on the table.", "source": "Session 35 phrase" },
+    { "fa": "کلیدت روی میزه.", "pin": "Kelidet ruye miz-eh.", "en": "Your key is on the table.", "source": "Session 35 phrase" },
+    { "fa": "میز توی آشپزخونه‌ست.", "pin": "Miz tuye āshpazkhooneh-st.", "en": "The table is in the kitchen.", "source": "test fixture" }
+  ],
+  "35.v.yakhchal": [
+    { "fa": "غذا توی یخچاله.", "pin": "Ghazā tuye yakhchāl-eh.", "en": "The food is in the fridge.", "source": "Session 35 phrase" }
+  ],
+  "35.v.broken": [ { "pin": "no fa field" }, null ]
+}
