@@ -8,7 +8,7 @@
 // reloads by itself. tools/test.js fails if VERSION is stale.
 'use strict';
 
-const VERSION = '1bc9c18cddff';
+const VERSION = '696f3bb6cef8';
 const SHELL = 'farsi-shell-' + VERSION;
 const RUNTIME = 'farsi-runtime';   // stale-while-revalidate, survives versions
 

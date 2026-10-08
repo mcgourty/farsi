@@ -584,6 +584,48 @@ test('notes: every lesson notes file exists and renders; markdown is escaped and
   eq(m.map, [0, 1, 5, 6]);
 });
 
+// ---------------------------------------------------------------- progress (js/ui/progress.js)
+test('progress: known words, forecast, streak with rest days, timing', () => {
+  const { F } = loadApp({ filter: src => !/^js\/(ui\/(?!progress\.js)|app\.js|audio\.js)/.test(src) });
+  const P = F.progress;
+  ok(P && P.itemStats, 'F.progress loaded');
+  const day = 86400000, now = new Date(2026, 9, 8, 12).getTime();
+  const cards = [
+    { id: 'a:fa-en', itemId: 'a', session: 's' }, { id: 'a:en-fa', itemId: 'a', session: 's' },
+    { id: 'b:fa-en', itemId: 'b', session: 's' }, { id: 'b:en-fa', itemId: 'b', session: 's' },
+    { id: 'c:fa-en', itemId: 'c', session: 's' }, { id: 'c:en-fa', itemId: 'c', session: 's' },
+    { id: 'l:letter', itemId: 'l', session: 'alphabet' },
+  ];
+  const srs = {
+    'a:fa-en': { state: 'review', s: 30, due: now + 2 * day }, 'a:en-fa': { state: 'review', s: 25, due: now - day },
+    'b:fa-en': { state: 'review', s: 40, due: now + 10 * day }, 'b:en-fa': { state: 'learning', s: 1, due: now + 3600e3 },
+    'l:letter': { state: 'review', s: 21, due: now + 6 * day },
+  };
+  const st = P.itemStats(cards, id => srs[id]);
+  eq([st.total.known, st.total.learning, st.total.new, st.total.oneWay], [2, 1, 1, 1], 'known only when every card is');
+  eq(st.bySession.get('alphabet').known, 1);
+  const fc = P.forecast(cards, id => srs[id], () => false, now, 7);
+  eq(fc.map(d => d.n), [2, 0, 1, 0, 0, 0, 1], 'forecast per day (overdue in today)');
+  eq(fc.overdue, 1);
+  const log = {};
+  const key = n => F.util.dayKey(new Date(now - n * day));
+  for (const n of [1, 2, 4, 5, 6, 8, 9, 13]) log[key(n)] = 5;   // rest on 3, 7, 10, 11, 12
+  const sk = P.streak(log, now);
+  // walking back: rest 3, 7 ok; 10 and 11 make 3 rest days in a 7-day window with 7 -> stops at 11
+  eq([sk.days, sk.studied, sk.today], [9, 7, false], 'streak spans yesterday back to day 9');
+  log[key(0)] = 1;
+  eq(P.streak(log, now).days, 10, 'today extends it');
+  eq(P.streak({}, now).days, 0);
+  eq(P.dailyReviews(log, 30, now).length, 30);
+  eq(P.dailyReviews(log, 30, now)[29].n, 1, 'last entry is today');
+  eq(P.rates().review, P.DEFAULT_REVIEW_SEC, 'defaults without a log');
+  for (let i = 0; i < 25; i++) P.addTiming({ durationMs: 6000, stateBefore: 'review' });
+  for (let i = 0; i < 12; i++) P.addTiming({ durationMs: 10000, stateBefore: 'new' });
+  P.addTiming({ durationMs: 600000, stateBefore: 'review' });   // idle, ignored
+  eq([P.rates().review, P.rates().fresh, P.rates().calibrated], [6, 22, true]);
+  eq(P.fmtMinutes(P.estimateSec(10, 0)), '1 min');
+});
+
 // ---------------------------------------------------------------- run
 (async () => {
   let failed = 0;
