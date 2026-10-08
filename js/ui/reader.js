@@ -137,6 +137,8 @@
   function statusOf(token, story) {
     const k = L.key(token);
     if (story && (story.unknown || []).some(u => L.key(u.fa) === k)) return 'glossed';
+    // everyday words (و, نه, خیلی ...) need no card, even when a deck word shares the spelling
+    if (FUNCTION_GLOSS[k]) return 'free';
     const res = lookup(token);
     // names and function words that appear only inside phrases need no card of their own
     if (!res.items.length && !res.verbs.length && isFree(token)) return 'free';
@@ -198,8 +200,10 @@
     }
     const order = [...groups.keys()].sort((a, b) => (ix.sessionOrder.get(b) ?? -1) - (ix.sessionOrder.get(a) ?? -1));
     const readCount = st.stories().filter(s => S.read[s.id]).length;
+    const head = F.notes && F.notes.readHeadHTML ? F.notes.readHeadHTML('read') : '<div class="page-head"><h1 class="page-title">Read</h1></div>';
     let html = `<div class="rd-list">
       <div class="rd-intro">
+        ${head}
         <h2>Practice stories</h2>
         <p>Short stories written for you from the words in your lessons. They aren't from your teacher. Tap a word for its meaning, tap a sentence for its English.</p>
         <p class="rd-intro-meta">${readCount} of ${st.stories().length} read</p>
@@ -280,6 +284,32 @@
   }
 
   // ---------- Word gloss ----------
+  // Everyday words that need no card but deserve a meaning (and that can
+  // share their spelling with a deck word: نه is "no" before it is "nine").
+  const FUNCTION_GLOSS = Object.fromEntries(Object.entries({
+    'و': 'and', 'که': 'that, which, who', 'به': 'to', 'از': 'from; than', 'در': 'in', 'با': 'with',
+    'را': 'object marker', 'رو': 'object marker (spoken)', 'یه': 'a, one', 'یک': 'a, one', 'این': 'this', 'اون': 'that; he, she',
+    'آن': 'that', 'هم': 'also, too', 'هر': 'every', 'چه': 'what', 'چی': 'what', 'چرا': 'why', 'کجا': 'where',
+    'کی': 'who; when', 'چند': 'how many', 'چطور': 'how', 'ولی': 'but', 'اما': 'but', 'یا': 'or', 'تا': 'until; (counter)',
+    'برای': 'for', 'بعد': 'after, then', 'قبل': 'before', 'اگه': 'if', 'اگر': 'if', 'نه': 'no; not', 'آره': 'yes', 'بله': 'yes',
+    'خیلی': 'very, a lot', 'همه': 'all, everyone', 'دیگه': 'other; already, any more', 'هنوز': 'still, yet', 'فقط': 'only',
+    'بیشتر': 'more', 'کمی': 'a little', 'یکم': 'a little', 'الان': 'now', 'حالا': 'now',
+    'من': 'I, me', 'تو': 'you; in', 'او': 'he, she', 'ما': 'we', 'شما': 'you (plural, polite)', 'اونا': 'they', 'آنها': 'they',
+    'ایشون': 'he, she (polite)', 'خودم': 'myself', 'خودت': 'yourself', 'خودش': 'himself, herself',
+  }).map(([fa, en]) => [L.key(fa), en]));
+
+  function itemRank(r, k, res) {
+    const exact = L.cardTexts(r.item).some(t => L.key(t) === k) || (res.base && L.key(r.item.fa) === res.base);
+    if (r.item.type === 'vocabulary') return exact ? 0 : 1;
+    return exact ? 2 : 3;
+  }
+  // A grammar, phrase or story card only shows where the word was seen: its
+  // Persian part (rule cards read "کوچیک‌تر = younger"), isolated, and its English.
+  function seenInHTML(r) {
+    const fa = String(r.item.fa || '').split(/\s*=\s*/)[0].replace(/<[^>]*>/g, ' ').trim();
+    return `<p class="rd-g-form">Seen in <bdi lang="fa" dir="rtl">${fa}</bdi>${r.item.en ? ` · <bdi>${r.item.en}</bdi>` : ''} <span class="rd-g-src">${esc(r.label)}</span></p>`;
+  }
+
   function glossHTML(story, token) {
     const k = L.key(token);
     const status = statusOf(token, story);
@@ -290,18 +320,33 @@
       body += `<div class="rd-g-entry"><span class="rd-g-fa" lang="fa" dir="rtl">${esc(g.fa)}</span><span class="rd-g-pin">${esc(g.pin)}</span><span class="rd-g-en">${esc(g.en)}</span></div>`;
     } else {
       const res = lookup(token);
-      const verbs = res.verbs.filter(v => v.en);
-      for (const v of verbs.slice(0, 2)) {
+      const senses = [];   // at most two, best first
+      const fn = FUNCTION_GLOSS[k];
+      if (fn) senses.push(`<div class="rd-g-entry"><span class="rd-g-en">${esc(fn)}</span><span class="rd-g-src">everyday word</span></div>`);
+      const shownVerbs = new Set();
+      for (const v of res.verbs.filter(v => v.en).slice(0, 2)) {
         if (L.key(v.fa) === k) continue;
-        body += `<p class="rd-g-form">A form of <span lang="fa" dir="rtl">${esc(v.fa)}</span> <span class="rd-g-pin">${esc(v.pin || '')}</span> · ${esc(v.en)}</p>`;
+        shownVerbs.add(L.key(v.fa));
+        senses.push(`<p class="rd-g-form">A form of <bdi class="rd-g-fa" lang="fa" dir="rtl">${esc(v.fa)}</bdi> <bdi class="rd-g-pin">${esc(v.pin || '')}</bdi> · <bdi>${esc(v.en)}</bdi></p>`);
       }
-      if (res.base && res.items.length) body += `<p class="rd-g-form">From <span lang="fa" dir="rtl">${esc(res.base)}</span> with an ending</p>`;
-      for (const r of res.items.slice(0, 3)) {
-        body += `<div class="rd-g-entry"><span class="rd-g-fa" lang="fa" dir="rtl">${r.item.fa}</span><span class="rd-g-pin">${r.item.pin || ''}</span><span class="rd-g-en">${r.item.en || ''}</span><span class="rd-g-src">${esc(r.label)}</span></div>`;
+      // Vocabulary whose word is exactly this one first, then other vocabulary,
+      // then grammar or phrase cards, which only show where the word was seen.
+      const ranked = res.items.slice().sort((x, y) => itemRank(x, k, res) - itemRank(y, k, res));
+      for (const r of ranked) {
+        if (senses.length >= 2) break;
+        if (shownVerbs.has(L.key(r.item.fa))) continue;   // the verb line above already says it
+        if (r.item.type === 'vocabulary') {
+          senses.push(`<div class="rd-g-entry"><bdi class="rd-g-fa" lang="fa" dir="rtl">${r.item.fa}</bdi><bdi class="rd-g-pin">${r.item.pin || ''}</bdi><bdi class="rd-g-en">${r.item.en || ''}</bdi><span class="rd-g-src">${esc(r.label)}</span></div>`);
+        } else {
+          senses.push(seenInHTML(r));
+        }
       }
-      for (const r of res.phrases.slice(0, 2)) {
-        body += `<p class="rd-g-form">Seen in <span lang="fa" dir="rtl">${r.item.fa}</span> · ${r.item.en || ''} <span class="rd-g-src">${esc(r.label)}</span></p>`;
+      if (res.base && res.items.length && senses.length) senses.splice(fn ? 1 : 0, 0, `<p class="rd-g-form">From <bdi lang="fa" dir="rtl">${esc(res.base)}</bdi> with an ending</p>`);
+      for (const r of res.phrases) {
+        if (senses.length >= 2) break;
+        senses.push(seenInHTML(r));
       }
+      body = senses.join('');
       if (!body) body = status === 'free'
         ? '<p class="rd-g-form">An everyday word or a name, not a card in your deck.</p>'
         : '<p class="rd-g-form">Not in your deck. The English for the whole sentence is one tap away.</p>';
@@ -348,6 +393,7 @@
   F.views.register('read', {
     label: 'Read',
     order: 30,
+    page: true,
     hideActions: true,
     render() {
       const story = S.storyId && st.story(S.storyId);
@@ -443,11 +489,13 @@
     const html = () => {
       const s = todayStory();
       if (!s) return '';
-      return `<button type="button" class="rd-today" data-action="read-open" data-arg="${escAttr(s.id)}">
-        <span class="rd-today-label">Read · ${esc(s.title_en)}</span>
-        <span class="rd-today-fa" lang="fa" dir="rtl">${esc(s.title_fa)}</span>
-        <span class="rd-today-sub">A practice story for ${esc((lessonOf(s.session) || {}).label || 'your newest lesson')}</span>
-      </button>`;
+      const a = analyseStory(s);
+      return '<div class="t-row"><span class="t-row-label">Read a story</span>'
+        + `<span class="t-row-val t-row-small">~${a.knownPct}% known</span></div>`
+        + `<div class="rd-today"><span class="rd-today-fa" lang="fa" dir="rtl">${esc(s.title_fa)}</span>`
+        + `<span class="rd-today-en">${esc(s.title_en)}</span></div>`
+        + `<div class="t-sub">A short practice story for ${esc((lessonOf(s.session) || {}).label || 'your newest lesson')}. Tap any word for its meaning.</div>`
+        + `<div class="t-acts"><button type="button" class="btn-secondary" data-action="read-open" data-arg="${escAttr(s.id)}">Read it</button></div>`;
     };
     F.today.registerSection({
       id: 'read', order: 40,
