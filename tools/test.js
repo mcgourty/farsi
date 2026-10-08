@@ -625,6 +625,7 @@ test('progress: known words, forecast, streak with rest days, timing', () => {
   eq([P.rates().review, P.rates().fresh, P.rates().calibrated], [6, 22, true]);
   eq(P.fmtMinutes(P.estimateSec(10, 0)), '1 min');
 });
+require('./test-stories')(test, { eq, ok, loadApp });
 
 // ---------------------------------------------------------------- run
 (async () => {

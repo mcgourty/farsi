@@ -221,6 +221,30 @@ duplicate once; delete the old notes after that first re-import.)
 2. Insert into "Farsi" deck
 3. Confirm what was added
 
+### For each new lesson: practice stories and example sentences
+Lesson cards still come only from the teacher's material. Practice stories are
+the one exception to "don't invent": they are short graded readers written
+from words the deck has already taught, and they are always marked as
+generated (`generated: true`; the Read tab says "written for you, not from
+your teacher"). They never become cards.
+
+1. After adding `lessons/sNN.js`, write 2 practice stories for the session in
+   `tools/stories-src/stories.src.js` (60-140 words, one sentence per line as
+   `[fa, pin, en]`, ids `st-NN-1`, `st-NN-2`; never reuse or rename an id).
+   Use only words taught up to that session, gloss any unavoidable new word
+   in `gloss`.
+2. `node tools/stories-src/build-stories.js` scores every story with
+   `tools/coverage.js` and writes `lessons/stories.js`. Each story must reach
+   **>= 98% known tokens** (95% is the hard floor) with no missing gloss;
+   rewrite lines until it does. To check a draft text:
+   `node tools/coverage.js --cutoff NN "..."`, or all shipped stories:
+   `node tools/coverage.js --stories lessons/stories.js --repo .`
+3. `node tools/stories-src/build-examples.js` then
+   `node tools/apply-examples.js` to refresh the example sentences on every
+   vocabulary card (they come from the lessons' phrases and story cards and
+   the practice stories).
+4. `node tools/test.js`.
+
 ### Exercise Generation (from PDF content):
 - **Fill in the blank** using vocabulary from lessons
 - **Translation practice** using sentences from lessons
@@ -240,6 +264,7 @@ duplicate once; delete the old notes after that first re-import.)
 ├── ALEX-SESSION-NN.txt         # Converted text
 ├── ALEX-SESSION-NN_formatted.md# Fully explained/formatted content
 ├── lessons/sNN.js              # Card data for the session (see Generation)
+├── lessons/stories.js          # Practice stories (generated; built from tools/stories-src/)
 ├── index.html, js/, css/       # The web app
 ├── tools/                      # Tests and data tools (node)
 └── generate_anki.py            # Anki deck from lessons/*.js
