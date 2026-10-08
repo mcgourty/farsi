@@ -2,29 +2,31 @@
 """
 Generate an Anki deck from the Farsi lessons.
 
-Card data lives in flashcards.html — that file is the single source of truth
-for both the web app and this deck, so a new session only has to be added
-there. This script reads the `for (const c of sNN_type)` registration lines
-out of flashcards.html, parses the arrays they name, and turns every entry
-into Anki notes.
+Card data lives in lessons/*.js (one file per session, loaded by the web app
+in the order index.html lists them). This script asks node for that data via
+`node tools/dump-cards.js`, so the deck and the app can never drift apart and
+there is no HTML scraping.
 
-Verb *meaning* cards (session/type `verbs`) are generated at runtime from
-the trainer's VERBS list and are not exported here. The Anki deck still
-gets every hand-written session array.
+Every note gets a stable guid derived from the app's card id (for example
+`35.v.yakhchal:fa-en`), so editing a card's text and re-importing updates the
+note in place instead of adding a duplicate.
 
-Run:    python3 generate_anki.py
+Verb *meaning* cards (session/type `verbs`) are generated at runtime from the
+trainer's VERBS list and are not exported here.
+
+Run:    python3 generate_anki.py      (needs node and `pip install genanki`)
 Output: farsi_cursor_agent.apkg (double-click to import into Anki)
 """
 
 import json
 import os
-import re
+import subprocess
 import sys
 
 import genanki
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-SOURCE = os.path.join(HERE, 'flashcards.html')
+DUMP = os.path.join(HERE, 'tools', 'dump-cards.js')
 OUTPUT = os.path.join(HERE, 'farsi_cursor_agent.apkg')
 
 # Stable IDs. These must never change: Anki matches on them, so re-importing a
@@ -35,51 +37,18 @@ DECK_NAME = 'Farsi - Cursor Agent'
 
 
 # ============================================================
-# READ THE CARD DATA OUT OF flashcards.html
+# READ THE LESSON DATA (via node, from lessons/*.js)
 # ============================================================
 
-def load_source():
-    if not os.path.exists(SOURCE):
-        sys.exit(f'Could not find {SOURCE}')
-    with open(SOURCE, encoding='utf-8') as fh:
-        return fh.read()
-
-
-def parse_arrays(html):
-    """Every `const NAME = [ ... ];` block in the file, parsed as JSON.
-
-    The entries are JS array literals of double-quoted strings, which is valid
-    JSON once the `//` comment lines and the trailing comma are stripped.
-    Blocks that are not plain arrays of strings (VERBS, TENSES, ...) fail to
-    parse and are skipped — they are not card data.
-    """
-    arrays = {}
-    for name, body in re.findall(r'^const (\w+) = \[\n(.*?)^\];$', html, re.S | re.M):
-        lines = [ln for ln in body.splitlines() if not ln.strip().startswith('//')]
-        text = '[' + re.sub(r',\s*$', '', '\n'.join(lines).strip()) + ']'
-        try:
-            arrays[name] = json.loads(text)
-        except ValueError:
-            continue
-    return arrays
-
-
-def parse_registrations(html):
-    """The addCards() calls, in file order.
-
-    Returns [(varname, session, card_type, [directions])]. This is the mapping
-    the web app itself uses, so the deck can never drift out of step with it.
-    """
-    registrations = []
-    pattern = re.compile(r"^for \(const c of (\w+)\)\s*\{(.*)\}\s*$", re.M)
-    for varname, calls in pattern.findall(html):
-        found = re.findall(r"addCards\('([^']*)','([^']*)',\s*\[c\],\s*'([^']*)'\)", calls)
-        if not found:
-            continue
-        session, card_type = found[0][0], found[0][1]
-        directions = [d for _, _, d in found]
-        registrations.append((varname, session, card_type, directions))
-    return registrations
+def load_lessons():
+    try:
+        out = subprocess.run(['node', DUMP, '--lessons-only'], cwd=HERE, check=True,
+                             capture_output=True, text=True, encoding='utf-8').stdout
+    except FileNotFoundError:
+        sys.exit('node is required: it reads the lesson files (tools/dump-cards.js)')
+    except subprocess.CalledProcessError as e:
+        sys.exit(f'tools/dump-cards.js failed:\n{e.stderr}')
+    return json.loads(out)['lessons']
 
 
 # ============================================================
@@ -225,61 +194,56 @@ def writing_back(isolated, initial, medial, final, notes):
 # BUILD THE DECK
 # ============================================================
 
-def main():
-    html = load_source()
-    arrays = parse_arrays(html)
-    registrations = parse_registrations(html)
+def note(front, back, tags, guid_key):
+    return genanki.Note(model=farsi_model, fields=[front, back], tags=tags,
+                        guid=genanki.guid_for(guid_key))
 
+
+TYPE_ORDER = ['vocabulary', 'grammar', 'phrases', 'story']
+
+
+def main():
+    lessons = load_lessons()
     deck = genanki.Deck(DECK_ID, DECK_NAME)
     counts = []
 
-    for varname, session, card_type, directions in registrations:
-        items = arrays.get(varname)
-        if items is None:
-            print(f'  ! {varname} is registered but was not parsed — skipping')
-            continue
+    for lesson in lessons:
+        session = lesson['id']
 
-        session_tag = f'session-{session}' if session != 'alphabet' else 'alphabet'
-        made = 0
-
-        if card_type == 'alphabet':
+        if lesson['kind'] == 'alphabet':
             # Three card types per letter: recognise it, identify it from its
             # four forms, and recall the forms from the name.
-            for name, sound, isolated, initial, medial, final, notes in items:
+            letters = [it for it in lesson['items'] if it['type'] == 'letter']
+            for it in letters:
+                name, sound, notes = it['name'], it['sound'], it.get('notes', '')
+                iso, ini, med, fin = it['isolated'], it['initial'], it['medial'], it['final']
                 for front, back, kind in (
-                    (letter_front(isolated),
-                     letter_back(name, sound, isolated, initial, medial, final, notes),
-                     'letter-recognition'),
-                    (forms_front(isolated, initial, medial, final),
-                     forms_back(name, sound, notes),
-                     'forms-recognition'),
-                    (writing_front(name, sound),
-                     writing_back(isolated, initial, medial, final, notes),
-                     'writing-practice'),
+                    (letter_front(iso), letter_back(name, sound, iso, ini, med, fin, notes), 'letter-recognition'),
+                    (forms_front(iso, ini, med, fin), forms_back(name, sound, notes), 'forms-recognition'),
+                    (writing_front(name, sound), writing_back(iso, ini, med, fin, notes), 'writing-practice'),
                 ):
-                    deck.add_note(genanki.Note(
-                        model=farsi_model,
-                        fields=[front, back],
-                        tags=['alphabet', kind],
-                    ))
-                    made += 1
-        else:
-            for farsi, pinglish, english, breakdown in items:
-                for direction in directions:
+                    deck.add_note(note(front, back, ['alphabet', kind], f"{it['id']}:{kind}"))
+            counts.append(('alphabet', 'alphabet', len(letters), len(letters) * 3))
+            continue
+
+        session_tag = f'session-{session}'
+        for card_type in TYPE_ORDER:
+            items = [it for it in lesson['items'] if it['type'] == card_type]
+            if not items:
+                continue
+            made = 0
+            for it in items:
+                farsi, pinglish, english, breakdown = it['fa'], it['pin'], it['en'], it.get('notes', '')
+                for direction in it.get('dirs') or ['farsi-to-english', 'english-to-farsi']:
                     if direction == 'english-to-farsi':
                         front, back = front_english(english), back_english(farsi, pinglish, breakdown)
-                        tag = 'en-to-fa'
+                        tag, code = 'en-to-fa', 'en-fa'
                     else:
                         front, back = front_farsi(farsi), back_farsi(pinglish, english, breakdown)
-                        tag = 'fa-to-en'
-                    deck.add_note(genanki.Note(
-                        model=farsi_model,
-                        fields=[front, back],
-                        tags=[session_tag, card_type, tag],
-                    ))
+                        tag, code = 'fa-to-en', 'fa-en'
+                    deck.add_note(note(front, back, [session_tag, card_type, tag], f"{it['id']}:{code}"))
                     made += 1
-
-        counts.append((session, card_type, len(items), made))
+            counts.append((session, card_type, len(items), made))
 
     genanki.Package(deck).write_to_file(OUTPUT)
 
