@@ -32,7 +32,6 @@
     vIdx: 0,
     browseIds: null,         // shuffled browse order
     set: null,               // {kind, prompts, idx, results: [{d, known, typed}]}
-    confirmReset: false,
   };
 
   const scores = () => F.store.data.drill;
@@ -84,7 +83,6 @@
   // ---------- Sets ----------
   function newSet(prompts, kind) {
     st.set = { kind, prompts, idx: 0, results: [] };
-    st.confirmReset = false;
     S.flipped = false;
     typedReset();
   }
@@ -111,7 +109,7 @@
   function conjCell(f) {
     return f
       ? `<span class="fa" lang="fa" dir="rtl">${f.fa}</span><span class="pin">${f.pin}</span>`
-      : '<span class="pin" style="opacity:.3">—</span>';
+      : '<span class="pin conj-none">—</span>';
   }
   function conjTableHTML(v) {
     let rows = '';
@@ -126,21 +124,23 @@
       rows += `<tr><td class="person">${V.PERSONS[i].pin}</td><td>${conjCell(V.conj(v, 'past', i))}</td><td>${conjCell(V.conj(v, 'pastneg', i))}</td></tr>`;
     }
     const ps = V.pastStem(v);
-    return `<table class="conj-table" style="margin-top:14px"><thead><tr><th>past stem: ${ps.pin}</th><th>Past</th><th>Neg. past</th></tr></thead><tbody>${rows}</tbody></table>`;
+    return `<table class="conj-table conj-past"><thead><tr><th>Past stem: ${ps.pin}</th><th>Past</th><th>Neg. past</th></tr></thead><tbody>${rows}</tbody></table>`;
   }
   function impHTML(v) {
     if (!v.imp) return '';
     return `<div class="conj-imp">Do it! <strong>${v.imp.sg}</strong> <span class="fa-inline" lang="fa" dir="rtl">${v.imp.sgFa}</span> &middot; <strong>${v.imp.pl}</strong> <span class="fa-inline" lang="fa" dir="rtl">${v.imp.plFa}</span><br>Don't! <strong>${v.imp.negSg}</strong> <span class="fa-inline" lang="fa" dir="rtl">${v.imp.negSgFa}</span> &middot; <strong>${v.imp.negPl}</strong> <span class="fa-inline" lang="fa" dir="rtl">${v.imp.negPlFa}</span></div>`;
   }
-  function stats(count, pct, text) {
-    $('card-count').innerHTML = count;
-    $('progress-fill').style.width = pct + '%';
-    $('progress-text').textContent = text;
-  }
+  function stats(count) { $('card-count').innerHTML = count; }
   function nav(pos, prevOn, nextOn) {
     $('nav-pos').textContent = pos;
     $('prev-btn').disabled = !prevOn;
     $('next-btn').disabled = !nextOn;
+  }
+
+  // The three ways to use the trainer, switchable from the view itself.
+  function modeSwitchHTML() {
+    const b = (m, label) => `<button type="button" class="seg-btn${st.mode === m ? ' active' : ''}" data-action="drill-mode" data-arg="${m}" aria-pressed="${st.mode === m}">${label}</button>`;
+    return `<div class="seg-switch drill-modes" role="group" aria-label="Verb trainer mode">${b('sets', 'Mixed sets')}${b('focus', 'One verb')}${b('browse', 'Browse')}</div>`;
   }
 
   // ---------- Browse ----------
@@ -148,36 +148,27 @@
     const area = $('card-area');
     const list = browseList();
     if (!list.length) {
-      area.innerHTML = '<div class="empty-state"><h2>No verbs selected</h2><p>Pick some verbs in the filters</p></div>';
+      area.innerHTML = '<div class="empty-state"><h2>No verbs selected</h2><p>Pick some verbs in Settings.</p></div>';
       nav('0 / 0', false, false);
-      stats('<strong>0</strong> verbs', 0, '0/0');
+      stats('<strong>0</strong> verbs');
       return;
     }
     st.vIdx = Math.max(0, Math.min(st.vIdx, list.length - 1));
     const v = list[st.vIdx];
-    area.innerHTML = `<div class="card-wrapper" style="min-height:800px" data-action="flip"><div class="card${S.flipped ? ' flipped' : ''}" id="card" style="min-height:800px">
-    <div class="card-face card-front">
-      <span class="card-tag">Verb</span>
-      <div class="front-content">
-        <div class="farsi-big" lang="fa" dir="rtl">${v.fa}</div>
+    // A reference page, not a card to test yourself on: no flip.
+    area.innerHTML = `<section class="drill-browse-card">
+      <div class="drill-browse-head">
+        <div class="farsi-big drill-verb-fa" lang="fa" dir="rtl">${v.fa}</div>
         <div class="drill-verb-pin">${v.pin}</div>
         <div class="drill-verb-en">${v.en}</div>
       </div>
-      <span class="tap-hint">tap for conjugations</span>
-    </div>
-    <div class="card-face card-back" style="justify-content:flex-start">
-      <span class="card-tag">Verb</span>
-      <div class="back-content" style="margin-top:16px">
-        <div class="pinglish" style="margin-bottom:0">${v.pin} — ${v.en}</div>
-        ${conjTableHTML(v)}
-        ${pastTableHTML(v)}
-        ${impHTML(v)}
-        <p class="drill-browse-act"><button type="button" class="action-btn" data-action="drill-focus-verb" data-arg="${v.id}">Practice this verb</button></p>
-      </div>
-    </div>
-  </div></div>`;
+      ${conjTableHTML(v)}
+      ${pastTableHTML(v)}
+      ${impHTML(v)}
+      <p class="drill-browse-act"><button type="button" class="action-btn" data-action="drill-focus-verb" data-arg="${v.id}">Practice this verb</button></p>
+    </section>`;
     nav(`${st.vIdx + 1} / ${list.length}`, st.vIdx > 0, st.vIdx < list.length - 1);
-    stats(`<strong>${list.length}</strong> verbs`, (st.vIdx + 1) / list.length * 100, `${st.vIdx + 1}/${list.length}`);
+    stats(`<strong>${list.length}</strong> verbs`);
   }
 
   // ---------- Drill (sets and focus) ----------
@@ -211,33 +202,18 @@
       </div>
     </section>`;
     nav(`${s.prompts.length} / ${s.prompts.length}`, false, false);
-    stats(`<strong>${right}</strong> right &middot; <span style="color:var(--red)">${missed.length} missed</span>`, 100, `${s.results.length}/${s.prompts.length}`);
-  }
-
-  function renderConfirmReset() {
-    const n = allDrillCombos().filter(d => scores()[V.drillKey(d)]).length;
-    $('card-area').innerHTML = `<section class="drill-summary">
-      <h2 class="drill-sub">Reset drill scores?</h2>
-      <p class="drill-score-note">This clears the right/wrong record for ${n} ${U.plural(n, 'form')} of the verbs in the filters. Flashcard progress is not touched.</p>
-      <div class="drill-summary-acts">
-        <button type="button" class="drill-primary danger" data-action="drill-reset-confirm">Reset scores</button>
-        <button type="button" class="action-btn" data-action="drill-reset-cancel">Cancel</button>
-      </div>
-    </section>`;
-    nav('', false, false);
-    stats('', 0, '');
+    stats(`<strong>${right}</strong> right &middot; <span class="stat-missed">${missed.length} missed</span>`);
   }
 
   function renderDrill() {
     const area = $('card-area');
-    if (st.confirmReset) { renderConfirmReset(); return; }
     if (!st.set) startSet();
     if (setDone() && st.set.results.length) { renderSummary(); return; }
     const d = current();
     if (!d) {
-      area.innerHTML = '<div class="empty-state"><h2>Nothing to drill</h2><p>Choose at least one verb, tense and person in the filters</p></div>';
+      area.innerHTML = '<div class="empty-state"><h2>Nothing to drill</h2><p>Choose at least one verb, tense and person in Settings.</p></div>';
       nav('0 / 0', false, false);
-      stats('', 0, '—');
+      stats('');
       return;
     }
     const v = d.v;
@@ -247,9 +223,9 @@
     const s = st.set;
     area.innerHTML = `<div class="card-wrapper" data-action="flip"><div class="card${S.flipped ? ' flipped' : ''}" id="card">
     <div class="card-face card-front" id="card-front">
-      <span class="card-tag">${setTitle()}</span>
+      <div class="card-head"><span class="card-tag">${setTitle()}</span></div>
       <div class="front-content">
-        <div class="farsi-big" style="font-size:2.4rem" lang="fa" dir="rtl">${v.fa}</div>
+        <div class="farsi-big drill-verb-fa" lang="fa" dir="rtl">${v.fa}</div>
         <div class="drill-verb-pin">${v.pin}</div>
         <div class="drill-verb-en">${v.en}</div>
         <div class="drill-chips">
@@ -257,14 +233,14 @@
           <span class="chip tense">${t.desc}</span>
         </div>
       </div>
-      <span class="tap-hint">type it, then Enter &middot; or tap for the answer</span>
+      <span class="tap-hint">Type it, then Enter &middot; or tap for the answer</span>
     </div>
     <div class="card-face card-back" id="card-back">
-      <span class="card-tag">${setTitle()}</span>
+      <div class="card-head"><span class="card-tag">${setTitle()}</span></div>
       <div class="back-content">
         <div class="farsi-answer" lang="fa" dir="rtl">${ans.fa}</div>
         <div class="pinglish">${ans.pin}</div>
-        <div class="meaning" style="font-size:1rem;color:var(--text-dim);font-weight:400">${personLabel} &middot; ${t.desc}</div>
+        <div class="meaning drill-what">${personLabel} &middot; ${t.desc}</div>
         <div class="breakdown">${V.drillBreakdown(d)}</div>
       </div>
     </div>
@@ -272,7 +248,7 @@
 
     const front = $('card-front');
     const back = $('card-back');
-    front.insertAdjacentHTML('beforeend', typedInputHTML('type it in pinglish…'));
+    front.insertAdjacentHTML('beforeend', typedInputHTML('Type it in pinglish'));
     back.insertAdjacentHTML('beforeend', typedBannerHTML());
     if (F.audio && F.audio.ready() && ans.fa) back.insertAdjacentHTML('beforeend', F.audio.buttonHTML());
     F.hooks.emit('card:rendered', { drill: d, front, back, flipped: S.flipped, view: 'verbs' });
@@ -280,14 +256,13 @@
     const done = s.results.length;
     const right = s.results.filter(r => r.known).length;
     nav(`${s.idx + 1} / ${s.prompts.length}`, false, false);
-    stats(`<strong>${s.prompts.length - s.idx}</strong> left &middot; <strong>${right}</strong> right &middot; <span style="color:var(--red)">${done - right} missed</span>`,
-      Math.round(done / s.prompts.length * 100), `${done}/${s.prompts.length}`);
+    stats(`<strong>${s.prompts.length - s.idx}</strong> left &middot; <strong>${right}</strong> right &middot; <span class="stat-missed">${done - right} missed</span>`);
     typedFocus();
     if (S.flipped && F.audio) F.audio.maybeSpeak();
   }
 
   function renderScoreRow() {
-    $('score-row').innerHTML = st.mode !== 'browse' && current() && !st.confirmReset
+    $('score-row').innerHTML = st.mode !== 'browse' && current()
       ? `<button class="score-btn again${S.typedResult === 'wrong' ? ' suggest' : ''}" data-action="drill-mark" data-arg="0">Again</button>`
         + `<button class="score-btn know${S.typedResult === 'right' ? ' suggest' : ''}" data-action="drill-mark" data-arg="1">Got it</button>`
       : '';
@@ -311,12 +286,33 @@
     F.app.render();
   }
 
-  function resetScores() {
-    for (const c of allDrillCombos()) delete scores()[V.drillKey(c)];
-    F.store.saveSoon();
-    st.confirmReset = false;
-    startSet();
-    F.app.render();
+  // The settings sheet's two-step reset (js/ui/sheet.js) on the verbs view:
+  // the drill scores of the forms the current settings drill.
+  function resetPlan() {
+    const keys = [...new Set(promptsFor(scopeVerbs()).map(V.drillKey))].filter(k => scores()[k]);
+    const nVerbs = scopeIds().length;
+    const tenses = V.TENSES.filter(t => st.tenses.has(t.id)).map(t => t.label.toLowerCase());
+    const n = keys.length;
+    return {
+      title: 'Reset verb drill scores',
+      intro: 'Clears the right and wrong counts of the forms these settings drill.',
+      askLabel: 'Reset drill scores…',
+      count: n,
+      lines: [
+        `Verbs: <b>${st.scope === 'recent' ? 'from your recent lessons' : st.scope === 'all' ? 'all' : 'your choice'}</b> (${nVerbs}). `
+          + `Tenses: <b>${tenses.length === V.TENSES.length ? 'all' : U.esc(tenses.join(', ') || 'none')}</b>.`,
+        `<b>${n.toLocaleString()}</b> ${U.plural(n, 'form')} lose their right and wrong counts, so sets stop treating them as weak.`,
+        'Flashcard progress, the review log and your backups are not touched.',
+      ],
+      confirmLabel: `Reset ${n.toLocaleString()} ${U.plural(n, 'score')}`,
+      run() {
+        for (const k of keys) delete scores()[k];
+        F.store.saveSoon();
+        if (st.mode !== 'browse') startSet();
+        F.app.render();
+        return `Cleared ${n.toLocaleString()} drill ${U.plural(n, 'score')}.`;
+      },
+    };
   }
 
   // ---------- Settings panel (#drill-panel) ----------
@@ -359,7 +355,8 @@
     const drilling = st.mode !== 'browse';
     const n = scopeIds().length;
     const usedAll = V.config.allForms;
-    let html = `<div class="filter-group"><label>Mode</label><div class="pills">`
+    let html = '<h3 class="sec-title">Verb trainer</h3>'
+      + `<div class="filter-group"><label>Mode</label><div class="pills">`
       + pillHTML('Mixed sets', st.mode === 'sets', 'drill-mode', 'sets', '10 prompts across verbs, tenses and persons')
       + pillHTML('Practice one verb', st.mode === 'focus', 'drill-mode', 'focus', 'The whole paradigm of one verb, in order')
       + pillHTML('Browse', st.mode === 'browse', 'drill-mode', 'browse', 'Conjugation tables')
@@ -418,7 +415,6 @@
     if (!['sets', 'focus', 'browse'].includes(m)) return;
     st.mode = m;
     st.set = null;
-    st.confirmReset = false;
     S.flipped = false;
     typedReset();
     buildPanel();
@@ -465,14 +461,11 @@
   });
   A.register('drill-start-set', () => {
     st.mode = 'sets';
-    st.confirmReset = false;
     startSet();
     buildPanel();
     if (S.tab !== 'verbs') F.app.setView('verbs'); else F.app.render();
   });
   A.register('drill-all-forms', () => setAllForms(!V.config.allForms));
-  A.register('drill-reset-confirm', () => resetScores());
-  A.register('drill-reset-cancel', () => { st.confirmReset = false; F.app.render(); });
   F.hooks.on('shuffle:changed', () => { st.browseIds = null; });
 
   // ---------- Prefs ----------
@@ -518,11 +511,11 @@
     const combos = promptsFor(scopeVerbs());
     const weak = combos.filter(d => { const s = scores()[V.drillKey(d)]; return s && s.w > s.r; }).length;
     const nVerbs = scopeIds().length;
-    return `<div class="drill-today">
-      <h3 class="drill-today-title">Verb drill · ${SET_SIZE} prompts</h3>
-      <p class="drill-today-note">Mixed tenses and persons from ${st.scope === 'recent' ? 'your recent lessons' : `${nVerbs} ${U.plural(nVerbs, 'verb')}`}${weak ? ` · ${weak} ${U.plural(weak, 'form')} to fix` : ''}</p>
-      <button type="button" class="drill-primary" data-action="drill-start-set">Start a set</button>
-    </div>`;
+    return '<div class="t-row"><span class="t-row-label">Verb drill</span>'
+      + `<span class="t-row-val t-row-small">${SET_SIZE} prompts</span></div>`
+      + `<div class="t-sub">Mixed tenses and persons from ${st.scope === 'recent' ? 'your recent lessons' : `${nVerbs} ${U.plural(nVerbs, 'verb')}`}`
+      + `${weak ? `, ${weak} ${U.plural(weak, 'form')} to fix` : ''}. About 2 min.</div>`
+      + '<div class="t-acts"><button type="button" class="btn-secondary" data-action="drill-start-set">Start a set</button></div>';
   }
   function registerToday() {
     if (todayDone || !F.today || typeof F.today.registerSection !== 'function') return;
@@ -530,10 +523,8 @@
     try {
       F.today.registerSection({
         id: 'verb-drill',
-        order: 40,
-        title: 'Verb drill',
+        order: 30,
         html: todayHTML,
-        render(el) { el.innerHTML = todayHTML(); },
         visible() { return promptsFor(scopeVerbs()).length > 0; },
       });
     } catch (e) { console.error('verb drill: today section', e); }
@@ -543,8 +534,7 @@
 
   F.drill = {
     state: st, startSet, retryMissed, allDrillCombos, browseList, markCard, buildPanel,
-    rebuildDrillQueue: startSet,   // old name, still called by settings.js
-    setAllForms, SET_SIZE,
+    setAllForms, resetPlan, SET_SIZE,
   };
 
   F.views.register('verbs', {
@@ -555,7 +545,7 @@
     enter() { buildPanel(); },
     render() {
       if (st.mode === 'browse') renderBrowse(); else renderDrill();
-      $('scope-bar').innerHTML = '';
+      $('scope-bar').innerHTML = modeSwitchHTML();
     },
     renderScoreRow,
     syncChrome() {
@@ -566,7 +556,7 @@
     },
     leave() { if ($('typed-btn')) $('typed-btn').hidden = false; },
     shortcutsHTML() {
-      if (st.mode === 'browse') return '<span><kbd>Space</kbd> flip &nbsp; <kbd>&#8592;</kbd><kbd>&#8594;</kbd> verbs</span>';
+      if (st.mode === 'browse') return '<span><kbd>&#8592;</kbd><kbd>&#8594;</kbd> verbs</span>';
       return '<span><kbd>Enter</kbd> check &nbsp; <kbd>Space</kbd> show answer &nbsp; <kbd>1</kbd> again &nbsp; <kbd>2</kbd> got it'
         + (F.audio && F.audio.ready() ? ' &nbsp; <kbd>s</kbd> hear it' : '') + '</span>';
     },
@@ -580,8 +570,8 @@
       if (st.mode !== 'browse') startSet();
       F.app.render();
     },
-    reset() { if (st.mode !== 'browse') { st.confirmReset = true; F.app.render(); } },
-    typedActive() { return st.mode !== 'browse' && !!current() && !st.confirmReset; },
+    resetPlan,
+    typedActive() { return st.mode !== 'browse' && !!current(); },
     typedAnswer() {
       const d = current();
       const ans = d && V.drillAnswer(d);

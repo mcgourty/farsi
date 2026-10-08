@@ -39,8 +39,6 @@
       <span class="mark" lang="fa" aria-hidden="true">ف</span>
       <span class="brand-name">Farsi</span>
     </button>
-    <!-- Tab buttons are built from the view registry (F.views) by app.js -->
-    <nav class="tabs" aria-label="Views"><div class="segmented" role="tablist" id="tabs"></div></nav>
     <button type="button" class="icon-btn" id="sheet-btn" data-action="open-sheet" aria-label="Settings" aria-haspopup="dialog" aria-controls="sheet">
       <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" d="M4 7h10M18 7h2M4 17h2M10 17h10"/><circle cx="16" cy="7" r="2.2" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="8" cy="17" r="2.2" fill="none" stroke="currentColor" stroke-width="1.8"/></svg>
       <span class="icon-btn-label">Settings</span>
@@ -50,14 +48,13 @@
 
 <div class="backup-reminder" id="backup-reminder" hidden></div>
 
+<!-- Main navigation, built from the view registry (F.views) by app.js:
+     a bottom tab bar on phones, a centred bar in the top bar on wide screens -->
+<nav class="tabbar" id="tabbar" aria-label="Main"><div class="tabbar-inner" id="tabs"></div></nav>
+
 <main id="main">
   <div class="stats-bar">
     <div class="card-count" id="card-count"></div>
-    <!-- Written by the views; hidden: the meter below is the one progress bar -->
-    <div class="progress-row" hidden>
-      <div class="progress-track"><div class="progress-fill" id="progress-fill"></div></div>
-      <div class="progress-text" id="progress-text">0%</div>
-    </div>
   </div>
   <div class="meter-row" id="meter-row"></div>
   <div class="scope-bar" id="scope-bar"></div>
@@ -125,44 +122,8 @@
       </div>
     </section>
 
-    <!-- Verb trainer settings (js/ui/settings.js) -->
-    <section class="sheet-sec filters" id="vt-filters" data-view-panel="verbs" style="display:none">
-      <h3 class="sec-title">Verb trainer</h3>
-      <div class="filter-group">
-        <label>Mode</label>
-        <div class="pills" id="vt-mode-pills"></div>
-      </div>
-      <div class="filter-group" id="vt-tense-group">
-        <div class="filter-head">
-          <label>Tenses</label>
-          <div class="quick">
-            <button type="button" class="quick-btn" data-action="tenses-all">All</button>
-            <button type="button" class="quick-btn" data-action="tenses-none">None</button>
-          </div>
-        </div>
-        <div class="pills" id="vt-tense-pills"></div>
-      </div>
-      <div class="filter-group" id="vt-person-group">
-        <div class="filter-head">
-          <label>Person</label>
-          <div class="quick">
-            <button type="button" class="quick-btn" data-action="persons-all">All</button>
-            <button type="button" class="quick-btn" data-action="persons-none">None</button>
-          </div>
-        </div>
-        <div class="pills" id="vt-person-pills"></div>
-      </div>
-      <div class="filter-group">
-        <div class="filter-head">
-          <label>Verbs</label>
-          <div class="quick">
-            <button type="button" class="quick-btn" data-action="vtverbs-all">All</button>
-            <button type="button" class="quick-btn" data-action="vtverbs-none">None</button>
-          </div>
-        </div>
-        <div class="pills" id="vt-verb-pills"></div>
-      </div>
-    </section>
+    <!-- Verb trainer settings, built by js/ui/drill.js -->
+    <section class="sheet-sec filters" id="drill-panel" data-view-panel="verbs" style="display:none"></section>
 
     <section class="sheet-sec">
       <h3 class="sec-title">Practice</h3>
@@ -184,8 +145,6 @@
     </section>
 
     <!-- Backup and restore (js/ui/backup.js) -->
-    <!-- Verb trainer settings, built by js/ui/drill.js (replaces #vt-filters) -->
-    <section class="sheet-sec filters" id="drill-panel" data-view-panel="verbs" style="display:none"></section>
 
     <section class="sheet-sec" id="backup-settings">
       <div class="filter-group" id="backup-panel"></div>

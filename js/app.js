@@ -13,9 +13,24 @@
 
   function view() { return F.views.get(S.tab) || F.views.list()[0]; }
 
-  // Short tab names so every tab fits a phone's top bar. A view can set its
-  // own with `tabLabel`; these cover the views registered before that existed.
+  // The main navigation: at most five places, each an icon and a short label.
+  // A view joins it unless it sets `tab: false`; `navAs` makes a view light up
+  // another's tab (the lesson notes sit under Read). Labels come from
+  // `tabLabel` (falling back to `label`), icons from `navIcon` or NAV_ICONS.
   const TAB_LABELS = { cards: 'Study', verbs: 'Verbs' };
+  const svg = d => `<svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">${d}</svg>`;
+  const NAV_ICONS = {
+    // the eight-pointed tile star (khatam)
+    today: svg('<rect x="6.2" y="6.2" width="11.6" height="11.6" rx="1"/><path d="M12 3.8 20.2 12 12 20.2 3.8 12z"/>'),
+    // two cards
+    cards: svg('<rect x="7.5" y="4" width="12" height="15" rx="2.2"/><path d="M4.5 7.5v10.3A2.2 2.2 0 0 0 6.7 20H15"/>'),
+    // a conjugation table
+    verbs: svg('<rect x="3.5" y="4.5" width="17" height="15" rx="2.2"/><path d="M3.5 9.5h17M3.5 14.5h17M10 4.5v15"/>'),
+    // an open book
+    read: svg('<path d="M12 6.5C10 5 7 4.5 3.5 5v13c3.5-.5 6.5 0 8.5 1.5 2-1.5 5-2 8.5-1.5V5C17 4.5 14 5 12 6.5z"/><path d="M12 6.5v13"/>'),
+    // bars
+    progress: svg('<path d="M5 19.5V13M10 19.5V8.5M15 19.5V11M20 19.5V5"/>'),
+  };
 
   function buildTabs() {
     const box = $('tabs');
@@ -25,23 +40,32 @@
       const b = document.createElement('button');
       b.className = 'tab-btn';
       b.id = `tab-${v.name}`;
-      b.setAttribute('role', 'tab');
       b.type = 'button';
       b.dataset.action = 'set-view';
       b.dataset.arg = v.name;
-      b.textContent = v.tabLabel || TAB_LABELS[v.name] || v.label;
-      if (b.textContent !== v.label) b.title = v.label;
+      const label = v.tabLabel || TAB_LABELS[v.name] || v.label;
+      b.innerHTML = (v.navIcon || NAV_ICONS[v.name] || NAV_ICONS.today) + `<span class="tab-label">${F.util.esc(label)}</span>`;
       box.appendChild(b);
     }
   }
 
+  // Two views behind one tab (Read: stories and lesson notes) switch with
+  // this segmented control at the top of their pages.
+  function segmentsHTML(items, active) {
+    return '<div class="seg-switch" role="group" aria-label="Show">'
+      + items.map(([name, label]) => `<button type="button" class="seg-btn${name === active ? ' active' : ''}" data-action="set-view" data-arg="${name}" aria-pressed="${name === active}">${F.util.esc(label)}</button>`).join('')
+      + '</div>';
+  }
+
   function syncChrome() {
     const v = view();
+    const navName = v.navAs || v.name;
     for (const t of F.views.list()) {
       const b = $(`tab-${t.name}`);
       if (!b) continue;
-      b.classList.toggle('active', t === v);
-      b.setAttribute('aria-selected', t === v ? 'true' : 'false');
+      const on = t.name === navName;
+      b.classList.toggle('active', on);
+      if (on) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current');
     }
     // Each view's settings panel (view.panel) lives in the settings sheet and
     // shows while its view is active. Views without one (Today, Progress)
@@ -106,6 +130,11 @@
     if (v.enter) v.enter();
     render();
     root.scrollTo(0, 0);
+    // Keep the address in step (a reload stays on this view; Today is the bare URL).
+    try {
+      const url = root.location.pathname + root.location.search + (name === 'today' ? '' : '#' + name);
+      root.history.replaceState(null, '', url);
+    } catch (e) { /* ignore */ }
     F.hooks.emit('view:changed', { from: prevView.name, to: name });
   }
 
@@ -119,7 +148,7 @@
   }
 
   const app = F.app = {
-    view, render, flip, setView, syncChrome,
+    view, render, flip, setView, syncChrome, segmentsHTML,
     standalone() {
       return root.navigator.standalone === true
         || (root.matchMedia && root.matchMedia('(display-mode: standalone)').matches);
@@ -139,7 +168,6 @@
     const v = view();
     if (v.onShuffle) v.onShuffle(); else render();
   });
-  A.register('reset', () => { const v = view(); if (v.reset) v.reset(); });
 
   // One delegated click listener for every data-action in the page.
   document.addEventListener('click', e => {
@@ -156,8 +184,9 @@
     if (e.metaKey || e.ctrlKey || e.altKey) return;
     if (F.sheet && F.sheet.isOpen()) return;   // the sheet handles its own keys
     const v = view();
+    // Page views (Today, Read, Notes, Progress) keep Space for scrolling.
     if (v.page) { if (v.keydown) v.keydown(e); return; }
-    if (e.key === ' ' || e.key === 'Spacebar') { e.preventDefault(); flip(); }
+    if ((e.key === ' ' || e.key === 'Spacebar') && $('card-area').querySelector('.card-wrapper, .learn-card')) { e.preventDefault(); flip(); }
     if (e.key === 'ArrowRight' && v.next) v.next();
     if (e.key === 'ArrowLeft' && v.prev) v.prev();
     if (e.key === 's' || e.key === 'S') F.audio.speakCurrent();

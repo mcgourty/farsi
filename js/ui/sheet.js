@@ -3,10 +3,10 @@
 // view's filter panel, the practice toggles, the theme, backup and a
 // two-step reset that says exactly what it will reset.
 //
-// Contract for views: a view may define resetPlan() -> {title, lines: [html],
-// count, confirmLabel, run()} | null to describe and perform its own reset.
-// Without one, the study filters' reset (cards) or the drill-score reset
-// (verbs) below is used.
+// Contract for views: a view may define resetPlan() -> {title, intro?, askLabel?,
+// lines: [html], count, confirmLabel, run()} | null to describe and perform its own reset.
+// Without one, the study selection's reset below is used (the verbs view's
+// plan, in js/ui/drill.js, resets drill scores).
 (function (root) {
   'use strict';
   const F = root.F;
@@ -93,44 +93,9 @@
     };
   }
 
-  function verbsPlan() {
-    const D = F.drill;
-    if (!D || !D.state) return null;
-    const st = D.state;
-    const scores = F.store.data.drill || {};
-    const keys = Object.keys(scores).filter(k => {
-      const [verb, tense, pi] = k.split('|');
-      return (!st.verbs || st.verbs.has(verb)) && (!st.tenses || st.tenses.has(tense)) && (!st.persons || st.persons.has(Number(pi)));
-    });
-    const V = F.verbs;
-    const verbs = describeSet(V.VERBS, V.VERBS.filter(v => st.verbs.has(v.id)), v => v.pin);
-    const tenses = describeSet(V.TENSES, V.TENSES.filter(t => st.tenses.has(t.id)), t => t.label.toLowerCase());
-    return {
-      title: 'Reset conjugation drill scores',
-      count: keys.length,
-      lines: [
-        `Verbs: <b>${U.esc(verbs)}</b>. Tenses: <b>${U.esc(tenses)}</b>.`,
-        `<b>${keys.length.toLocaleString()}</b> drill ${U.plural(keys.length, 'score')} (right and wrong counts) are cleared.`,
-        'Flashcard progress, the review log and your backups are not touched.',
-      ],
-      confirmLabel: `Reset ${keys.length.toLocaleString()} ${U.plural(keys.length, 'score')}`,
-      run() {
-        for (const k of keys) delete scores[k];
-        F.store.saveSoon();
-        st.right = 0;
-        st.wrong = 0;
-        if (D.rebuildDrillQueue) D.rebuildDrillQueue();
-        F.app.render();
-        return `Cleared ${keys.length.toLocaleString()} drill ${U.plural(keys.length, 'score')}.`;
-      },
-    };
-  }
-
   function currentPlan() {
     const v = F.app.view();
-    if (v.resetPlan) return v.resetPlan();
-    if (v.name === 'verbs') return verbsPlan();
-    return cardsPlan();
+    return v.resetPlan ? v.resetPlan() : cardsPlan();
   }
 
   function renderReset() {
@@ -141,8 +106,8 @@
     let html = `<h3 class="sec-title">${U.esc(plan.title)}</h3>`;
     if (resetMsg) html += `<p class="sec-note reset-msg" role="status">${U.esc(resetMsg)}</p>`;
     if (!resetAsk) {
-      html += '<p class="sec-note">Starts the cards in the current selection over. You see exactly what will change before anything happens.</p>'
-        + '<button type="button" class="action-btn danger-quiet" data-action="reset-ask">Reset progress…</button>';
+      html += `<p class="sec-note">${plan.intro || 'Starts the cards in the current selection over.'} You see exactly what will change before anything happens.</p>`
+        + `<button type="button" class="action-btn danger-quiet" data-action="reset-ask">${U.esc(plan.askLabel || 'Reset progress…')}</button>`;
     } else if (!plan.count) {
       html += '<div class="confirm-box"><p>Nothing to reset: no progress in the current selection.</p>'
         + '<div class="confirm-acts"><button type="button" class="action-btn" data-action="reset-cancel">OK</button></div></div>';

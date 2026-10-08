@@ -1,10 +1,12 @@
 // ui/today.js: the Today page (view 'today', the view the app opens on).
-// Leads with the newest lesson, then reviews due with a time estimate, then
-// a short progress summary. Other features add sections:
+// One intentional sequence, top to bottom (section order numbers):
+//   10 new lesson (learn mode)   20 reviews due   30 verb drill (drill.js)
+//   40 read a story (reader.js)  50 lesson notes (notes.js)   90 progress
+// Features add their sections:
 //
 //   F.today.registerSection({
 //     id: 'verb-drill',            // unique
-//     order: 30,                   // built-ins: new lesson 10, reviews 20, progress 90
+//     order: 30,                   // see the list above
 //     visible() { return true; },  // optional
 //     html() { return '...'; },    // either html() -> string ...
 //     render(el) { ... },          // ... or render(el) filling the <section>
@@ -72,31 +74,43 @@
   // ---------- Built-in sections ----------
   function lessonTitle(s) {
     const l = s.lesson || {};
-    return l.title ? `${esc(s.label)} &middot; ${esc(l.title)}` : esc(s.label);
+    return l.title ? `${esc(s.label)} &middot; ${faRuns(esc(l.title))}` : esc(s.label);
   }
 
+  // Persian runs inside English metadata (lesson summaries) are isolated so
+  // "برداشتن / گذاشتن" keeps its order inside a left-to-right line.
+  const faRuns = html => html.replace(/[\u0600-\u06FF\u200C]+(?:[ \u200C][\u0600-\u06FF\u200C]+)*/g,
+    r => `<bdi class="fa" lang="fa" dir="rtl">${r}</bdi>`);
+
+  // The lead: the newest lesson that still has items to learn (learn mode),
+  // or the newest lesson when everything in it has been met.
   registerSection({
     id: 'new-lesson',
     order: 10,
     lead: true,
     visible: () => !!F.cards.newestLesson(),
     html() {
-      const s = F.cards.newestLesson();
+      const L = F.learn;
+      const learnId = L && L.nextSession ? L.nextSession() : null;
+      const s = (learnId && F.cards.sessions.find(x => x.id === learnId)) || F.cards.newestLesson();
       const l = s.lesson || {};
       const items = (l.items || []).length;
-      let head = '<div class="t-k">New lesson</div>'
+      const head = `<div class="t-k">${learnId ? 'New lesson' : 'Newest lesson'}</div>`
         + `<div class="t-big">${lessonTitle(s)}</div>`
-        + (l.summary ? `<div class="t-sub">${esc(l.summary)}</div>` : '');
-      if (F.learn && typeof F.learn.start === 'function') {
-        const p = F.learn.pending ? F.learn.pending(s.id) : null;
-        const n = typeof p === 'number' ? p : (p && p.count) || 0;
-        head += `<div class="t-meta">${nf(items)} ${U.plural(items, 'item')}`
-          + (n ? ` &middot; ${nf(n)} to learn` : ' &middot; all met') + '</div>';
-        return head + `<div class="t-acts"><button type="button" class="btn-primary" data-action="today-learn" data-arg="${U.escAttr(s.id)}">`
-          + (n ? 'Start learning' : 'Practise this lesson') + '</button></div>';
+        + (l.summary ? `<div class="t-sub">${faRuns(esc(l.summary))}</div>` : '');
+      if (L && learnId) {
+        const n = L.pending(s.id);
+        const b = L.budget();
+        const sitting = Math.min(L.BATCH, n, b.left > 0 ? b.left : L.BATCH);
+        if (b.left > 0) {
+          return head + `<div class="t-meta">${nf(n)} of ${nf(items)} ${U.plural(items, 'item')} to learn &middot; ${nf(sitting)} at a time, about ${nf(L.minutes(sitting))} min</div>`
+            + `<div class="t-acts"><button type="button" class="btn-primary" data-action="learn-start" data-arg="${U.escAttr(s.id)}">Start learning</button></div>`;
+        }
+        return head + `<div class="t-meta">${nf(n)} of ${nf(items)} ${U.plural(items, 'item')} to learn &middot; today’s ${nf(b.limit)} new items are done</div>`
+          + `<div class="t-acts"><button type="button" class="btn-secondary" data-action="learn-start-over" data-arg="${U.escAttr(s.id)}">Learn ${nf(Math.min(L.BATCH, n))} more anyway</button></div>`;
       }
       const est = queueEstimate(new Set([s.id]));
-      const meta = `${nf(items)} ${U.plural(items, 'item')} &middot; ${nf(est.freshTotal)} of ${nf(est.total)} cards not started`;
+      const meta = `${nf(items)} ${U.plural(items, 'item')}${L ? ', all met' : ` &middot; ${nf(est.freshTotal)} of ${nf(est.total)} cards not started`}`;
       if (est.due + est.fresh) {
         return head + `<div class="t-meta">${meta}</div>`
           + `<div class="t-acts"><button type="button" class="btn-primary" data-action="today-lesson" data-arg="${U.escAttr(s.id)}">Study this lesson</button>`
@@ -123,7 +137,7 @@
       if (est.due + est.fresh) {
         h += `<div class="t-sub">About ${minutes(est)}`
           + (F.progress.rates().calibrated ? ', from your own pace.' : ' (8 s a review, 20 s a new card).') + '</div>'
-          + '<div class="t-acts"><button type="button" class="btn-secondary" data-action="today-reviews">Start reviews</button></div>';
+          + `<div class="t-acts"><button type="button" class="btn-secondary" data-action="today-reviews">${est.due ? 'Start reviews' : 'Study new cards'}</button></div>`;
       } else {
         const next = est.nextDue ? ` Next review in ${F.fsrs.fmtIvl(est.nextDue - Date.now())}.` : '';
         h += `<div class="t-sub">All caught up.${next}</div>`;
@@ -188,7 +202,6 @@
     F.app.setView('cards');
   }
   const A = F.actions;
-  A.register('today-learn', el => F.learn.start(el.dataset.arg));
   A.register('today-lesson', el => studySessions([el.dataset.arg], 'due'));
   A.register('today-lesson-all', el => studySessions([el.dataset.arg], 'all'));
   A.register('today-reviews', () => {

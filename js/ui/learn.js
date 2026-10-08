@@ -20,6 +20,7 @@
 // Only lesson items (vocabulary, grammar, phrases, story) are presented;
 // letters, generated verb forms and cloze cards are tested directly.
 //
+// Today's "New lesson" section (js/ui/today.js) is how a sitting starts.
 // API: F.learn.pending(sessionId) -> number not yet introduced
 //      F.learn.start(sessionId)    opens the learn view on that session
 //      F.learn.needsIntro(card), isIntroduced(itemId), complete(itemId, rating, now), undo(rec)
@@ -158,6 +159,15 @@
     const s = sessionOf(sessionId);
     return `${s ? s.label : sessionId} · ${TYPE_WORD[item.type] || item.type}`;
   }
+  // "phrase:35" -> "From a session 35 phrase"; "story:st-35-1" -> "From a practice story".
+  function sourceLabel(src) {
+    const m = /^(phrase|story):(.+)$/.exec(String(src));
+    if (!m) return String(src);
+    if (/^st-/.test(m[2])) return 'From a practice story';
+    const s = sessionOf(m[2]);
+    const name = s ? s.label.replace(/^Sessions?/, w => w.toLowerCase()) : 'session ' + m[2];
+    return `From a ${name} ${m[1] === 'phrase' ? 'phrase' : 'story'}`;
+  }
   function exampleHTML(ex, item) {
     if (!ex) return '';
     let fa = ex.fa;
@@ -169,9 +179,11 @@
       + `<div class="ex-fa" lang="fa" dir="rtl">${fa}</div>`
       + (ex.pin ? `<div class="ex-pin">${ex.pin}</div>` : '')
       + (ex.en ? `<div class="ex-en">${ex.en}</div>` : '')
-      + (ex.source ? `<div class="ex-src">${U.esc(ex.source)}</div>` : '')
+      + (ex.source ? `<div class="ex-src">${U.esc(sourceLabel(ex.source))}</div>` : '')
       + '</div>';
   }
+  // Sentences get a reading size, like long cards in the study view.
+  const isLong = item => String(item.fa || '').length > 28;
   // The presentation face. opts: {sessionId, count: 'n of m'}
   function presentHTML(item, opts) {
     const o = opts || {};
@@ -180,7 +192,7 @@
       + `<div class="card-head"><span class="card-tag">${tagText(item, o.sessionId)}</span>`
       + `<span class="learn-badge">New${o.count ? ' · ' + o.count : ''}</span></div>`
       + '<div class="learn-body">'
-      + `<div class="learn-fa" lang="fa" dir="rtl">${item.fa}</div>`
+      + `<div class="learn-fa${isLong(item) ? ' is-long' : ''}" lang="fa" dir="rtl">${item.fa}</div>`
       + `<div class="learn-pin">${item.pin}</div>`
       + `<div class="learn-en">${item.en}</div>`
       + (item.notes ? `<div class="learn-notes">${item.notes}</div>` : '')
@@ -202,7 +214,7 @@
   }
   function checkCardHTML(item, sessionId) {
     const f = checkFaces(item, sessionId);
-    return `<div class="card-wrapper" data-action="flip"><div class="card${S.flipped ? ' flipped' : ''}" id="card">`
+    return `<div class="card-wrapper" data-action="flip"><div class="card${isLong(item) ? ' is-long' : ''}${S.flipped ? ' flipped' : ''}" id="card">`
       + `<div class="card-face card-front">${f.front}</div><div class="card-face card-back">${f.back}</div></div></div>`;
   }
   // Score-row buttons for a learn step.
@@ -287,10 +299,6 @@
     const s = sessionOf(st.session);
     const cc = $('card-count');
     if (cc) cc.innerHTML = `<strong>Learn</strong> &middot; ${s ? s.label : ''}${st.batch.length ? ` &middot; ${Math.min(st.i + (st.phase === 'done' ? 0 : 1), st.batch.length)} of ${st.batch.length}` : ''}`;
-    const pf = $('progress-fill');
-    if (pf) pf.style.width = st.batch.length ? Math.round((st.done / st.batch.length) * 100) + '%' : '0%';
-    const pt = $('progress-text');
-    if (pt) pt.textContent = `${st.done}/${st.batch.length}`;
     const np = $('nav-pos');
     if (np) np.textContent = '';
     for (const id of ['prev-btn', 'next-btn']) { const b = $(id); if (b) b.disabled = true; }
@@ -324,6 +332,7 @@
     label: 'Learn',
     order: 15,
     tab: false,
+    navAs: 'cards',
     hideActions: true,
     enter() { if (!st.batch.length && st.phase !== 'done') { st.session = st.session || nextSession(); fillBatch(); } },
     render,
@@ -372,36 +381,6 @@
       F.app.setView(home);
     });
   }
-
-  // ---------- Today section (if the shell provides F.today) ----------
-  let registered = false;
-  function todaySection() {
-    if (registered || !F.today || typeof F.today.registerSection !== 'function') return;
-    registered = true;
-    F.today.registerSection({
-      id: 'learn',
-      order: 10,
-      visible() { return !!nextSession(); },
-      html() {
-        const id = nextSession();
-        if (!id) return '';
-        const s = sessionOf(id);
-        const n = pending(id);
-        const b = budget();
-        const sitting = Math.min(BATCH, n);
-        const sub = b.left > 0
-          ? `${n} new ${U.plural(n, 'item')} · about ${minutes(n)} min in all · ${sitting} at a time (~${minutes(sitting)} min)`
-          : `${n} new ${U.plural(n, 'item')} · today’s ${b.limit} are done`;
-        return '<div class="learn-today">'
-          + `<div class="learn-today-title">Learn ${s ? s.label.replace(/^Sessions?/, m => m.toLowerCase()) : id}</div>`
-          + `<div class="learn-today-sub">${sub}</div>`
-          + `<button type="button" class="learn-btn primary" data-action="${b.left > 0 ? 'learn-start' : 'learn-start-over'}" data-arg="${U.escAttr(id)}">`
-          + `${b.left > 0 ? 'Start learning' : 'Learn more anyway'}</button></div>`;
-      },
-    });
-  }
-  todaySection();
-  F.hooks.on('boot', todaySection);
 
   F.learn = {
     BATCH, LEARNABLE, state: st,

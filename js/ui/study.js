@@ -262,7 +262,8 @@
       return `<strong>${st.queue.length}</strong> buried &middot; hidden from study`;
     }
     const s = scopeStats();
-    const streak = F.store.studyStreak();
+    // The same forgiving streak as Today and Progress (2 rest days in any 7).
+    const streak = F.progress ? F.progress.streakNow().days : 0;
     return `<strong>${st.queue.length}</strong> left &middot; ${s.due} due &middot; ${s.fresh} new`
       + ` &middot; <span class="stat-today">${F.store.revToday()} today</span>`
       + (streak > 1 ? ` &middot; <span class="stat-streak">${streak}-day streak</span>` : '');
@@ -424,8 +425,6 @@
     $('card-area').innerHTML = msg;
     $('nav-pos').textContent = '0 / 0';
     $('card-count').innerHTML = statsLine();
-    $('progress-fill').style.width = n > 0 ? '100%' : '0%';
-    $('progress-text').textContent = `${n}`;
   }
 
   // Moves the tag chip and badges into one header row at the top of a face,
@@ -474,9 +473,6 @@
     $('prev-btn').disabled = st.idx === 0;
     $('next-btn').disabled = st.idx >= st.queue.length - 1;
     $('card-count').innerHTML = statsLine();
-    const total = st.reviewedCount + st.queue.length;
-    $('progress-fill').style.width = (total ? Math.round((st.reviewedCount / total) * 100) : 0) + '%';
-    $('progress-text').textContent = `${st.reviewedCount}/${total}`;
     if (S.flipped) F.audio.maybeSpeak();
   }
   const presenting = c => !!c && st.mode !== 'buried' && ((st.learn && st.learn.cardId === c.id) || needsIntro(c));
@@ -550,11 +546,6 @@
     $('next-btn').disabled = st.idx >= st.queue.length - 1;
     $('card-count').innerHTML = statsLine();
 
-    const total = st.reviewedCount + st.queue.length;
-    const pct = total > 0 ? Math.round((st.reviewedCount / total) * 100) : 0;
-    $('progress-fill').style.width = pct + '%';
-    $('progress-text').textContent = `${st.reviewedCount}/${total}`;
-
     if (typedRecallActive(c)) F.typed.focusInput(c.id + '|' + st.reviewedCount);
     if (S.flipped) F.audio.maybeSpeak();
   }
@@ -581,33 +572,26 @@
     }).join('') + (sug ? '<span class="suggest-note" id="suggest-note">Suggested from your answer</span>' : '');
   }
 
+  // Notes on the selection under the stats line: leeches and buried cards.
+  // (The known · learning · new meter above it is drawn by progress.js.)
   function renderScopeBar() {
     const el = $('scope-bar');
     if (!el) return;
-    const counts = scopeStateCounts();
-    if (!counts.total) {
-      el.innerHTML = '<div class="scope-empty">No cards selected — turn a session back on above.</div>';
+    if (!scopeStateCounts().total) {
+      el.innerHTML = '<div class="scope-empty">No cards selected. Turn a session back on in Settings.</div>';
       return;
     }
-    const pct = id => (counts[id] / counts.total) * 100;
-    const track = STATES.map(s =>
-      counts[s.id] ? `<i class="scope-seg seg-${s.id}" style="width:${pct(s.id)}%"></i>` : '').join('');
-    const legend = STATES.map(s =>
-      `<span class="legend-item" title="${s.hint}">`
-      + `<i class="dot seg-${s.id}"></i>${s.label}`
-      + `<b>${counts[s.id]}</b>`
-      + `<span class="legend-pct">${Math.round(pct(s.id))}%</span></span>`).join('');
     const leeches = countLeeches();
     const buriedN = countBuried();
     const notes = [];
-    if (leeches) {
+    if (leeches && st.mode !== 'weak') {
       notes.push('<button type="button" class="scope-note" data-action="study-weak">'
-        + `${leeches} leech${leeches === 1 ? '' : 'es'} — study weak spots</button>`);
+        + `${leeches} ${U.plural(leeches, 'leech', 'leeches')}: study weak spots</button>`);
     }
-    if (buriedN) {
+    if (buriedN && st.mode !== 'buried') {
       notes.push(`<button type="button" class="scope-note" data-action="study-buried">${buriedN} buried</button>`);
     }
-    el.innerHTML = `<div class="scope-track">${track}</div><div class="scope-legend">${legend}${notes.join('')}</div>`;
+    el.innerHTML = notes.length ? `<div class="scope-notes">${notes.join('')}</div>` : '';
   }
 
   // ---------- Actions ----------
@@ -801,18 +785,6 @@
     F.app.render();
   }
 
-  function resetProgress() {
-    const base = F.cards.all.filter(matchesFilters);
-    const hasSaved = base.some(c => srsOf(c) || isBuried(c));
-    if (hasSaved && !root.confirm('Reset the review schedule for the cards in this view? They go back to being brand new, and any buried cards come back.')) return;
-    for (const c of base) {
-      delete F.store.data.srs[c.id];
-      delete F.store.data.buried[c.id];
-    }
-    F.store.save();
-    applyFilters();
-  }
-
   function speakableText(c) {
     if (!c || c.type === 'alphabet') return '';
     return c.farsi || '';
@@ -910,7 +882,6 @@
     next() { if (st.idx < st.queue.length - 1) { st.idx++; clearCardState(); F.app.render(); } },
     prev() { if (st.idx > 0) { st.idx--; clearCardState(); F.app.render(); } },
     onShuffle() { applyFilters(); },
-    reset: resetProgress,
     typedActive() { return typedRecallActive(st.queue[st.idx]); },
     typedAnswer() { return st.queue[st.idx] ? st.queue[st.idx].pinglish : ''; },
     typedCheck,
@@ -922,12 +893,12 @@
     },
     keydown(e) {
       const c = st.queue[st.idx];
+      if ((e.key === 'z' || e.key === 'Z' || e.key === 'u') && undoRec) { undo(); return; }
       if (presenting(c) && st.learn && st.learn.phase === 'present') {
         // app.js has already toggled the flip; in the presentation Space means "next".
         if (e.key === ' ' || e.key === 'Spacebar' || e.key === 'Enter') { S.flipped = false; learnNext(); }
         return;
       }
-      if ((e.key === 'z' || e.key === 'Z' || e.key === 'u') && undoRec) { undo(); return; }
       if (e.key >= '1' && e.key <= '4') gradeCard(Number(e.key));
       else if (e.key === 'b' || e.key === 'B') {
         if (st.queue.length && isBuried(st.queue[st.idx])) unburyCard();

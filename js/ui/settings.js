@@ -1,12 +1,11 @@
 // ui/settings.js: the panels inside the settings sheet. Study filters
 // (#fc-filters: mode, sessions with known/learning/new meters, types,
-// direction, front), verb trainer filters (#vt-filters: mode, tenses,
-// persons, verbs), their quick All/None/Newest buttons, and the theme
-// (system / light / dark, saved in prefs as `theme`).
+// direction, front) with their quick All/None/Newest buttons, and the theme
+// (system / light / dark, saved in prefs as `theme`). The verb trainer's
+// panel (#drill-panel) is built by js/ui/drill.js.
 (function (root) {
   'use strict';
   const F = root.F;
-  const S = F.state;
   const U = F.util;
   const $ = id => document.getElementById(id);
 
@@ -138,74 +137,12 @@
     F.study.applyFilters();
   }
 
-  // ---------- Verb trainer filters ----------
-  function buildVtPills() {
-    const D = F.drill;
-    const st = D.state;
-    const V = F.verbs;
-    const refresh = () => { D.rebuildDrillQueue(); buildVtPills(); F.app.render(); };
-
-    const mp = $('vt-mode-pills');
-    mp.innerHTML = '';
-    for (const m of [{ id: 'browse', label: 'Browse verbs' }, { id: 'drill', label: 'Conjugation drill' }]) {
-      mp.appendChild(pill(m.label, st.mode === m.id, () => {
-        st.mode = m.id; S.flipped = false; F.typed.reset();
-        if (m.id === 'drill') D.rebuildDrillQueue();
-        buildVtPills(); F.app.render();
-      }));
-    }
-    $('vt-tense-group').style.display = st.mode === 'drill' ? '' : 'none';
-    $('vt-person-group').style.display = st.mode === 'drill' ? '' : 'none';
-
-    const tp = $('vt-tense-pills');
-    tp.innerHTML = '';
-    for (const t of V.TENSES) {
-      tp.appendChild(pill(t.label, st.tenses.has(t.id), () => { U.toggleSet(st.tenses, t.id); refresh(); }));
-    }
-
-    const pp = $('vt-person-pills');
-    pp.innerHTML = '';
-    V.PERSONS.forEach((p, i) => {
-      const b = pill(p.pin, st.persons.has(i), () => { U.toggleSet(st.persons, i); refresh(); });
-      b.title = p.en;
-      pp.appendChild(b);
-    });
-
-    const vp = $('vt-verb-pills');
-    vp.innerHTML = '';
-    for (const v of V.VERBS) {
-      vp.appendChild(pill(v.pin, st.verbs.has(v.id), () => {
-        U.toggleSet(st.verbs, v.id); st.vIdx = 0; st.browseIds = null; refresh();
-      }));
-    }
-  }
-
-  function vtSetAll(field, all) {
-    return on => {
-      const st = F.drill.state;
-      st[field] = on ? new Set(all()) : new Set();
-      if (field === 'verbs') { st.vIdx = 0; st.browseIds = null; }
-      F.drill.rebuildDrillQueue();
-      buildVtPills();
-      F.app.render();
-    };
-  }
-  const setAllTenses = vtSetAll('tenses', () => F.verbs.TENSES.map(t => t.id));
-  const setAllPersons = vtSetAll('persons', () => [0, 1, 2, 3, 4, 5]);
-  const setAllVtVerbs = vtSetAll('verbs', () => F.verbs.VERBS.map(v => v.id));
-
   const A = F.actions;
   A.register('sessions-all', () => setAllSessions(true));
   A.register('sessions-none', () => setAllSessions(false));
   A.register('sessions-newest', () => onlyNewestSession());
   A.register('types-all', () => setAllTypes(true));
   A.register('types-none', () => setAllTypes(false));
-  A.register('tenses-all', () => setAllTenses(true));
-  A.register('tenses-none', () => setAllTenses(false));
-  A.register('persons-all', () => setAllPersons(true));
-  A.register('persons-none', () => setAllPersons(false));
-  A.register('vtverbs-all', () => setAllVtVerbs(true));
-  A.register('vtverbs-none', () => setAllVtVerbs(false));
   // Old name for opening the settings (the filters now live in the sheet).
   A.register('toggle-filters', () => F.sheet.toggle());
 
@@ -220,8 +157,8 @@
   F.settings = {
     // Rebuild every panel (pills carry live counts, so call after grading
     // changes them if they are visible).
-    build() { buildStudyPills(); buildVtPills(); buildThemePills(); },
-    buildStudyPills, buildVtPills, buildThemePills,
+    build() { buildStudyPills(); buildThemePills(); if (F.drill && F.drill.buildPanel) F.drill.buildPanel(); },
+    buildStudyPills, buildThemePills,
     theme: () => theme,
     setTheme(id) { if (THEMES.some(t => t.id === id)) { theme = id; applyTheme(); buildThemePills(); F.store.syncPrefs(); } },
     setAllSessions, setAllTypes, onlyNewestSession,
