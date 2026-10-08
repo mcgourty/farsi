@@ -12,7 +12,9 @@ css/app.css           tokens (light + dark), layout, theme
 js/core.js            F namespace: F.util, F.state, F.hooks, F.lesson/F.lessons, F.views, F.actions
 js/fsrs.js            F.fsrs: FSRS-6 scheduler, pure functions
 js/verbs.js           F.verbs: VERBS, TENSES, PERSONS, conj(), English glosses, meaningItems()
+js/lemma.js           F.lemma: Persian tokenise/normalise/lemmatise + coverage lexicon (also require()-able by node)
 lessons/*.js          one file per session: F.lesson({...}); alphabet.js is the letter drill
+lessons/stories.js    F.stories: generated practice stories (built by tools/stories-src/build-stories.js)
 js/cards.js           F.cards: lessons + generated decks -> card list; filters; queue building
 js/store.js           F.store: localStorage store, v1 migration, review log (IndexedDB), backup data
 js/legacy-keys.js     F.LEGACY_KEYS: frozen v1 key -> card id map; loaded only to migrate
@@ -22,11 +24,12 @@ js/ui/study.js        F.study + view 'cards': queue, card rendering, grading, bu
 js/ui/drill.js        F.drill + view 'verbs': verb browse tables and conjugation drill
 js/ui/settings.js     F.settings: filter panels (#fc-filters, #vt-filters), bulk buttons
 js/ui/backup.js       F.backupUI: backup/restore panel (#backup-panel), backup reminder
+js/ui/reader.js       F.reader + view 'read': story list, reader, word glosses, Today section
 js/app.js             F.app: boot, view switching, render pass, click + key dispatch (load last)
 tools/                node tooling and tests (no npm dependencies)
 ```
 
-Only `core.js`, `fsrs.js`, `verbs.js`, `lessons/*`, `cards.js` and `store.js`
+Only `core.js`, `fsrs.js`, `verbs.js`, `lemma.js`, `lessons/*`, `cards.js` and `store.js`
 are loaded by node tools; keep them free of DOM access at load time.
 
 ## Boot and render
@@ -113,6 +116,13 @@ if you register after boot.
 `F.cards.sessions` (`{id, label, kind, lesson?}` in deck order, including
 `verbs`). `F.cards.newestLesson()` is the last numbered lesson.
 
+**Reader** (`js/ui/reader.js`): `F.reader.open(storyId)` opens a story in the
+Read view; `F.reader.analyse(story)` gives `{total, known, learning, new,
+unseen, glossed, free, knownPct, learningPct}` from the live store (known = a
+card of the word is mastered: review state, stability >= `F.fsrs.MATURE_DAYS`);
+`F.reader.lookup(word)` returns the deck entries for a word; `F.reader.isRead(id)`.
+If `F.today` exists it registers a Today section `read`.
+
 ## Data shapes
 
 **Lesson** (`lessons/s35.js`):
@@ -129,6 +139,17 @@ F.lesson({
   ],
 });
 ```
+
+Optional `examples` on vocabulary items: up to 4 `{fa, pin, en, source}`
+sentences containing the word (`source` is `phrase:<session>`, `story:<session>`
+for a lesson's story cards, or `story:<story id>` for a practice story). Written
+by `tools/apply-examples.js` from `tools/stories-src/examples.json`; don't edit
+by hand.
+
+**Practice story** (`lessons/stories.js`, `F.stories = [...]`):
+`{id: 'st-35-1', session, generated: true, coverage, title_en, title_fa, unknown: [{fa, pin, en}], lines: [{fa, pin, en}]}`.
+Story ids are permanent (read state is keyed by them). `unknown` glosses the
+words not yet taught at `session`.
 
 Item `type`: `vocabulary`, `grammar`, `phrases`, `story`, or `letter`
 (alphabet: `{id, type: 'letter', name, sound, isolated, initial, medial, final, notes}`).
@@ -165,6 +186,7 @@ verb cards add `{verb, tense, pi}`.
 - `buried[cardId] = timestamp`; `drill['verbId|tense|personIndex'] = {r, w}`;
   `newLog['Y-M-D'] = {fa, en}` (new cards per direction bucket);
   `revLog['Y-M-D'] = count`. Day keys are local dates without zero padding.
+- `prefs.storiesRead = {storyId: timestamp}`, `prefs.readerPin` (reader view).
 - `meta`: `createdAt`, `lastBackupAt`, `backupSnoozedAt`, `migratedFrom`,
   `migratedAt`, `v1Hash`, `importedAt`, `legacyOrphans` (v1 records whose
   card no longer existed).
@@ -207,6 +229,10 @@ changes later (an old cached page), the next boot folds in newer reviews.
 ```
 node tools/test.js            # all tests, ~1 s, no npm install
 node tools/dump-cards.js      # deck as JSON (used by generate_anki.py)
+node tools/coverage.js --stories lessons/stories.js --repo .   # % known words per story
+node tools/stories-src/build-stories.js    # stories.src.js -> lessons/stories.js
+node tools/stories-src/build-examples.js   # -> tools/stories-src/examples.json
+node tools/apply-examples.js [--check]     # examples.json -> `examples` on lesson items
 python3 generate_anki.py      # Anki deck with stable guids from card ids
 ```
 
