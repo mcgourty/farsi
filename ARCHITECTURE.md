@@ -8,7 +8,7 @@ modules into a `vm`).
 ```
 index.html            shell markup + <script> tags (the load order is the module order)
 flashcards.html       redirect to ./ (keeps query and hash) for old home-screen icons
-css/app.css           tokens (light + dark), layout, theme
+css/app.css           tokens (light + dark + html[data-theme]), layout, theme, shell (top bar, sheet, pages)
 js/core.js            F namespace: F.util, F.state, F.hooks, F.lesson/F.lessons, F.views, F.actions
 js/fsrs.js            F.fsrs: FSRS-6 scheduler, pure functions
 js/verbs.js           F.verbs: VERBS, TENSES, PERSONS, conj(), English glosses, meaningItems()
@@ -20,8 +20,11 @@ js/audio.js           F.audio: Web Speech TTS (only when a Persian voice exists)
 js/ui/typed.js        F.typed: typed-recall input, tolerant pinglish matching
 js/ui/study.js        F.study + view 'cards': queue, card rendering, grading, bury, scope bar
 js/ui/drill.js        F.drill + view 'verbs': verb browse tables and conjugation drill
-js/ui/settings.js     F.settings: filter panels (#fc-filters, #vt-filters), bulk buttons
+js/ui/settings.js     F.settings: filter panels (#fc-filters, #vt-filters) in the sheet, quick buttons, theme
 js/ui/backup.js       F.backupUI: backup/restore panel (#backup-panel), backup reminder
+js/ui/sheet.js        F.sheet: settings sheet (bottom sheet / side panel), two-step reset
+js/ui/today.js        F.today + view 'today' (the view the app opens on): sections registry
+js/ui/progress.js     F.progress + view 'progress': known words, forecast, history, streak, study meter
 js/app.js             F.app: boot, view switching, render pass, click + key dispatch (load last)
 tools/                node tooling and tests (no npm dependencies)
 ```
@@ -37,7 +40,7 @@ are loaded by node tools; keep them free of DOM access at load time.
    then `boot()`: `F.cards.build()` -> `F.store.applyPrefs()` -> build tabs ->
    each view's `init()` -> `F.settings.build()` -> `F.app.render()` ->
    hook `boot`. It also calls `navigator.storage.persist()`.
-3. `F.app.render()`: sync chrome (tabs, active panel, filter toggle, phone hint,
+3. `F.app.render()`: sync chrome (tabs, active panel, page mode,
    shortcuts) -> `view.render()` -> `view.renderScoreRow()` -> hook `render`
    -> `F.store.syncPrefs()`.
 
@@ -69,10 +72,33 @@ is active, and must fill or clear them in `render()`.
 | `onShuffle()`, `reset()` | Shuffle and Reset buttons |
 | `typedActive()`, `typedAnswer()` | opt into typed recall |
 | `speech()` | `{text, token}` for TTS; token dedupes auto-play |
-| `hideActions` | true hides the `.bottom-actions` row |
+| `hideActions` | true hides the practice toggles (`.bottom-actions`, now in the settings sheet) |
+| `page` | true: the view draws a whole page into `#card-area`; the app clears and hides the study chrome (stats, meter, scope bar, nav, grading row, shortcuts) |
+| `tabLabel` | short tab text (falls back to `label`; `cards` shows as Study, `verbs` as Verbs) |
+| `resetPlan()` | `{title, lines: [html], count, confirmLabel, run()}` for the sheet's two-step reset; without it the sheet resets the study selection (or drill scores on `verbs`) |
 
 Switch with `F.app.setView(name)`; the active view name is `F.state.tab` and
-`document.body.dataset.view`.
+`document.body.dataset.view`. The app opens on `today` (or the view named in
+the URL hash, e.g. `index.html#cards`), not the last tab.
+
+**Settings sheet** (`F.sheet.open/close/toggle/isOpen`). The header button opens it;
+it holds each view's `panel` (views without one show the study panel), the
+practice toggles, theme, backup and reset. `body.filters-collapsed` is set while
+it is closed.
+
+**Today sections** (`F.today.registerSection({id, order, visible(), html() | render(el), lead})`).
+Built-ins: `new-lesson` 10 (lead), `reviews` 20, `progress` 90. Markup classes:
+`.t-k .t-big .t-sub .t-meta .t-row(.t-row-label/.t-row-val) .t-acts .btn-primary
+.btn-secondary .btn-link`. The new-lesson section calls `F.learn.start(sessionId)`
+and shows `F.learn.pending(sessionId)` (a number) when `F.learn` exists; otherwise
+it filters the study view to that session. `F.today.queueEstimate(sessionsSet)`
+gives `{due, fresh, freshTotal, total, nextDue}` for the Due & new queue.
+
+**Progress** (`F.progress`): `stats()` (cached item counts per session: a word is
+known when every card of it is in review with stability >= 21 days),
+`weekForecast()`, `streakNow()` (2 rest days allowed in any 7), `rates()` /
+`estimateSec(due, fresh)` (8 s a review, 20 s a new card until the review log
+has 20+ timed reviews), `meterHTML({known, learning, new})`, `invalidate()`.
 
 **Actions** (`F.actions.register(name, fn(el, event))`). Markup uses
 `data-action="name"` (plus `data-arg`); one delegated click listener runs it.
@@ -98,10 +124,15 @@ and hook `card:rendered` are applied after the renderer.
 | `card:buried`, `card:unburied` | `{card}` |
 | `drill:marked` | `{prompt, known}` |
 | `shuffle:changed` | `{shuffled}` |
+| `sheet:toggled` | `{open}` |
+| `progress:reset` | `{}` after the sheet's reset |
+| `progress:timing` | `{review, fresh, calibrated}` once review durations are read |
 
 **Prefs** (`F.store.registerPrefs({save(prefs), load(prefs)})`). `save` writes
 the module's fields into the shared prefs object; `load` reads them at boot.
 Keep field names unique across modules.
+Shell prefs: `theme` (`system` | `light` | `dark`, applied as `html[data-theme]`;
+an inline script at the top of `<body>` applies it before first paint). `filtersExpanded` is gone.
 
 **Generated decks** (`F.cards.registerGenerator({session, type, items, extra})`).
 How the Verbs session is made; `items()` returns `{id, fa, pin, en, notes}`
