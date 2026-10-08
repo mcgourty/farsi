@@ -1,13 +1,183 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" dir="ltr">
 <head>
-<meta charset="utf-8">
-<meta http-equiv="refresh" content="0; url=flashcards.html">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Farsi Flashcards</title>
-<script>location.replace('flashcards.html')</script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Farsi">
+<meta name="theme-color" content="#faf9f7" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0c0c0d" media="(prefers-color-scheme: dark)">
+<meta name="color-scheme" content="light dark">
+<title>Farsi flashcards</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;450;500;600&family=JetBrains+Mono:wght@400;500&family=Vazirmatn:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/app.css">
 </head>
 <body>
-<p><a href="flashcards.html">Open Farsi Flashcards</a></p>
+
+<header>
+  <div class="header-inner">
+    <div class="wordmark">
+      <span class="mark" aria-hidden="true">ف</span>
+      <h1>Farsi flashcards</h1>
+    </div>
+    <div class="subtitle">پارسی را پاس بداریم</div>
+  </div>
+</header>
+
+<!-- Tab buttons are built from the view registry (F.views) by app.js -->
+<div class="tabs">
+  <div class="segmented" role="tablist" id="tabs"></div>
+</div>
+
+<p class="phone-hint" id="phone-hint" hidden>On iPhone: open this page in Safari, then Share → Add to Home Screen. The home-screen app keeps its own progress, separate from Safari; use Backup to move it.</p>
+<div class="backup-reminder" id="backup-reminder" hidden></div>
+<button type="button" class="filter-toggle" id="filter-toggle" data-action="toggle-filters">Filters</button>
+
+<!-- Study view settings (js/ui/settings.js) -->
+<div class="filters" id="fc-filters" data-view-panel="cards">
+  <div class="filter-group">
+    <label>Study mode</label>
+    <div class="pills" id="mode-pills"></div>
+  </div>
+  <div class="filter-group">
+    <div class="filter-head">
+      <label>Session</label>
+      <div class="filter-acts">
+        <button type="button" class="mini" data-action="sessions-all">All</button>
+        <button type="button" class="mini" data-action="sessions-none">None</button>
+        <button type="button" class="mini" data-action="sessions-newest">Newest only</button>
+      </div>
+    </div>
+    <div class="pills" id="session-pills"></div>
+  </div>
+  <div class="filter-group">
+    <div class="filter-head">
+      <label>Card type</label>
+      <div class="filter-acts">
+        <button type="button" class="mini" data-action="types-all">All</button>
+        <button type="button" class="mini" data-action="types-none">None</button>
+      </div>
+    </div>
+    <div class="pills" id="type-pills"></div>
+  </div>
+  <div class="filter-group">
+    <label>Front shows</label>
+    <div class="pills" id="front-pills"></div>
+  </div>
+  <div class="filter-group">
+    <label>Direction</label>
+    <div class="pills" id="dir-pills"></div>
+  </div>
+</div>
+
+<!-- Verb trainer settings (js/ui/settings.js) -->
+<div class="filters" id="vt-filters" data-view-panel="verbs" style="display:none">
+  <div class="filter-group">
+    <label>Mode</label>
+    <div class="pills" id="vt-mode-pills"></div>
+  </div>
+  <div class="filter-group" id="vt-tense-group">
+    <div class="filter-head">
+      <label>Tenses</label>
+      <div class="filter-acts">
+        <button type="button" class="mini" data-action="tenses-all">All</button>
+        <button type="button" class="mini" data-action="tenses-none">None</button>
+      </div>
+    </div>
+    <div class="pills" id="vt-tense-pills"></div>
+  </div>
+  <div class="filter-group" id="vt-person-group">
+    <div class="filter-head">
+      <label>Person</label>
+      <div class="filter-acts">
+        <button type="button" class="mini" data-action="persons-all">All</button>
+        <button type="button" class="mini" data-action="persons-none">None</button>
+      </div>
+    </div>
+    <div class="pills" id="vt-person-pills"></div>
+  </div>
+  <div class="filter-group">
+    <div class="filter-head">
+      <label>Verbs</label>
+      <div class="filter-acts">
+        <button type="button" class="mini" data-action="vtverbs-all">All</button>
+        <button type="button" class="mini" data-action="vtverbs-none">None</button>
+      </div>
+    </div>
+    <div class="pills" id="vt-verb-pills"></div>
+  </div>
+</div>
+
+<!-- Backup and restore (js/ui/backup.js); shown with the filters on every view -->
+<div class="filters" id="backup-settings">
+  <div class="filter-group" id="backup-panel"></div>
+</div>
+
+<div class="stats-bar">
+  <div class="card-count" id="card-count"></div>
+  <div class="progress-row">
+    <div class="progress-track"><div class="progress-fill" id="progress-fill"></div></div>
+    <div class="progress-text" id="progress-text">0%</div>
+  </div>
+</div>
+
+<div class="scope-bar" id="scope-bar"></div>
+
+<div class="card-area" id="card-area"></div>
+
+<div class="nav-row">
+  <button class="nav-btn" id="prev-btn" data-action="prev" aria-label="Previous">&#8592;</button>
+  <div class="nav-pos" id="nav-pos">1 / 1</div>
+  <button class="nav-btn" id="next-btn" data-action="next" aria-label="Next">&#8594;</button>
+</div>
+
+<div class="bottom-actions">
+  <button class="action-btn" id="typed-btn" data-action="toggle-typed">Type answer</button>
+  <button class="action-btn" id="audio-btn" data-action="toggle-audio" hidden>Auto-play audio</button>
+  <button class="action-btn" id="shuffle-btn" data-action="toggle-shuffle">Shuffle</button>
+  <button class="action-btn" id="mastered-btn" data-action="toggle-hide-mastered">Hide mastered</button>
+  <button class="action-btn" id="newlimit-btn" title="New cards per day, counted separately for each direction" data-action="cycle-new-limit">New/day: 20</button>
+  <button class="action-btn" id="reset-btn" data-action="reset">Reset</button>
+</div>
+
+<div class="score-row" id="score-row"></div>
+
+<div class="shortcuts" id="shortcuts"></div>
+
+<!-- Core (order matters: core first, then pure modules) -->
+<script src="js/core.js"></script>
+<script src="js/fsrs.js"></script>
+<script src="js/verbs.js"></script>
+<!-- Lessons: one file per session, in deck order. Add a new lesson here. -->
+<script src="lessons/s22.js"></script>
+<script src="lessons/s23.js"></script>
+<script src="lessons/s2425.js"></script>
+<script src="lessons/s26.js"></script>
+<script src="lessons/s27.js"></script>
+<script src="lessons/s28.js"></script>
+<script src="lessons/s29.js"></script>
+<script src="lessons/s30.js"></script>
+<script src="lessons/s31.js"></script>
+<script src="lessons/s32.js"></script>
+<script src="lessons/s33.js"></script>
+<script src="lessons/s34.js"></script>
+<script src="lessons/s35.js"></script>
+<script src="lessons/alphabet.js"></script>
+<!-- Deck, storage -->
+<script src="js/cards.js"></script>
+<script src="js/store.js"></script>
+<!-- UI -->
+<script src="js/audio.js"></script>
+<script src="js/ui/typed.js"></script>
+<script src="js/ui/study.js"></script>
+<script src="js/ui/drill.js"></script>
+<script src="js/ui/settings.js"></script>
+<script src="js/ui/backup.js"></script>
+<!-- Boot: keep last -->
+<script src="js/app.js"></script>
 </body>
 </html>

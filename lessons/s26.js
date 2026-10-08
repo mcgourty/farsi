@@ -1,0 +1,132 @@
+// Session 26.
+// Item ids are permanent. Never change or reuse one; add new items with new ids.
+F.lesson({
+  id: "26",
+  label: "Session 26",
+  notes: "ALEX-SESSION-26_formatted.md",
+  items: [
+    // Vocabulary
+    // To know
+    { id: "26.v.danestan-dunestan", type: "vocabulary", fa: "دانستن", pin: "dānestan / dunestan", en: "to know", notes: "د-ا-ن-س-ت-ن" },
+    { id: "26.v.danesh", type: "vocabulary", fa: "دانش", pin: "dānesh", en: "knowledge", notes: "د-ا-ن-ش" },
+    { id: "26.v.kojast", type: "vocabulary", fa: "کجاست", pin: "kojāst", en: "where is?", notes: "کجا (where) + ست (is)" },
+    { id: "26.v.yani", type: "vocabulary", fa: "یعنی", pin: "yani", en: "means, i.e.", notes: "ی-ع-ن-ی" },
+    { id: "26.v.chi", type: "vocabulary", fa: "چی", pin: "chi", en: "what", notes: "چ-ی" },
+    { id: "26.v.chi-e", type: "vocabulary", fa: "چیه", pin: "chi-e", en: "what is it?", notes: "چی (what) + ه (is)" },
+    // Math
+    { id: "26.v.riazi", type: "vocabulary", fa: "ریاضی", pin: "riāzi", en: "mathematics", notes: "ر-ی-ا-ض-ی" },
+    { id: "26.v.kelas", type: "vocabulary", fa: "کلاس", pin: "kelās", en: "class", notes: "ک-ل-ا-س" },
+    // Time
+    { id: "26.v.saat", type: "vocabulary", fa: "ساعت", pin: "sā’at", en: "clock, watch, hour, time", notes: "س-ا-ع-ت" },
+    { id: "26.v.nim", type: "vocabulary", fa: "نیم", pin: "nim", en: "half", notes: "ن-ی-م" },
+    { id: "26.v.rob", type: "vocabulary", fa: "ربع", pin: "rob", en: "quarter", notes: "ر-ب-ع" },
+    { id: "26.v.daghighe", type: "vocabulary", fa: "دقیقه", pin: "daghighe", en: "minute", notes: "د-ق-ی-ق-ه" },
+    { id: "26.v.sanieh", type: "vocabulary", fa: "ثانیه", pin: "sānieh", en: "second", notes: "ث-ا-ن-ی-ه" },
+    { id: "26.v.lahzeh", type: "vocabulary", fa: "لحظه", pin: "lahzeh", en: "moment", notes: "ل-ح-ظ-ه" },
+    { id: "26.v.sabr", type: "vocabulary", fa: "صبر", pin: "sabr", en: "patience", notes: "ص-ب-ر" },
+    { id: "26.v.bebakhshid", type: "vocabulary", fa: "ببخشید", pin: "bebakhshid", en: "excuse me", notes: "ب-ب-خ-ش-ی-د" },
+    // Numbers 1-10
+    { id: "26.v.yek", type: "vocabulary", fa: "یک", pin: "yek", en: "one (1)", notes: "ی-ک" },
+    { id: "26.v.do", type: "vocabulary", fa: "دو", pin: "do", en: "two (2)", notes: "د-و" },
+    { id: "26.v.seh", type: "vocabulary", fa: "سه", pin: "seh", en: "three (3)", notes: "س-ه" },
+    { id: "26.v.chahar", type: "vocabulary", fa: "چهار", pin: "chahār", en: "four (4)", notes: "چ-ه-ا-ر" },
+    { id: "26.v.panj", type: "vocabulary", fa: "پنج", pin: "panj", en: "five (5)", notes: "پ-ن-ج" },
+    { id: "26.v.shish", type: "vocabulary", fa: "شش", pin: "shish", en: "six (6)", notes: "ش-ش" },
+    { id: "26.v.haft", type: "vocabulary", fa: "هفت", pin: "haft", en: "seven (7)", notes: "ه-ف-ت" },
+    { id: "26.v.hasht", type: "vocabulary", fa: "هشت", pin: "hasht", en: "eight (8)", notes: "ه-ش-ت" },
+    { id: "26.v.noh", type: "vocabulary", fa: "نه", pin: "noh", en: "nine (9)", notes: "ن-ه" },
+    { id: "26.v.dah", type: "vocabulary", fa: "ده", pin: "dah", en: "ten (10)", notes: "د-ه" },
+    // Numbers 11-20
+    { id: "26.v.yazdah", type: "vocabulary", fa: "یازده", pin: "yāzdah", en: "eleven (11)", notes: "ی-ا-ز-د-ه" },
+    { id: "26.v.davazdah", type: "vocabulary", fa: "دوازده", pin: "davāzdah", en: "twelve (12)", notes: "د-و-ا-ز-د-ه" },
+    { id: "26.v.sizdah", type: "vocabulary", fa: "سیزده", pin: "sizdah", en: "thirteen (13)", notes: "س-ی-ز-د-ه" },
+    { id: "26.v.chahardah", type: "vocabulary", fa: "چهارده", pin: "chahārdah", en: "fourteen (14)", notes: "چ-ه-ا-ر-د-ه" },
+    { id: "26.v.panzdah-punzdah", type: "vocabulary", fa: "پانزده", pin: "pānzdah / punzdah", en: "fifteen (15)", notes: "پ-ا-ن-ز-د-ه" },
+    { id: "26.v.shanzdah-shunzdah", type: "vocabulary", fa: "شانزده", pin: "shānzdah / shunzdah", en: "sixteen (16)", notes: "ش-ا-ن-ز-د-ه" },
+    { id: "26.v.hefdah-hifdah", type: "vocabulary", fa: "هفده", pin: "hefdah / hifdah", en: "seventeen (17)", notes: "ه-ف-د-ه" },
+    { id: "26.v.hejdah-hijdah", type: "vocabulary", fa: "هجده", pin: "hejdah / hijdah", en: "eighteen (18)", notes: "ه-ج-د-ه" },
+    { id: "26.v.noozdah", type: "vocabulary", fa: "نوزده", pin: "noozdah", en: "nineteen (19)", notes: "ن-و-ز-د-ه" },
+    { id: "26.v.bist", type: "vocabulary", fa: "بیست", pin: "bist", en: "twenty (20)", notes: "ب-ی-س-ت" },
+    // Tens
+    { id: "26.v.si", type: "vocabulary", fa: "سی", pin: "si", en: "thirty (30)", notes: "س-ی" },
+    { id: "26.v.chehel", type: "vocabulary", fa: "چهل", pin: "chehel", en: "forty (40)", notes: "چ-ه-ل" },
+    { id: "26.v.panjah", type: "vocabulary", fa: "پنجاه", pin: "panjāh", en: "fifty (50)", notes: "پ-ن-ج-ا-ه" },
+    { id: "26.v.shast", type: "vocabulary", fa: "شصت", pin: "shast", en: "sixty (60)", notes: "ش-ص-ت" },
+    { id: "26.v.haftad", type: "vocabulary", fa: "هفتاد", pin: "haftād", en: "seventy (70)", notes: "ه-ف-ت-ا-د" },
+    { id: "26.v.hashtad", type: "vocabulary", fa: "هشتاد", pin: "hashtād", en: "eighty (80)", notes: "ه-ش-ت-ا-د" },
+    { id: "26.v.navad", type: "vocabulary", fa: "نود", pin: "navad", en: "ninety (90)", notes: "ن-و-د" },
+    { id: "26.v.sad", type: "vocabulary", fa: "صد", pin: "sad", en: "one hundred (100)", notes: "ص-د" },
+    { id: "26.v.hezar", type: "vocabulary", fa: "هزار", pin: "hezār", en: "one thousand (1000)", notes: "ه-ز-ا-ر" },
+    // Year / age
+    { id: "26.v.sal", type: "vocabulary", fa: "سال", pin: "sāl", en: "year", notes: "س-ا-ل" },
+    { id: "26.v.emsal", type: "vocabulary", fa: "امسال", pin: "emsāl", en: "this year", notes: "ام (this) + سال (year)" },
+    { id: "26.v.chand", type: "vocabulary", fa: "چند", pin: "chand", en: "how many", notes: "چ-ن-د" },
+    { id: "26.v.foat-kardan", type: "vocabulary", fa: "فوت کردن", pin: "foat kardan", en: "to pass away, to die", notes: "فوت (death) + کردن (to do)" },
+    // Meals
+    { id: "26.v.sobhooneh-sobhaneh", type: "vocabulary", fa: "صبحونه / صبحانه", pin: "sobhooneh / sobhāneh", en: "breakfast", notes: "صبح (morning) + انه" },
+    { id: "26.v.nahar", type: "vocabulary", fa: "ناهار", pin: "nāhār", en: "lunch", notes: "ن-ا-ه-ا-ر" },
+    { id: "26.v.sham", type: "vocabulary", fa: "شام", pin: "shām", en: "dinner", notes: "ش-ا-م" },
+    { id: "26.v.kay", type: "vocabulary", fa: "کی", pin: "kay", en: "when", notes: "ک-ی" },
+    { id: "26.v.emshab", type: "vocabulary", fa: "امشب", pin: "emshab", en: "tonight", notes: "ام (this) + شب (night)" },
+    { id: "26.v.sobh", type: "vocabulary", fa: "صبح", pin: "sobh", en: "morning", notes: "ص-ب-ح" },
+    { id: "26.v.zohr", type: "vocabulary", fa: "ظهر", pin: "zohr", en: "noon", notes: "ظ-ه-ر" },
+    // With
+    { id: "26.v.shohar", type: "vocabulary", fa: "شوهر", pin: "shohar", en: "husband", notes: "ش-و-ه-ر" },
+    { id: "26.v.ba-ham", type: "vocabulary", fa: "با هم", pin: "bā ham", en: "together", notes: "با (with) + هم (each other)" },
+    { id: "26.v.hamkar", type: "vocabulary", fa: "همکار", pin: "hamkār", en: "colleague", notes: "هم (together) + کار (work)" },
+    { id: "26.v.hamkelasi", type: "vocabulary", fa: "همکلاسی", pin: "hamkelāsi", en: "classmate", notes: "هم (together) + کلاسی (class)" },
+    { id: "26.v.khahar", type: "vocabulary", fa: "خواهر", pin: "khāhar", en: "sister", notes: "خ-و-ا-ه-ر" },
+    { id: "26.v.hamsar", type: "vocabulary", fa: "همسر", pin: "hamsar", en: "spouse", notes: "هم (together) + سر (head)" },
+    { id: "26.v.mashin", type: "vocabulary", fa: "ماشین", pin: "māshin", en: "car", notes: "م-ا-ش-ی-ن" },
+    { id: "26.v.jadid-no", type: "vocabulary", fa: "جدید / نو", pin: "jadid / no", en: "new", notes: "ج-د-ی-د" },
+    // Grammar
+    // midoonam conjugation
+    { id: "26.g.midoonam", type: "grammar", fa: "میدونم", pin: "midoonam", en: "I know", notes: "می + دون + م" },
+    { id: "26.g.midooni", type: "grammar", fa: "میدونی", pin: "midooni", en: "you know", notes: "می + دون + ی" },
+    { id: "26.g.midooneh", type: "grammar", fa: "میدونه", pin: "midooneh", en: "he/she knows", notes: "می + دون + ه" },
+    { id: "26.g.midoonim", type: "grammar", fa: "میدونیم", pin: "midoonim", en: "we know", notes: "می + دون + یم" },
+    { id: "26.g.midoonid", type: "grammar", fa: "میدونید", pin: "midoonid", en: "you know (formal)", notes: "می + دون + ید" },
+    { id: "26.g.midoonand", type: "grammar", fa: "میدونند", pin: "midoonand", en: "they know", notes: "می + دون + ند" },
+    // negative
+    { id: "26.g.nemidoonam", type: "grammar", fa: "نمیدونم", pin: "nemidoonam", en: "I don't know", notes: "نمی + دون + م" },
+    { id: "26.g.nemidooni", type: "grammar", fa: "نمیدونی", pin: "nemidooni", en: "you don't know", notes: "نمی + دون + ی" },
+    // Phrases
+    // Knowing
+    { id: "26.p.to-in-ro-midooni", type: "phrases", fa: "تو این رو میدونی؟", pin: "to in ro midooni?", en: "Do you know this?", notes: "تو + این رو (this, obj.) + میدونی" },
+    { id: "26.p.to-midooni-oon-kojast", type: "phrases", fa: "تو میدونی اون کجاست؟", pin: "to midooni oon kojāst?", en: "Do you know where he/she is?", notes: "میدونی + کجاست (where is)" },
+    { id: "26.p.to-midooni-in-yani-chi", type: "phrases", fa: "تو میدونی این یعنی چی؟", pin: "to midooni in yani chi?", en: "Do you know what this means?", notes: "یعنی (means) + چی (what)" },
+    { id: "26.p.to-midooni-in-chi-e", type: "phrases", fa: "تو میدونی این چیه؟", pin: "to midooni in chi-e?", en: "Do you know what this is?", notes: "چیه = what is it" },
+    // Time
+    { id: "26.p.saat-chand-e", type: "phrases", fa: "ساعت چنده؟", pin: "sā’at chand-e?", en: "What time is it?", notes: "ساعت (time) + چنده (how much is)" },
+    { id: "26.p.alan-saat-chand-e", type: "phrases", fa: "الان ساعت چنده؟", pin: "alān sā’at chand-e?", en: "What time is it now?", notes: "الان (now) + ساعت چنده" },
+    { id: "26.p.bebakhshid-saat-chand-e", type: "phrases", fa: "ببخشید، ساعت چنده؟", pin: "bebakhshid, sā’at chand-e?", en: "Excuse me, what time is it?", notes: "ببخشید (excuse me)" },
+    { id: "26.p.saat-panj-e", type: "phrases", fa: "ساعت پنجه", pin: "sā’at panj-e", en: "It is 5 o'clock", notes: "ساعت + number + ه (is)" },
+    { id: "26.p.saat-dah-o-nim-e", type: "phrases", fa: "ساعت ده و نیمه", pin: "sā’at dah-o nim-e", en: "It's 10:30", notes: "نیم = half" },
+    { id: "26.p.saat-haft-o-rob-e", type: "phrases", fa: "ساعت هفت و ربعه", pin: "sā’at haft-o rob-e", en: "It's 7:15", notes: "ربع = quarter" },
+    { id: "26.p.saat-yek-rob-be-noh-e", type: "phrases", fa: "ساعت یک ربع به نهه", pin: "sā’at yek rob be noh-e", en: "It's a quarter to 9 (8:45)", notes: "یک ربع به = a quarter to" },
+    { id: "26.p.ye-lahze-sabr-kon", type: "phrases", fa: "یه لحظه صبر کن", pin: "ye lahze sabr kon", en: "Just a moment, please", notes: "یه لحظه (one moment) + صبر کن (wait)" },
+    // Year / age
+    { id: "26.p.to-chand-sal-dari", type: "phrases", fa: "تو چند سال داری؟", pin: "to chand sāl dāri?", en: "How old are you?", notes: "چند سال داری = how many years do you have" },
+    { id: "26.p.to-chand-salet-e", type: "phrases", fa: "تو چند سالته؟", pin: "to chand sālet-e?", en: "How old are you? (short form)", notes: "سالته = your years is" },
+    { id: "26.p.shoma-chand-saletoon-e", type: "phrases", fa: "شما چند سالتونه؟", pin: "shomā chand sāletoon-e?", en: "How old are you? (formal)", notes: "سالتونه = your (formal) years is" },
+    { id: "26.p.man-si-o-seh-salam-e", type: "phrases", fa: "من سی و سه سالمه", pin: "man si-o seh sālam-e", en: "I am 33 years old", notes: "سالمه = my years is" },
+    { id: "26.p.oon-chand-salesh-e", type: "phrases", fa: "اون چند سالشه؟", pin: "oon chand sālesh-e?", en: "How old is he/she?", notes: "سالشه = his/her years is" },
+    { id: "26.p.baba-bozorgam-foat-kardeh", type: "phrases", fa: "بابابزرگم فوت کرده", pin: "bābā-bozorgam foat kardeh", en: "My grandpa has passed away", notes: "فوت کرده = has died (past participle)" },
+    // Meals
+    { id: "26.p.to-kay-sobhooneh-mikhori", type: "phrases", fa: "تو کی صبحونه میخوری؟", pin: "to kay sobhooneh mikhori?", en: "When do you eat breakfast?", notes: "کی (when) + صبحونه + میخوری" },
+    { id: "26.p.man-saat-e-haft-sobhaneh", type: "phrases", fa: "من ساعت هفت صبحانه میخورم", pin: "man sā’at-e haft sobhāneh mikhoram", en: "I eat breakfast at 7", notes: "ساعتِ = at (time)" },
+    { id: "26.p.man-saat-e-do-nahar-mikhoram", type: "phrases", fa: "من ساعت دو ناهار میخورم", pin: "man sā’at-e do nāhār mikhoram", en: "I eat lunch at 2", notes: "ساعتِ دو" },
+    { id: "26.p.man-sham-dorost-mikonam", type: "phrases", fa: "من شام درست میکنم", pin: "man shām dorost mikonam", en: "I cook dinner", notes: "شام + درست میکنم (I make)" },
+    { id: "26.p.to-emshab-sham-dorost-mikoni", type: "phrases", fa: "تو امشب شام درست میکنی؟", pin: "to emshab shām dorost mikoni?", en: "Will you cook dinner tonight?", notes: "امشب (tonight)" },
+    // With family/friends
+    { id: "26.p.man-emrooz-ba-khoonevadam-nahar", type: "phrases", fa: "من امروز با خونواده‌ام ناهار میخورم", pin: "man emrooz bā khoonevādam nāhār mikhoram", en: "Today I'm having lunch with my family", notes: "با خونواده‌ام = with my family" },
+    { id: "26.p.man-va-shoharam-emrooz-ba-ham", type: "phrases", fa: "من و شوهرم امروز با هم ناهار میخوریم", pin: "man va shoharam emrooz bā ham nāhār mikhorim", en: "My husband and I are having lunch together today", notes: "با هم = together" },
+    { id: "26.p.khaharam-emrooz-ba-doost-hash", type: "phrases", fa: "خواهرم امروز با دوست‌هاش صبحونه میخوره", pin: "khāharam emrooz bā doost-hāsh sobhooneh mikhoreh", en: "My sister is having breakfast with her friends today", notes: "با دوست‌هاش = with her friends" },
+    { id: "26.p.man-emrooz-ba-hamkaram-sham", type: "phrases", fa: "من امروز با همکارم شام میخورم", pin: "man emrooz bā hamkāram shām mikhoram", en: "I'm having dinner with my colleague today", notes: "با همکارم = with my colleague" },
+    // Do you know (age/name/work)
+    { id: "26.p.to-midooni-oon-chand-salesh-e", type: "phrases", fa: "تو میدونی اون چند سالشه؟", pin: "to midooni oon chand sālesh-e?", en: "Do you know how old she is?", notes: "میدونی + چند سالشه" },
+    { id: "26.p.nemidoonam-chand-salesh-e", type: "phrases", fa: "نمیدونم چند سالشه", pin: "nemidoonam chand sālesh-e", en: "I don't know how old she is", notes: "نمیدونم + چند سالشه" },
+    { id: "26.p.to-midooni-esmesh-chi-e", type: "phrases", fa: "تو میدونی اسمش چیه؟", pin: "to midooni esmesh chi-e?", en: "Do you know what his name is?", notes: "اسمش (his name) + چیه (what is)" },
+    { id: "26.p.to-midooni-koja-kar-mikoneh", type: "phrases", fa: "تو میدونی کجا کار میکنه؟", pin: "to midooni kojā kār mikoneh?", en: "Do you know where she works?", notes: "کجا (where) + کار میکنه (works)" },
+  ],
+});
