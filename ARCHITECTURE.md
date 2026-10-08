@@ -23,6 +23,10 @@ js/ui/drill.js        F.drill + view 'verbs': verb browse tables and conjugation
 js/ui/settings.js     F.settings: filter panels (#fc-filters, #vt-filters), bulk buttons
 js/ui/backup.js       F.backupUI: backup/restore panel (#backup-panel), backup reminder
 js/app.js             F.app: boot, view switching, render pass, click + key dispatch (load last)
+js/pwa.js             F.pwa: registers sw.js, "Update ready · Reload" banner (deferred, in <head>)
+sw.js                 service worker: offline app shell (see "Offline and updates")
+manifest.webmanifest  home-screen app manifest; icons/ holds the app icons
+css/fonts.css         self-hosted @font-face rules; font files in fonts/
 tools/                node tooling and tests (no npm dependencies)
 ```
 
@@ -190,7 +194,7 @@ changes later (an old cached page), the next boot folds in newer reviews.
    Give every item a new, unique, literal `id`.
 2. Add `<script src="lessons/s36.js"></script>` after the last lesson in
    `index.html` (before `alphabet.js`).
-3. `node tools/test.js`. The session list, the default selection and
+3. `node tools/bump-sw-version.js`, then `node tools/test.js`. The session list, the default selection and
    "Newest only" come from the registry; existing users get the new session
    switched on automatically. `python3 generate_anki.py` picks it up too.
 
@@ -202,12 +206,40 @@ changes later (an old cached page), the next boot folds in newer reviews.
 3. If it needs its own settings panel, add the element to `index.html` and set
    `panel: '<element id>'`.
 
+## Offline and updates
+
+`sw.js` precaches the app shell at install: every relative `<script src>` and
+`<link href>` in `index.html`, the `STATIC` list in `sw.js` (manifest, icons,
+`flashcards.html`, `js/legacy-keys.js` for the v1 migration, `css/fonts.css`)
+and the `url()`s inside those stylesheets (the fonts). Shell files are served
+cache-first; navigations get the cached `index.html`. Other same-origin GETs
+(lesson notes `.md`) are stale-while-revalidate in the `farsi-runtime` cache.
+localStorage and IndexedDB are never touched.
+
+`VERSION` in `sw.js` is a hash of the shell files. **Before deploying, run
+`node tools/bump-sw-version.js`** (`node tools/test.js` fails while it is
+stale). The changed `sw.js` is how phones learn about a deploy: the new worker
+installs in the background, the page shows "Update ready · Reload", and it
+switches only when that is tapped (never mid-review). `js/pwa.js` checks for a
+new `sw.js` on load and whenever the app comes back to the foreground.
+
+Adding a file: a new `<script>` or `<link>` in `index.html` is picked up
+automatically. A file loaded some other way (fetched or injected at runtime)
+works offline only after its first online use, unless you add it to `STATIC`
+in `sw.js`. Either way, re-run the bump script. `node tools/bump-sw-version.js
+--list` prints the precache list. New fonts go in `css/fonts.css`
+(`tools/fetch-fonts.py`); icons are drawn by `tools/make-icons.py`.
+
+F.pwa: `status` (`off`, `installing`, `ready`, `update`), `version()`,
+`checkForUpdate(force)`, `applyUpdate()`; hooks `pwa:ready`, `pwa:update`.
+
 ## Tools and tests
 
 ```
 node tools/test.js            # all tests, ~1 s, no npm install
 node tools/dump-cards.js      # deck as JSON (used by generate_anki.py)
 python3 generate_anki.py      # Anki deck with stable guids from card ids
+node tools/bump-sw-version.js # set sw.js VERSION before deploying (--check, --list)
 ```
 
 `tools/test.js` checks: unique well-formed item and card ids; sessions derived
