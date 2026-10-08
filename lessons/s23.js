@@ -3,6 +3,7 @@
 F.lesson({
   id: "23",
   label: "Session 23",
+  title: "خوش compounds, food and drink",
   notes: "ALEX-SESSION-23_formatted.md",
   items: [
     // Vocabulary

@@ -3,6 +3,7 @@
 F.lesson({
   id: "22",
   label: "Session 22",
+  title: "و and گ, to be, pronouns and family",
   notes: "ALEX-SESSION-22_formatted.md",
   items: [
     // Vocabulary

@@ -367,6 +367,45 @@ test('sw.js VERSION matches the shell files (run node tools/bump-sw-version.js)'
   eq(sw.currentVersion(), sw.computeVersion(), 'sw.js VERSION is stale: run node tools/bump-sw-version.js');
 });
 
+test('notes: every lesson notes file exists and renders; markdown is escaped and Persian isolated', () => {
+  const { F } = loadApp();
+  ok(F.md, 'js/md.js loaded');
+  for (const l of F.lessons) {
+    for (const f of l.notesFiles) {
+      const src = fs.readFileSync(path.join(ROOT, f), 'utf8');
+      const r = F.md.render(src);
+      ok(r.headings.some(h => h.level === 2), `${f}: has ## headings`);
+      ok(!/<script|<img|on\w+=/i.test(r.html), `${f}: no raw HTML`);
+      ok(!/\*\*/.test(r.html.replace(/<[^>]+>/g, '')), `${f}: no stray ** after rendering`);
+    }
+  }
+  const r = F.md.render([
+    '# T', '', '## Part 1 — تو', '', '| Farsi | Pinglish |', '|:-----:|---|', '| بالا | bālā |', '| <b>x</b> | `a|b` |', '',
+    '> **پارسی** — *Pārsi*', '', '- one', '- two', '', '1. a', '2. b', '', '```', 'بزرگ → بزرگ‌تر', '```', '', '---',
+    'line one  ', 'line **two** <script>alert(1)</script>', '', 'زندگی بالا و پایین داره.',
+  ].join('\n'));
+  ok(r.html.includes('&lt;script&gt;') && !r.html.includes('<script'), 'html escaped');
+  ok(r.html.includes('&lt;b&gt;x&lt;/b&gt;'), 'html in table cells escaped');
+  ok(/<td style="text-align:center" dir="rtl" lang="fa" class="fa-cell"><span class="fa-line" dir="rtl" lang="fa"><span class="fa" lang="fa" dir="rtl">بالا<\/span>/.test(r.html), 'persian cell');
+  ok(r.html.includes('<code>a|b</code>'), 'pipe inside code stays in its cell');
+  ok(r.html.includes('<blockquote><p'), 'blockquote');
+  ok(r.html.includes('<ul><li') && r.html.includes('<ol><li'), 'lists');
+  ok(r.html.includes('<pre class="md-pre"'), 'fence');
+  ok(r.html.includes('<hr>'), 'hr');
+  ok(r.html.includes('line one<br>line <strong>two</strong>'), 'line breaks kept');
+  ok(r.html.includes('<p data-u="') && /dir="rtl" lang="fa">.*زندگی/.test(r.html), 'persian-only paragraph is rtl');
+  eq(r.headings.map(h => h.level), [1, 2]);
+  ok(r.units.some(u => u.cells && u.cells[0] === 'بالا'), 'table rows are units with cells');
+  // normalisation for search
+  eq(F.md.norm('Bālā  KHOOB'), 'bala khoob');
+  eq(F.md.norm('می‌ذارم'), F.md.norm('میذارم'));
+  eq(F.md.norm('كتاب ي'), 'کتاب ی');
+  eq(F.md.norm('خُوشمَزه'), 'خوشمزه');
+  const m = F.md.normMap('a  **Bā**');
+  eq(m.n, 'a ba');
+  eq(m.map, [0, 1, 5, 6]);
+});
+
 // ---------------------------------------------------------------- run
 (async () => {
   let failed = 0;
