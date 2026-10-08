@@ -8,7 +8,7 @@
 // reloads by itself. tools/test.js fails if VERSION is stale.
 'use strict';
 
-const VERSION = '0a55e72d137c';
+const VERSION = '69714453b1e3';
 const SHELL = 'farsi-shell-' + VERSION;
 const RUNTIME = 'farsi-runtime';   // stale-while-revalidate, survives versions
 
@@ -26,6 +26,17 @@ const STATIC = [
   'icons/favicon.ico',
   'icons/favicon-32.png',
   'css/fonts.css',
+  // Lesson notes (lessons/*.js `notes`), fetched by js/ui/notes.js. Listed
+  // here so the notes of every lesson work offline from the first visit;
+  // tools/test.js checks that each notes file of a lesson is in this list.
+  // (No apostrophes in this block: tools/bump-sw-version.js reads it.)
+  'ALEX-SESSION-22_formatted.md',
+  'ALEX-SESSION-23_formatted.md',
+  'ALEX-SESSION-24_formatted.md',
+  'ALEX-SESSION-25_formatted.md',
+  'ALEX-SESSION-26_formatted.md',
+  'ALEX-SESSION-34_formatted.md',
+  'ALEX-SESSION-35_formatted.md',
 ];
 
 const SCOPE = new URL('./', self.location).href;

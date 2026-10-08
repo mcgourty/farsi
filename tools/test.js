@@ -545,6 +545,14 @@ test('sw.js VERSION matches the shell files (run node tools/bump-sw-version.js)'
   eq(sw.currentVersion(), sw.computeVersion(), 'sw.js VERSION is stale: run node tools/bump-sw-version.js');
 });
 
+test('sw.js precaches every lesson notes file (offline from the first visit)', () => {
+  const { F } = loadApp();
+  const files = new Set(require('./bump-sw-version').shellFiles());
+  const notes = F.lessons.flatMap((l) => l.notesFiles);
+  ok(notes.length > 0, 'no lesson declares notes');
+  for (const f of notes) ok(files.has(f), `${f} (lesson notes) is not in sw.js STATIC`);
+});
+
 test('notes: every lesson notes file exists and renders; markdown is escaped and Persian isolated', () => {
   const { F } = loadApp();
   ok(F.md, 'js/md.js loaded');
