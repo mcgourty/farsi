@@ -23,6 +23,7 @@
     find: null,         // text to highlight once the lesson renders
     findUnit: null,     // {file, unit} from a search result
     from: null,         // view to offer "Back to ..." for
+    fromFlipped: false, // the card was showing its back when the notes opened
     token: 0,           // guards async renders
   };
 
@@ -66,10 +67,23 @@
     let b = Math.min(text.length, end + pad);
     if (a > 0) { const sp = text.indexOf(' ', a); if (sp > -1 && sp < start) a = sp + 1; }
     if (b < text.length) { const sp = text.lastIndexOf(' ', b); if (sp > end) b = sp; }
-    const wrap = s => F.md.esc(s).replace(/[؀-ۿ‌]+(?:[ ‌][؀-ۿ‌]+)*/g,
-      r => `<span class="fa" lang="fa" dir="rtl">${r}</span>`);
-    return (a > 0 ? '…' : '') + wrap(text.slice(a, start)) + '<mark>' + wrap(text.slice(start, end)) + '</mark>'
-      + wrap(text.slice(end, b)) + (b < text.length ? '…' : '');
+    // Isolate whole Persian runs, with the match marked inside them: wrapping
+    // the text before, in and after the match separately would cut a run in
+    // two and the pieces would show in the wrong order.
+    const hit = text.slice(start, end);
+    if (/[؀-ۿ]/.test(hit) && /[^؀-ۿ‌\s]/.test(hit.replace(/[\s\p{P}]/gu, ''))) {
+      // a match that mixes scripts: isolate each part on its own
+      const wrap = t => F.md.esc(t).replace(/[؀-ۿ‌]+(?:[ ‌][؀-ۿ‌]+)*/g, r => `<bdi class="fa" lang="fa" dir="rtl">${r}</bdi>`);
+      return (a > 0 ? '…' : '') + wrap(text.slice(a, start)) + '<mark>' + wrap(hit) + '</mark>'
+        + wrap(text.slice(end, b)) + (b < text.length ? '…' : '');
+    }
+    const OPEN = '\uE000', CLOSE = '\uE001';
+    const raw = text.slice(a, start) + OPEN + text.slice(start, end) + CLOSE + text.slice(end, b);
+    const html = F.md.esc(raw)
+      .replace(/[\uE000\uE001]*[؀-ۿ‌][؀-ۿ‌\uE000\uE001]*(?:[ ‌\uE000\uE001]+[؀-ۿ‌][؀-ۿ‌\uE000\uE001]*)*/g,
+        r => `<bdi class="fa" lang="fa" dir="rtl">${r}</bdi>`)
+      .replace(OPEN, '<mark>').replace(CLOSE, '</mark>');
+    return (a > 0 ? '…' : '') + html + (b < text.length ? '…' : '');
   }
 
   function search(query) {
@@ -110,10 +124,16 @@
 
   function lessonTitle(l) { return l.title || ''; }
 
+  // The page head shared with the Read view: title + Stories | Lesson notes.
+  function readHeadHTML(active) {
+    const segs = F.views.get('read') ? F.app.segmentsHTML([['read', 'Stories'], ['notes', 'Lesson notes']], active) : '';
+    return `<div class="page-head read-head"><h1 class="page-title">${F.views.get('read') ? 'Read' : 'Lesson notes'}</h1></div>${segs}`;
+  }
+
   function listHTML() {
     const ls = lessons();
     const without = F.lessons.filter(l => l.kind === 'lesson' && !(l.notesFiles && l.notesFiles.length) && /^\d/.test(l.id));
-    let h = '<div class="notes"><div class="notes-list-head"><h2 class="notes-h">Lesson notes</h2>'
+    let h = '<div class="notes"><div class="notes-list-head">' + readHeadHTML('notes')
       + '<label class="notes-search"><span class="visually-hidden">Search all notes</span>'
       + `<input type="search" id="notes-q" placeholder="Search notes: a Farsi word, pinglish or English" autocomplete="off" autocapitalize="off" spellcheck="false" enterkeyhint="search" value="${U.escAttr(st.query)}">`
       + '</label></div>'
@@ -136,7 +156,7 @@
 
   function lessonShellHTML(l) {
     const back = st.from && F.views.get(st.from)
-      ? `<button type="button" class="notes-back" data-action="notes-return">${st.from === 'cards' ? 'Back to card' : `Back to ${U.esc(F.views.get(st.from).label.toLowerCase())}`}</button>` : '';
+      ? `<button type="button" class="notes-back" data-action="notes-return">${U.esc(({ cards: 'Back to card', today: 'Back to Today', read: 'Back to the story', learn: 'Back to learning' })[st.from] || `Back to ${(F.views.get(st.from).tabLabel || F.views.get(st.from).label).toLowerCase()}`)}</button>` : '';
     return '<div class="notes notes-doc">'
       + '<div class="notes-bar" id="notes-bar">'
       + '<button type="button" class="notes-back" data-action="notes-list" aria-label="All notes"><span aria-hidden="true">&#8592;</span> All notes</button>'
@@ -375,6 +395,8 @@
     const l = lessonById(id);
     if (!l || !l.notesFiles.length) return;
     st.lessonId = id;
+    // Opened from the back of a card: "Back to card" brings it back flipped.
+    if (opts.from !== undefined) st.fromFlipped = opts.from === 'cards' && F.state.tab === 'cards' && !!F.state.flipped;
     st.find = opts.find || null;
     st.findUnit = opts.unit || null;
     if (opts.from !== undefined) st.from = opts.from;
@@ -383,7 +405,7 @@
     if (!st.find && !st.findUnit) root.scrollTo(0, 0);
   }
 
-  F.notes = { state: st, open, lessons, newestWithNotes, search, locate, candidates };
+  F.notes = { state: st, open, lessons, newestWithNotes, search, locate, candidates, readHeadHTML };
 
   // ---------- Actions ----------
   const A = F.actions;
@@ -398,8 +420,15 @@
   });
   A.register('notes-return', () => {
     const to = st.from;
+    const flipped = st.fromFlipped;
     st.from = null;
-    if (to && F.views.get(to)) F.app.setView(to);
+    st.fromFlipped = false;
+    if (!to || !F.views.get(to)) return;
+    F.app.setView(to);
+    if (flipped && to === 'cards' && F.study && F.study.current()) {
+      F.state.flipped = true;
+      F.app.render();
+    }
   });
   A.register('notes-jump', el => {
     const t = document.getElementById(el.dataset.arg);
@@ -416,8 +445,11 @@
 
   // ---------- View ----------
   F.views.register('notes', {
-    label: 'Notes',
-    order: 30,
+    label: 'Lesson notes',
+    order: 31,
+    tab: false,          // reached from Read (its "Lesson notes" segment), cards and Today
+    navAs: 'read',
+    page: true,
     hideActions: true,
     init() { registerToday(); },
     render,
@@ -459,14 +491,14 @@
     const html = () => {
       const l = newestWithNotes();
       if (!l) return '';
-      const t = lessonTitle(l) || l.summary || '';
-      return `<div class="notes-today"><h3 class="notes-today-h">Notes for ${U.esc(l.label || l.id)}</h3>`
-        + (t ? `<p class="notes-today-sub">${snippetPlain(t)}</p>` : '')
-        + `<button type="button" class="notes-today-btn" data-action="notes-open" data-arg="${U.escAttr(l.id)}">Read the notes</button></div>`;
+      return '<div class="t-row"><span class="t-row-label">Lesson notes</span></div>'
+        + `<div class="t-sub">${U.esc(l.label || l.id)}${lessonTitle(l) ? ' · ' + snippetPlain(lessonTitle(l)) : ''}: your teacher’s write-up, searchable.</div>`
+        + `<div class="t-acts"><button type="button" class="btn-link" data-action="notes-open" data-arg="${U.escAttr(l.id)}">Read the notes</button>`
+        + '<button type="button" class="btn-link" data-action="set-view" data-arg="notes">All lessons</button></div>';
     };
     F.today.registerSection({
       id: 'notes',
-      order: 60,
+      order: 50,
       title: 'Lesson notes',
       visible: () => !!newestWithNotes(),
       html,
