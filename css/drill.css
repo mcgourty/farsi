@@ -1,0 +1,234 @@
+/* drill.css: the verb trainer (js/ui/drill.js): settings panel with the
+   searchable verb list, the end-of-set summary, and the Today section.
+   Colours come from app.css tokens; the new identity tokens (--firuzeh,
+   --ink-2, ...) are used when present, with the current ones as fallback. */
+
+#drill-panel {
+  --dr-accent: var(--firuzeh, var(--accent));
+  --dr-accent-soft: var(--firuzeh-soft, var(--accent-soft));
+  --dr-ink: var(--ink, var(--text));
+  --dr-ink-2: var(--ink-2, var(--ink-muted));
+  --dr-ink-3: var(--ink-3, var(--ink-light));
+}
+
+.drill-note {
+  margin: 8px 0 0;
+  font-size: 0.78rem;
+  line-height: 1.45;
+  color: var(--ink-3, var(--ink-light));
+}
+
+/* ---------- Searchable verb list ---------- */
+
+.vl-search {
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+  min-height: 44px;
+  margin: 10px 0 8px;
+  padding: 10px 12px;
+  font: inherit;
+  font-size: 16px;               /* no iOS zoom on focus */
+  color: var(--ink, var(--text));
+  background: var(--surface);
+  border: 1px solid var(--line-strong, var(--line));
+  border-radius: 10px;
+}
+.vl-search:focus {
+  outline: 2px solid var(--firuzeh, var(--accent));
+  outline-offset: 1px;
+}
+
+.verb-list,
+.verb-list ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.verb-list {
+  max-height: 360px;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--surface);
+}
+.vl-group + .vl-group { border-top: 1px solid var(--line); }
+.vl-head {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  padding: 8px 12px 6px;
+  font-size: 0.74rem;
+  font-weight: 600;
+  color: var(--ink-2, var(--ink-muted));
+  background: var(--surface-2, var(--surface));
+}
+.vl-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 44px;
+  padding: 6px 12px;
+  border: 0;
+  background: transparent;
+  color: var(--ink, var(--text));
+  font: inherit;
+  font-size: 0.86rem;
+  text-align: left;
+  cursor: pointer;
+}
+.vl-row:hover { background: var(--surface-2, transparent); }
+.vl-row:focus-visible { outline: 2px solid var(--firuzeh, var(--accent)); outline-offset: -2px; }
+.vl-check {
+  flex: none;
+  width: 18px;
+  height: 18px;
+  border: 1.5px solid var(--line-strong, var(--line));
+  border-radius: 5px;
+  box-sizing: border-box;
+}
+.vl-row[role="radio"] .vl-check { border-radius: 50%; }
+.vl-row.on .vl-check {
+  background: var(--firuzeh, var(--accent));
+  border-color: var(--firuzeh, var(--accent));
+  box-shadow: inset 0 0 0 3px var(--surface);
+}
+.vl-pin { flex: none; font-weight: 500; }
+.vl-fa {
+  flex: none;
+  font-family: var(--font-farsi);
+  font-size: 1rem;
+  color: var(--ink-2, var(--ink-muted));
+}
+.vl-en {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-size: 0.78rem;
+  color: var(--ink-3, var(--ink-light));
+}
+.vl-new {
+  flex: none;
+  padding: 1px 7px;
+  border-radius: 99px;
+  font-size: 0.66rem;
+  color: var(--saffron, var(--warn));
+  background: var(--saffron-soft, var(--warn-soft));
+}
+.vl-empty { padding: 14px 12px; font-size: 0.84rem; color: var(--ink-3, var(--ink-light)); }
+
+/* ---------- End-of-set summary and confirmations ---------- */
+
+.drill-summary {
+  max-width: 520px;
+  margin: 0 auto;
+  padding: 28px 22px 24px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  box-shadow: var(--shadow-md, none);
+  text-align: center;
+}
+.drill-eyebrow {
+  margin: 0 0 6px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: var(--ink-3, var(--ink-light));
+}
+.drill-score {
+  font-family: var(--font-display, var(--font-sans));
+  font-size: 2.6rem;
+  line-height: 1.1;
+  color: var(--ink-3, var(--ink-light));
+}
+.drill-score strong { color: var(--ink, var(--text)); font-weight: 700; }
+.drill-score-note {
+  margin: 6px 0 0;
+  font-size: 0.9rem;
+  color: var(--ink-2, var(--ink-muted));
+}
+.drill-sub {
+  margin: 22px 0 8px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--ink, var(--text));
+  text-align: left;
+}
+h2.drill-sub { margin-top: 0; text-align: center; font-size: 1.1rem; }
+.drill-missed {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  text-align: left;
+  border-top: 1px solid var(--line);
+}
+.drill-missed li {
+  padding: 10px 0;
+  border-bottom: 1px solid var(--line);
+}
+.drill-miss-form {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.drill-miss-fa {
+  font-family: var(--font-farsi);
+  font-size: 1.35rem;
+  line-height: 1.6;
+  color: var(--ink, var(--text));
+}
+.drill-miss-pin { font-weight: 500; color: var(--firuzeh, var(--accent)); }
+.drill-miss-what { font-size: 0.78rem; color: var(--ink-3, var(--ink-light)); }
+
+.drill-summary-acts {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 22px;
+}
+.drill-summary-acts .action-btn { min-height: 44px; }
+.drill-primary {
+  min-height: 44px;
+  padding: 10px 22px;
+  border: 0;
+  border-radius: 12px;
+  font: inherit;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--paper, var(--accent-contrast, #fff));
+  background: var(--firuzeh, var(--accent));
+  cursor: pointer;
+}
+.drill-primary:hover { filter: brightness(1.06); }
+.drill-primary:focus-visible { outline: 2px solid var(--firuzeh, var(--accent)); outline-offset: 2px; }
+.drill-primary.danger { background: var(--again, var(--bad)); }
+
+.drill-browse-act { margin: 18px 0 0; text-align: center; }
+.drill-browse-act .action-btn { min-height: 44px; }
+
+/* ---------- Today section ---------- */
+
+.drill-today-title { margin: 0 0 4px; font-size: 1rem; font-weight: 600; color: var(--ink, var(--text)); }
+.drill-today-note { margin: 0 0 12px; font-size: 0.86rem; color: var(--ink-2, var(--ink-muted)); }
+
+/* Phone: the panel collapses with the other filter panels. */
+@media (max-width: 720px) {
+  body.filters-collapsed #drill-panel { display: none !important; }
+  .verb-list { max-height: 50vh; }
+  .vl-en { display: none; }
+  .drill-summary { padding: 22px 16px 18px; border-radius: 14px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .drill-primary { transition: none; }
+}
+
+/* Room between the person/tense chips and the typed answer box. */
+body[data-view="verbs"] .card-front .typed-input { margin-top: 14px; }

@@ -11,7 +11,7 @@ flashcards.html       redirect to ./ (keeps query and hash) for old home-screen 
 css/app.css           tokens (light + dark), layout, theme
 js/core.js            F namespace: F.util, F.state, F.hooks, F.lesson/F.lessons, F.views, F.actions
 js/fsrs.js            F.fsrs: FSRS-6 scheduler, pure functions
-js/verbs.js           F.verbs: VERBS, TENSES, PERSONS, conj(), English glosses, meaningItems()
+js/verbs.js           F.verbs: VERBS, TENSES, PERSONS, conj(), English glosses, meaningItems() (trimmed deck), lessonUsage(), buildSet()
 lessons/*.js          one file per session: F.lesson({...}); alphabet.js is the letter drill
 js/cards.js           F.cards: lessons + generated decks -> card list; filters; queue building
 js/store.js           F.store: localStorage store, v1 migration, review log (IndexedDB), backup data
@@ -19,7 +19,8 @@ js/legacy-keys.js     F.LEGACY_KEYS: frozen v1 key -> card id map; loaded only t
 js/audio.js           F.audio: Web Speech TTS (only when a Persian voice exists)
 js/ui/typed.js        F.typed: typed-recall input, tolerant pinglish matching
 js/ui/study.js        F.study + view 'cards': queue, card rendering, grading, bury, scope bar
-js/ui/drill.js        F.drill + view 'verbs': verb browse tables and conjugation drill
+js/ui/drill.js        F.drill + view 'verbs': mixed 10-prompt sets, one-verb practice, browse; #drill-panel; Today section
+css/drill.css         styles for the verb trainer (panel, verb list, set summary)
 js/ui/settings.js     F.settings: filter panels (#fc-filters, #vt-filters), bulk buttons
 js/ui/backup.js       F.backupUI: backup/restore panel (#backup-panel), backup reminder
 js/md.js              F.md: small XSS-safe markdown renderer for the lesson notes (pure, node-loadable)
@@ -104,6 +105,7 @@ and hook `card:rendered` are applied after the renderer.
 | `card:graded` | `{card, rating, before, after, review}` |
 | `card:buried`, `card:unburied` | `{card}` |
 | `drill:marked` | `{prompt, known}` |
+| `drill:set-done` | `{kind: 'mixed'\|'focus'\|'retry', right, total}` |
 | `shuffle:changed` | `{shuffled}` |
 
 **Prefs** (`F.store.registerPrefs({save(prefs), load(prefs)})`). `save` writes
@@ -262,6 +264,23 @@ re-merge of a changed v1 store; queue order against the legacy app; and backup
 build/inspect/restore. The legacy app is read with `git show 218298c:flashcards.html`
 (`tools/legacy/old-app.js`); without git those checks fall back to
 `tools/fixtures/legacy-counts.json` or are skipped with a warning.
+
+**The verb deck is trimmed.** `F.verbs.meaningItems()` returns each verb's
+infinitive, every form the lessons use (engine output matched against lesson
+`fa`/`pin` text, `F.verbs.lessonUsage()`), and present + simple past for
+man/to/oon of verbs any lesson uses: 1,320 of 5,644 verb cards today. The
+"All verb forms" setting (pref `verbAllForms`, `F.verbs.config.allForms`)
+brings back the rest. Items with SRS history or a bury are always kept
+(`F.verbs.config.keep`), so trimming never hides a card already studied.
+Ids never change; `allMeaningItems()` is the full list. Adding a lesson
+that uses new verb forms grows the default deck; update `VERB_CARDS_DEFAULT`
+in tools/test.js. Verb prefs saved by ui/drill.js: `vtMode`
+(`sets`|`focus`|`browse`), `tenses`, `knownTenses`, `persons`, `drillScope`
+(`recent`|`all`|`custom`), `drillVerbs`, `drillFocus`, `verbAllForms`.
+
+Prefixed verbs whose prefix is written joined (`pre: {fa, pin, join: true}`,
+built with `joinedVerb()`, e.g. برداشتن) conjugate and break down like any
+other verb: bar + mi + dār + am.
 
 Card text and counts are pinned to the legacy app. When a later change edits
 card text or trims the verb deck on purpose, update the pairing and count

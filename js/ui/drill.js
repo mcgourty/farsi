@@ -1,80 +1,116 @@
-// ui/drill.js: the verb trainer view ("verbs"): browse conjugation tables, or
-// run the conjugation drill (produce a form; scored right/wrong per
-// verb|tense|person in store.drill).
+// ui/drill.js: the verb trainer view ("verbs").
+//
+//   sets   short mixed sets: 10 prompts that interleave verbs, tenses and
+//          persons, weighted toward forms you miss and verbs from the newest
+//          lessons (F.verbs.buildSet), then a summary.
+//   focus  "Practice one verb": the whole paradigm of one verb in order, a
+//          blocked warm-up for a new verb.
+//   browse conjugation tables.
+//
+// Answers are typed (pinglish) and self-graded; scores stay per
+// verb|tense|person in store.drill. The view's settings live in #drill-panel
+// (built here). It also owns the "All verb forms" setting for the verb
+// flashcard deck (F.verbs.config.allForms).
 (function (root) {
   'use strict';
   const F = root.F;
   const S = F.state;
   const V = F.verbs;
+  const U = F.util;
   const $ = id => document.getElementById(id);
+  const SET_SIZE = 10;
+  const RECENT_LESSONS = 3;
 
   const st = {
-    mode: 'browse',          // 'browse' | 'drill'
+    mode: 'sets',            // 'sets' | 'focus' | 'browse'
     tenses: new Set(V.TENSES.map(t => t.id)),
-    verbs: new Set(V.VERBS.map(v => v.id)),
     persons: new Set([0, 1, 2, 3, 4, 5]),
+    scope: 'recent',         // 'recent' | 'all' | 'custom'
+    verbs: new Set(V.VERBS.map(v => v.id)),   // the custom choice
+    focus: null,             // verb id for focus mode
+    search: '',
     vIdx: 0,
     browseIds: null,         // shuffled browse order
-    prompt: null,
-    queue: [],
-    qIdx: 0,
-    right: 0,
-    wrong: 0,
+    set: null,               // {kind, prompts, idx, results: [{d, known, typed}]}
+    confirmReset: false,
   };
 
   const scores = () => F.store.data.drill;
 
-  function browseVerbs() { return V.VERBS.filter(v => st.verbs.has(v.id)); }
+  // ---------- F.typed, called defensively (typed.js is shared) ----------
+  const T = () => F.typed || {};
+  function typedReset() { if (typeof T().reset === 'function') T().reset(); else { S.typedResult = null; S.typedValue = ''; } }
+  function typedInputHTML(hint) {
+    if (typeof T().inputHTML === 'function') return T().inputHTML(hint);
+    return `<input id="typed-input" class="typed-input" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="${U.escAttr(hint)}">`;
+  }
+  function typedBannerHTML() { return typeof T().bannerHTML === 'function' ? T().bannerHTML() : ''; }
+  function typedFocus() { if (typeof T().focusInput === 'function') T().focusInput(); }
+
+  // ---------- Which verbs and prompts ----------
+  function recentIds() { return V.recentVerbIds(RECENT_LESSONS); }
+  function scopeIds() {
+    if (st.scope === 'all') return V.VERBS.map(v => v.id);
+    if (st.scope === 'custom') return V.VERBS.filter(v => st.verbs.has(v.id)).map(v => v.id);
+    return recentIds();
+  }
+  function scopeVerbs() { const ids = new Set(scopeIds()); return V.VERBS.filter(v => ids.has(v.id)); }
+  function focusVerb() {
+    let v = st.focus && V.byId(st.focus);
+    if (!v) { v = V.byId(recentIds().slice(-1)[0]) || V.VERBS[0]; st.focus = v.id; }
+    return v;
+  }
+
+  function promptsFor(verbs) {
+    const out = [];
+    for (const v of verbs) {
+      // imperatives only exist for 'to' (pi 1) and 'shomā' (pi 4)
+      for (const d of V.formsOf(v, st.tenses)) if (st.persons.has(d.pi)) out.push(d);
+    }
+    return out;
+  }
+  function allDrillCombos() { return st.mode === 'focus' ? promptsFor([focusVerb()]) : promptsFor(scopeVerbs()); }
 
   function browseList() {
-    const selected = browseVerbs();
+    const selected = scopeVerbs();
     if (!S.shuffled) return selected;
     const sel = new Set(selected.map(v => v.id));
     if (!st.browseIds || st.browseIds.some(id => !sel.has(id)) || selected.some(v => !st.browseIds.includes(v.id))) {
-      st.browseIds = selected.map(v => v.id);
-      F.util.shuffle(st.browseIds);
+      st.browseIds = U.shuffle(selected.map(v => v.id));
     }
     return st.browseIds.map(id => V.byId(id)).filter(Boolean);
   }
 
-  function allDrillCombos() {
-    const combos = [];
-    for (const v of browseVerbs()) {
-      for (const t of V.TENSES) {
-        if (!st.tenses.has(t.id)) continue;
-        if (t.id === 'continuous' && v.noCont) continue;
-        if ((t.id === 'imperative' || t.id === 'impneg') && !v.imp) continue;
-        const pis = (t.id === 'imperative' || t.id === 'impneg') ? [1, 4] : [0, 1, 2, 3, 4, 5];
-        for (const pi of pis) {
-          if (!st.persons.has(pi)) continue;
-          combos.push({ v, tense: t.id, pi });
-        }
-      }
-    }
-    return combos;
-  }
-
-  function rebuildDrillQueue() {
-    const combos = allDrillCombos();
-    if (S.shuffled) F.util.shuffle(combos);
-    else {
-      combos.sort((a, b) => {
-        const x = scores()[V.drillKey(a)] || { r: 0, w: 0 };
-        const y = scores()[V.drillKey(b)] || { r: 0, w: 0 };
-        return (y.w - x.w) || (x.r - y.r);
-      });
-    }
-    st.queue = combos;
-    st.qIdx = 0;
-    st.prompt = st.queue[0] || null;
+  // ---------- Sets ----------
+  function newSet(prompts, kind) {
+    st.set = { kind, prompts, idx: 0, results: [] };
+    st.confirmReset = false;
     S.flipped = false;
-    F.typed.reset();
+    typedReset();
   }
+  function startSet() {
+    if (st.mode === 'focus') {
+      newSet(allDrillCombos(), 'focus');
+    } else {
+      const combos = allDrillCombos();
+      const prompts = S.shuffled
+        ? U.shuffle(combos.slice()).slice(0, SET_SIZE)
+        : V.buildSet({ combos, scores: scores(), recent: new Set(recentIds()), size: SET_SIZE });
+      newSet(prompts, 'mixed');
+    }
+  }
+  function retryMissed() {
+    const missed = st.set ? st.set.results.filter(r => !r.known).map(r => r.d) : [];
+    if (!missed.length) { startSet(); return; }
+    newSet(missed, 'retry');
+  }
+  const current = () => (st.set && st.set.idx < st.set.prompts.length ? st.set.prompts[st.set.idx] : null);
+  const setDone = () => !!st.set && st.set.idx >= st.set.prompts.length;
 
-  // ---------- Rendering ----------
+  // ---------- Rendering helpers ----------
   function conjCell(f) {
     return f
-      ? `<span class="fa">${f.fa}</span><span class="pin">${f.pin}</span>`
+      ? `<span class="fa" lang="fa" dir="rtl">${f.fa}</span><span class="pin">${f.pin}</span>`
       : '<span class="pin" style="opacity:.3">—</span>';
   }
   function conjTableHTML(v) {
@@ -94,88 +130,126 @@
   }
   function impHTML(v) {
     if (!v.imp) return '';
-    return `<div class="conj-imp">Do it! <strong>${v.imp.sg}</strong> <span class="fa-inline">${v.imp.sgFa}</span> &middot; <strong>${v.imp.pl}</strong> <span class="fa-inline">${v.imp.plFa}</span><br>Don't! <strong>${v.imp.negSg}</strong> <span class="fa-inline">${v.imp.negSgFa}</span> &middot; <strong>${v.imp.negPl}</strong> <span class="fa-inline">${v.imp.negPlFa}</span></div>`;
+    return `<div class="conj-imp">Do it! <strong>${v.imp.sg}</strong> <span class="fa-inline" lang="fa" dir="rtl">${v.imp.sgFa}</span> &middot; <strong>${v.imp.pl}</strong> <span class="fa-inline" lang="fa" dir="rtl">${v.imp.plFa}</span><br>Don't! <strong>${v.imp.negSg}</strong> <span class="fa-inline" lang="fa" dir="rtl">${v.imp.negSgFa}</span> &middot; <strong>${v.imp.negPl}</strong> <span class="fa-inline" lang="fa" dir="rtl">${v.imp.negPlFa}</span></div>`;
+  }
+  function stats(count, pct, text) {
+    $('card-count').innerHTML = count;
+    $('progress-fill').style.width = pct + '%';
+    $('progress-text').textContent = text;
+  }
+  function nav(pos, prevOn, nextOn) {
+    $('nav-pos').textContent = pos;
+    $('prev-btn').disabled = !prevOn;
+    $('next-btn').disabled = !nextOn;
   }
 
+  // ---------- Browse ----------
   function renderBrowse() {
     const area = $('card-area');
     const list = browseList();
     if (!list.length) {
-      area.innerHTML = '<div class="empty-state"><h2>No verbs selected</h2><p>Pick some verbs above</p></div>';
-      $('nav-pos').textContent = '0 / 0';
-      $('prev-btn').disabled = true;
-      $('next-btn').disabled = true;
-      $('card-count').innerHTML = '<strong>0</strong> verbs';
-      $('progress-fill').style.width = '0%';
-      $('progress-text').textContent = '0/0';
+      area.innerHTML = '<div class="empty-state"><h2>No verbs selected</h2><p>Pick some verbs in the filters</p></div>';
+      nav('0 / 0', false, false);
+      stats('<strong>0</strong> verbs', 0, '0/0');
       return;
     }
-    if (st.vIdx >= list.length) st.vIdx = list.length - 1;
-    if (st.vIdx < 0) st.vIdx = 0;
+    st.vIdx = Math.max(0, Math.min(st.vIdx, list.length - 1));
     const v = list[st.vIdx];
     area.innerHTML = `<div class="card-wrapper" style="min-height:800px" data-action="flip"><div class="card${S.flipped ? ' flipped' : ''}" id="card" style="min-height:800px">
     <div class="card-face card-front">
-      <span class="card-tag">VERB</span>
+      <span class="card-tag">Verb</span>
       <div class="front-content">
-        <div class="farsi-big">${v.fa}</div>
+        <div class="farsi-big" lang="fa" dir="rtl">${v.fa}</div>
         <div class="drill-verb-pin">${v.pin}</div>
         <div class="drill-verb-en">${v.en}</div>
       </div>
       <span class="tap-hint">tap for conjugations</span>
     </div>
     <div class="card-face card-back" style="justify-content:flex-start">
-      <span class="card-tag">VERB</span>
+      <span class="card-tag">Verb</span>
       <div class="back-content" style="margin-top:16px">
         <div class="pinglish" style="margin-bottom:0">${v.pin} — ${v.en}</div>
         ${conjTableHTML(v)}
         ${pastTableHTML(v)}
         ${impHTML(v)}
+        <p class="drill-browse-act"><button type="button" class="action-btn" data-action="drill-focus-verb" data-arg="${v.id}">Practice this verb</button></p>
       </div>
     </div>
   </div></div>`;
-    $('nav-pos').textContent = `${st.vIdx + 1} / ${list.length}`;
-    $('prev-btn').disabled = st.vIdx === 0;
-    $('next-btn').disabled = st.vIdx >= list.length - 1;
-    $('card-count').innerHTML = `<strong>${list.length}</strong> verbs`;
-    $('progress-fill').style.width = ((st.vIdx + 1) / list.length * 100) + '%';
-    $('progress-text').textContent = `${st.vIdx + 1}/${list.length}`;
+    nav(`${st.vIdx + 1} / ${list.length}`, st.vIdx > 0, st.vIdx < list.length - 1);
+    stats(`<strong>${list.length}</strong> verbs`, (st.vIdx + 1) / list.length * 100, `${st.vIdx + 1}/${list.length}`);
+  }
+
+  // ---------- Drill (sets and focus) ----------
+  function setTitle() {
+    if (!st.set) return '';
+    if (st.set.kind === 'focus') return `Practice one verb: ${V.byId(st.set.prompts[0] ? st.set.prompts[0].v.id : st.focus).pin}`;
+    if (st.set.kind === 'retry') return 'Missed forms';
+    return 'Mixed set';
+  }
+
+  function renderSummary() {
+    const s = st.set;
+    const right = s.results.filter(r => r.known).length;
+    const missed = s.results.filter(r => !r.known);
+    const rows = missed.map(r => {
+      const a = V.drillAnswer(r.d);
+      const t = V.TENSES.find(x => x.id === r.d.tense);
+      return `<li><div class="drill-miss-form"><span class="drill-miss-fa" lang="fa" dir="rtl">${a.fa}</span><span class="drill-miss-pin">${a.pin}</span></div>`
+        + `<div class="drill-miss-what">${r.d.v.pin} &middot; ${V.personLabel(r.d.tense, r.d.pi)} &middot; ${t.label}`
+        + (r.typed ? ` &middot; you typed “${U.esc(r.typed)}”` : '') + '</div></li>';
+    }).join('');
+    $('card-area').innerHTML = `<section class="drill-summary" aria-live="polite">
+      <p class="drill-eyebrow">${setTitle()} done</p>
+      <div class="drill-score"><strong>${right}</strong> / ${s.results.length}</div>
+      <p class="drill-score-note">${missed.length ? `${missed.length} ${U.plural(missed.length, 'form')} to look at again` : 'Every form right'}</p>
+      ${missed.length ? `<h3 class="drill-sub">Forms you missed</h3><ul class="drill-missed">${rows}</ul>` : ''}
+      <div class="drill-summary-acts">
+        <button type="button" class="drill-primary" data-action="drill-new-set">${s.kind === 'focus' ? 'Go again' : 'Another set'}</button>
+        ${missed.length ? '<button type="button" class="action-btn" data-action="drill-retry">Retry missed</button>' : ''}
+        ${s.kind === 'focus' ? '<button type="button" class="action-btn" data-action="drill-mode" data-arg="sets">Mixed sets</button>' : ''}
+      </div>
+    </section>`;
+    nav(`${s.prompts.length} / ${s.prompts.length}`, false, false);
+    stats(`<strong>${right}</strong> right &middot; <span style="color:var(--red)">${missed.length} missed</span>`, 100, `${s.results.length}/${s.prompts.length}`);
+  }
+
+  function renderConfirmReset() {
+    const n = allDrillCombos().filter(d => scores()[V.drillKey(d)]).length;
+    $('card-area').innerHTML = `<section class="drill-summary">
+      <h2 class="drill-sub">Reset drill scores?</h2>
+      <p class="drill-score-note">This clears the right/wrong record for ${n} ${U.plural(n, 'form')} of the verbs in the filters. Flashcard progress is not touched.</p>
+      <div class="drill-summary-acts">
+        <button type="button" class="drill-primary danger" data-action="drill-reset-confirm">Reset scores</button>
+        <button type="button" class="action-btn" data-action="drill-reset-cancel">Cancel</button>
+      </div>
+    </section>`;
+    nav('', false, false);
+    stats('', 0, '');
   }
 
   function renderDrill() {
     const area = $('card-area');
-    if (!st.queue.length && !st.prompt) rebuildDrillQueue();
-    if (!st.prompt) {
-      const tot = st.right + st.wrong;
-      if (tot) {
-        area.innerHTML = `<div class="empty-state"><h2>Done for now</h2><p><strong>${st.right}</strong> right &middot; ${st.wrong} again</p>`
-          + '<p><button type="button" class="action-btn" data-action="drill-again">Drill again</button></p></div>';
-        $('progress-fill').style.width = '100%';
-        $('progress-text').textContent = `${tot}`;
-      } else {
-        area.innerHTML = '<div class="empty-state"><h2>Nothing to drill</h2><p>Select at least one verb, tense, and person above</p></div>';
-        $('progress-fill').style.width = '0%';
-        $('progress-text').textContent = '—';
-      }
-      $('nav-pos').textContent = '0 / 0';
-      $('prev-btn').disabled = true;
-      $('next-btn').disabled = true;
-      $('card-count').innerHTML = tot
-        ? `<strong>${st.right}</strong> right &middot; <span style="color:var(--red)">${st.wrong} again</span>`
-        : '';
+    if (st.confirmReset) { renderConfirmReset(); return; }
+    if (!st.set) startSet();
+    if (setDone() && st.set.results.length) { renderSummary(); return; }
+    const d = current();
+    if (!d) {
+      area.innerHTML = '<div class="empty-state"><h2>Nothing to drill</h2><p>Choose at least one verb, tense and person in the filters</p></div>';
+      nav('0 / 0', false, false);
+      stats('', 0, '—');
       return;
     }
-    if (st.qIdx >= st.queue.length) st.qIdx = st.queue.length - 1;
-    if (st.qIdx < 0) st.qIdx = 0;
-    st.prompt = st.queue[st.qIdx];
-    const d = st.prompt, v = d.v;
+    const v = d.v;
     const t = V.TENSES.find(x => x.id === d.tense);
     const personLabel = V.personLabel(d.tense, d.pi);
     const ans = V.drillAnswer(d);
+    const s = st.set;
     area.innerHTML = `<div class="card-wrapper" data-action="flip"><div class="card${S.flipped ? ' flipped' : ''}" id="card">
     <div class="card-face card-front" id="card-front">
-      <span class="card-tag">VERB DRILL</span>
+      <span class="card-tag">${setTitle()}</span>
       <div class="front-content">
-        <div class="farsi-big" style="font-size:2.4rem">${v.fa}</div>
+        <div class="farsi-big" style="font-size:2.4rem" lang="fa" dir="rtl">${v.fa}</div>
         <div class="drill-verb-pin">${v.pin}</div>
         <div class="drill-verb-en">${v.en}</div>
         <div class="drill-chips">
@@ -183,12 +257,12 @@
           <span class="chip tense">${t.desc}</span>
         </div>
       </div>
-      <span class="tap-hint">tap for answer</span>
+      <span class="tap-hint">type it, then Enter &middot; or tap for the answer</span>
     </div>
     <div class="card-face card-back" id="card-back">
-      <span class="card-tag">VERB DRILL</span>
+      <span class="card-tag">${setTitle()}</span>
       <div class="back-content">
-        <div class="farsi-answer">${ans.fa}</div>
+        <div class="farsi-answer" lang="fa" dir="rtl">${ans.fa}</div>
         <div class="pinglish">${ans.pin}</div>
         <div class="meaning" style="font-size:1rem;color:var(--text-dim);font-weight:400">${personLabel} &middot; ${t.desc}</div>
         <div class="breakdown">${V.drillBreakdown(d)}</div>
@@ -198,82 +272,224 @@
 
     const front = $('card-front');
     const back = $('card-back');
-    if (S.typedMode) {
-      front.insertAdjacentHTML('beforeend', F.typed.inputHTML('type it in pinglish…'));
-      back.insertAdjacentHTML('beforeend', F.typed.bannerHTML());
-    }
-    if (F.audio.ready() && ans.fa) back.insertAdjacentHTML('beforeend', F.audio.buttonHTML());
+    front.insertAdjacentHTML('beforeend', typedInputHTML('type it in pinglish…'));
+    back.insertAdjacentHTML('beforeend', typedBannerHTML());
+    if (F.audio && F.audio.ready() && ans.fa) back.insertAdjacentHTML('beforeend', F.audio.buttonHTML());
     F.hooks.emit('card:rendered', { drill: d, front, back, flipped: S.flipped, view: 'verbs' });
 
-    $('nav-pos').textContent = `${st.qIdx + 1} / ${st.queue.length}`;
-    $('prev-btn').disabled = st.qIdx === 0;
-    $('next-btn').disabled = st.qIdx >= st.queue.length - 1;
-    $('card-count').innerHTML = `<strong>${st.queue.length}</strong> left &middot; <strong>${st.right}</strong> right &middot; <span style="color:var(--red)">${st.wrong} again</span>`
-      + (S.shuffled ? ' &middot; shuffled' : ' &middot; weak first');
-    const total = st.right + st.wrong + st.queue.length;
-    const pct = total ? Math.round((st.right + st.wrong) / total * 100) : 0;
-    $('progress-fill').style.width = pct + '%';
-    $('progress-text').textContent = `${st.right + st.wrong}/${total}`;
-    F.typed.focusInput();
-    if (S.flipped) F.audio.maybeSpeak();
+    const done = s.results.length;
+    const right = s.results.filter(r => r.known).length;
+    nav(`${s.idx + 1} / ${s.prompts.length}`, false, false);
+    stats(`<strong>${s.prompts.length - s.idx}</strong> left &middot; <strong>${right}</strong> right &middot; <span style="color:var(--red)">${done - right} missed</span>`,
+      Math.round(done / s.prompts.length * 100), `${done}/${s.prompts.length}`);
+    typedFocus();
+    if (S.flipped && F.audio) F.audio.maybeSpeak();
   }
 
   function renderScoreRow() {
-    $('score-row').innerHTML = st.mode === 'drill' && st.prompt
+    $('score-row').innerHTML = st.mode !== 'browse' && current() && !st.confirmReset
       ? `<button class="score-btn again${S.typedResult === 'wrong' ? ' suggest' : ''}" data-action="drill-mark" data-arg="0">Again</button>`
         + `<button class="score-btn know${S.typedResult === 'right' ? ' suggest' : ''}" data-action="drill-mark" data-arg="1">Got it</button>`
       : '';
   }
 
-  // Drill keeps the simple right/wrong scoring.
   function markCard(known) {
-    if (st.mode !== 'drill' || !st.prompt) return;
+    const d = current();
+    if (st.mode === 'browse' || !d) return;
     if (!S.flipped) { F.app.flip(); return; }
-    const c = st.prompt;
-    const k = V.drillKey(c);
+    const k = V.drillKey(d);
     const sc = scores()[k] || { r: 0, w: 0 };
-    if (known) { sc.r++; st.right++; } else { sc.w++; st.wrong++; }
+    if (known) sc.r++; else sc.w++;
     scores()[k] = sc;
     F.store.saveSoon();
-    st.queue.splice(st.qIdx, 1);
-    if (!known) {
-      const pos = Math.min(st.queue.length, st.qIdx + 2 + Math.floor(Math.random() * 3));
-      st.queue.splice(pos, 0, c);
-    }
-    if (st.qIdx >= st.queue.length) st.qIdx = 0;
-    st.prompt = st.queue[st.qIdx] || null;
+    st.set.results.push({ d, known, typed: S.typedValue || '' });
+    st.set.idx++;
     S.flipped = false;
-    F.typed.reset();
-    F.hooks.emit('drill:marked', { prompt: c, known });
+    typedReset();
+    F.hooks.emit('drill:marked', { prompt: d, known });
+    if (setDone()) F.hooks.emit('drill:set-done', { kind: st.set.kind, right: st.set.results.filter(r => r.known).length, total: st.set.results.length });
     F.app.render();
   }
 
   function resetScores() {
-    const combos = allDrillCombos();
-    const hasSaved = combos.some(c => scores()[V.drillKey(c)]);
-    if (hasSaved && !root.confirm('Reset conjugation drill scores for the selected verbs?')) return;
-    for (const c of combos) delete scores()[V.drillKey(c)];
+    for (const c of allDrillCombos()) delete scores()[V.drillKey(c)];
     F.store.saveSoon();
-    st.right = 0;
-    st.wrong = 0;
-    rebuildDrillQueue();
+    st.confirmReset = false;
+    startSet();
     F.app.render();
   }
 
-  F.actions.register('drill-mark', el => markCard(el.dataset.arg === '1'));
-  F.actions.register('drill-again', () => { rebuildDrillQueue(); F.app.render(); });
+  // ---------- Settings panel (#drill-panel) ----------
+  function pillHTML(label, active, action, arg, title) {
+    return `<button type="button" class="pill${active ? ' active' : ''}" data-action="${action}"${arg != null ? ` data-arg="${U.escAttr(String(arg))}"` : ''}${title ? ` title="${U.escAttr(title)}"` : ''} aria-pressed="${active}">${U.esc(label)}</button>`;
+  }
+  function lessonName(id) {
+    const l = (F.lessons || []).find(x => x.id === id);
+    if (!l) return 'Not in a lesson yet';
+    return l.label + (l.title ? ` · ${l.title}` : '');
+  }
+
+  function verbListHTML() {
+    const q = st.search.trim().toLowerCase();
+    const qn = V.normPin(q).trim();
+    const match = v => !q || v.pin.toLowerCase().includes(q) || V.normPin(v.pin).includes(qn) || v.en.toLowerCase().includes(q) || v.fa.includes(st.search.trim());
+    const focus = st.mode === 'focus';
+    const chosen = new Set(focus ? [focusVerb().id] : scopeIds());
+    const recent = new Set(recentIds());
+    let html = '';
+    for (const g of V.verbsByLesson()) {
+      const vs = g.verbs.filter(match);
+      if (!vs.length) continue;
+      html += `<li class="vl-group"><div class="vl-head">${U.esc(lessonName(g.lessonId))}</div><ul>`;
+      for (const v of vs) {
+        const on = chosen.has(v.id);
+        html += `<li><button type="button" class="vl-row${on ? ' on' : ''}" role="${focus ? 'radio' : 'checkbox'}" aria-checked="${on}" data-action="${focus ? 'drill-focus-verb' : 'drill-toggle-verb'}" data-arg="${v.id}">`
+          + `<span class="vl-check" aria-hidden="true"></span><span class="vl-pin">${U.esc(v.pin)}</span>`
+          + `<span class="vl-fa" lang="fa" dir="rtl">${v.fa}</span><span class="vl-en">${U.esc(v.en)}</span>`
+          + (st.scope !== 'recent' && recent.has(v.id) ? '<span class="vl-new">recent</span>' : '') + '</button></li>';
+      }
+      html += '</ul></li>';
+    }
+    return html || '<li class="vl-empty">No verb matches</li>';
+  }
+
+  function buildPanel() {
+    const el = $('drill-panel');
+    if (!el) return;
+    const drilling = st.mode !== 'browse';
+    const n = scopeIds().length;
+    const usedAll = V.config.allForms;
+    let html = `<div class="filter-group"><label>Mode</label><div class="pills">`
+      + pillHTML('Mixed sets', st.mode === 'sets', 'drill-mode', 'sets', '10 prompts across verbs, tenses and persons')
+      + pillHTML('Practice one verb', st.mode === 'focus', 'drill-mode', 'focus', 'The whole paradigm of one verb, in order')
+      + pillHTML('Browse', st.mode === 'browse', 'drill-mode', 'browse', 'Conjugation tables')
+      + '</div></div>';
+    if (drilling) {
+      html += `<div class="filter-group"><div class="filter-head"><label>Tenses</label><div class="filter-acts">`
+        + '<button type="button" class="mini" data-action="drill-tenses" data-arg="all">All</button><button type="button" class="mini" data-action="drill-tenses" data-arg="none">None</button></div></div><div class="pills">'
+        + V.TENSES.map(t => pillHTML(t.label, st.tenses.has(t.id), 'drill-tense', t.id)).join('') + '</div></div>';
+      html += `<div class="filter-group"><div class="filter-head"><label>Person</label><div class="filter-acts">`
+        + '<button type="button" class="mini" data-action="drill-persons" data-arg="all">All</button><button type="button" class="mini" data-action="drill-persons" data-arg="none">None</button></div></div><div class="pills">'
+        + V.PERSONS.map((p, i) => pillHTML(p.pin, st.persons.has(i), 'drill-person', i, p.en)).join('') + '</div></div>';
+    }
+    html += '<div class="filter-group">';
+    if (st.mode === 'focus') {
+      html += `<label>Verb to practice</label>`;
+    } else {
+      html += `<div class="filter-head"><label>Verbs (${n})</label></div><div class="pills">`
+        + pillHTML('From recent lessons', st.scope === 'recent', 'drill-scope', 'recent', `Verbs used in the newest ${RECENT_LESSONS} lessons`)
+        + pillHTML('All verbs', st.scope === 'all', 'drill-scope', 'all')
+        + pillHTML('My choice', st.scope === 'custom', 'drill-scope', 'custom')
+        + '</div>';
+    }
+    html += `<input type="search" id="drill-verb-search" class="vl-search" placeholder="Search verbs" autocomplete="off" autocapitalize="off" spellcheck="false" value="${U.escAttr(st.search)}" aria-label="Search verbs">`
+      + `<ul class="verb-list" id="drill-verb-list">${verbListHTML()}</ul></div>`;
+    const all = V.allMeaningItems().length * 2;
+    const deck = F.cards.all.filter(c => c.type === 'verbs').length;
+    html += `<div class="filter-group"><label>Verb flashcards</label><div class="pills">`
+      + pillHTML('All verb forms', usedAll, 'drill-all-forms', null)
+      + `</div><p class="drill-note">${usedAll
+        ? `Every form of every verb: ${deck.toLocaleString()} cards.`
+        : `Off: the forms your lessons use, plus anything you have already studied (${deck.toLocaleString()} of ${all.toLocaleString()} cards).`}</p></div>`;
+    el.innerHTML = html;
+  }
+
+  function refreshList() {
+    const ul = $('drill-verb-list');
+    if (ul) ul.innerHTML = verbListHTML();
+  }
+
+  // Typing in the search box filters the list only (keeps focus).
+  document.addEventListener('input', e => {
+    if (!e.target || e.target.id !== 'drill-verb-search') return;
+    st.search = e.target.value;
+    refreshList();
+  });
+
+  function changed(rebuildSet) {
+    st.vIdx = 0;
+    st.browseIds = null;
+    if (rebuildSet && st.mode !== 'browse') startSet();
+    buildPanel();
+    F.app.render();
+  }
+
+  function setMode(m) {
+    if (!['sets', 'focus', 'browse'].includes(m)) return;
+    st.mode = m;
+    st.set = null;
+    st.confirmReset = false;
+    S.flipped = false;
+    typedReset();
+    buildPanel();
+    F.app.render();
+  }
+
+  function setAllForms(on) {
+    V.config.allForms = !!on;
+    F.cards.build();
+    if (F.study && typeof F.study.applyFilters === 'function') { try { F.study.applyFilters(); } catch (e) { console.error(e); } }
+    if (F.settings && typeof F.settings.buildStudyPills === 'function') { try { F.settings.buildStudyPills(); } catch (e) { console.error(e); } }
+    buildPanel();
+    F.app.render();
+  }
+
+  // ---------- Actions ----------
+  const A = F.actions;
+  A.register('drill-mark', el => markCard(el.dataset.arg === '1'));
+  A.register('drill-new-set', () => { startSet(); F.app.render(); });
+  A.register('drill-again', () => { startSet(); F.app.render(); });
+  A.register('drill-retry', () => { retryMissed(); F.app.render(); });
+  A.register('drill-mode', el => setMode(el.dataset.arg));
+  A.register('drill-tense', el => { U.toggleSet(st.tenses, el.dataset.arg); changed(true); });
+  A.register('drill-person', el => { U.toggleSet(st.persons, +el.dataset.arg); changed(true); });
+  A.register('drill-tenses', el => { st.tenses = new Set(el.dataset.arg === 'all' ? V.TENSES.map(t => t.id) : []); changed(true); });
+  A.register('drill-persons', el => { st.persons = new Set(el.dataset.arg === 'all' ? [0, 1, 2, 3, 4, 5] : []); changed(true); });
+  A.register('drill-scope', el => {
+    if (el.dataset.arg === 'custom' && st.scope !== 'custom' && !st.verbs.size) st.verbs = new Set(scopeIds());
+    st.scope = el.dataset.arg;
+    changed(true);
+  });
+  A.register('drill-toggle-verb', el => {
+    if (st.scope !== 'custom') { st.verbs = new Set(scopeIds()); st.scope = 'custom'; }
+    U.toggleSet(st.verbs, el.dataset.arg);
+    changed(true);
+  });
+  A.register('drill-focus-verb', el => {
+    st.focus = el.dataset.arg;
+    st.mode = 'focus';
+    S.flipped = false;
+    startSet();
+    buildPanel();
+    if (S.tab !== 'verbs') F.app.setView('verbs'); else F.app.render();
+  });
+  A.register('drill-start-set', () => {
+    st.mode = 'sets';
+    st.confirmReset = false;
+    startSet();
+    buildPanel();
+    if (S.tab !== 'verbs') F.app.setView('verbs'); else F.app.render();
+  });
+  A.register('drill-all-forms', () => setAllForms(!V.config.allForms));
+  A.register('drill-reset-confirm', () => resetScores());
+  A.register('drill-reset-cancel', () => { st.confirmReset = false; F.app.render(); });
   F.hooks.on('shuffle:changed', () => { st.browseIds = null; });
 
+  // ---------- Prefs ----------
   F.store.registerPrefs({
     save(p) {
       p.vtMode = st.mode;
       p.tenses = [...st.tenses];
       p.knownTenses = V.TENSES.map(t => t.id);
       p.persons = [...st.persons];
-      p.verbsOff = V.VERBS.filter(v => !st.verbs.has(v.id)).map(v => v.id);
+      p.drillScope = st.scope;
+      p.drillVerbs = V.VERBS.filter(v => st.verbs.has(v.id)).map(v => v.id);
+      p.drillFocus = st.focus;
+      p.verbAllForms = V.config.allForms;
     },
     load(p) {
-      if (p.vtMode === 'drill') st.mode = 'drill';
+      if (p.vtMode === 'browse' || p.vtMode === 'focus' || p.vtMode === 'sets') st.mode = p.vtMode;
+      else if (p.vtMode === 'drill') st.mode = 'sets';
       if (Array.isArray(p.tenses)) {
         const valid = p.tenses.filter(t => V.TENSES.some(x => x.id === t));
         if (valid.length) {
@@ -285,18 +501,58 @@
       if (Array.isArray(p.persons) && p.persons.length) {
         st.persons = new Set(p.persons.filter(n => n >= 0 && n <= 5));
       }
-      if (Array.isArray(p.verbsOff)) for (const id of p.verbsOff) st.verbs.delete(id);
+      if (Array.isArray(p.drillVerbs)) st.verbs = new Set(p.drillVerbs.filter(id => V.byId(id)));
+      else if (Array.isArray(p.verbsOff)) for (const id of p.verbsOff) st.verbs.delete(id);   // the old pill filter
+      if (['recent', 'all', 'custom'].includes(p.drillScope)) st.scope = p.drillScope;
+      if (p.drillFocus && V.byId(p.drillFocus)) st.focus = p.drillFocus;
+      if (typeof p.verbAllForms === 'boolean' && p.verbAllForms !== V.config.allForms) {
+        V.config.allForms = p.verbAllForms;
+        F.cards.build();
+      }
     },
   });
 
-  F.drill = { state: st, rebuildDrillQueue, allDrillCombos, browseList, markCard };
+  // ---------- Today section (js/ui/today.js, if present) ----------
+  let todayDone = false;
+  function todayHTML() {
+    const combos = promptsFor(scopeVerbs());
+    const weak = combos.filter(d => { const s = scores()[V.drillKey(d)]; return s && s.w > s.r; }).length;
+    const nVerbs = scopeIds().length;
+    return `<div class="drill-today">
+      <h3 class="drill-today-title">Verb drill · ${SET_SIZE} prompts</h3>
+      <p class="drill-today-note">Mixed tenses and persons from ${st.scope === 'recent' ? 'your recent lessons' : `${nVerbs} ${U.plural(nVerbs, 'verb')}`}${weak ? ` · ${weak} ${U.plural(weak, 'form')} to fix` : ''}</p>
+      <button type="button" class="drill-primary" data-action="drill-start-set">Start a set</button>
+    </div>`;
+  }
+  function registerToday() {
+    if (todayDone || !F.today || typeof F.today.registerSection !== 'function') return;
+    todayDone = true;
+    try {
+      F.today.registerSection({
+        id: 'verb-drill',
+        order: 40,
+        title: 'Verb drill',
+        html: todayHTML,
+        render(el) { el.innerHTML = todayHTML(); },
+        visible() { return promptsFor(scopeVerbs()).length > 0; },
+      });
+    } catch (e) { console.error('verb drill: today section', e); }
+  }
+  registerToday();
+  F.hooks.on('boot', registerToday);
+
+  F.drill = {
+    state: st, startSet, retryMissed, allDrillCombos, browseList, markCard, buildPanel,
+    rebuildDrillQueue: startSet,   // old name, still called by settings.js
+    setAllForms, SET_SIZE,
+  };
 
   F.views.register('verbs', {
     label: 'Verb trainer',
     order: 20,
-    panel: 'vt-filters',
-    init() { if (S.tab === 'verbs' && st.mode === 'drill') rebuildDrillQueue(); },
-    enter() { if (st.mode === 'drill' && !st.queue.length) rebuildDrillQueue(); },
+    panel: 'drill-panel',
+    init() { buildPanel(); },
+    enter() { buildPanel(); },
     render() {
       if (st.mode === 'browse') renderBrowse(); else renderDrill();
       $('scope-bar').innerHTML = '';
@@ -305,40 +561,37 @@
     syncChrome() {
       $('mastered-btn').hidden = true;
       $('newlimit-btn').hidden = true;
-      $('score-row').style.display = st.mode === 'drill' ? '' : 'none';
+      if ($('typed-btn')) $('typed-btn').hidden = st.mode !== 'browse';   // drill always takes typed answers
+      $('score-row').style.display = st.mode !== 'browse' ? '' : 'none';
     },
+    leave() { if ($('typed-btn')) $('typed-btn').hidden = false; },
     shortcutsHTML() {
-      return '<span><kbd>Space</kbd> show answer &nbsp; <kbd>1</kbd> again &nbsp; <kbd>2</kbd> got it &nbsp; <kbd>&#8592;</kbd><kbd>&#8594;</kbd> skip'
-        + (F.audio.ready() ? ' &nbsp; <kbd>s</kbd> hear it' : '') + '</span>';
+      if (st.mode === 'browse') return '<span><kbd>Space</kbd> flip &nbsp; <kbd>&#8592;</kbd><kbd>&#8594;</kbd> verbs</span>';
+      return '<span><kbd>Enter</kbd> check &nbsp; <kbd>Space</kbd> show answer &nbsp; <kbd>1</kbd> again &nbsp; <kbd>2</kbd> got it'
+        + (F.audio && F.audio.ready() ? ' &nbsp; <kbd>s</kbd> hear it' : '') + '</span>';
     },
     next() {
-      if (st.mode === 'browse') {
-        if (st.vIdx < browseList().length - 1) { st.vIdx++; S.flipped = false; F.app.render(); }
-      } else if (st.qIdx < st.queue.length - 1) {
-        st.qIdx++; st.prompt = st.queue[st.qIdx]; S.flipped = false; F.typed.reset(); F.app.render();
-      }
+      if (st.mode === 'browse' && st.vIdx < browseList().length - 1) { st.vIdx++; S.flipped = false; F.app.render(); }
     },
     prev() {
       if (st.mode === 'browse' && st.vIdx > 0) { st.vIdx--; S.flipped = false; F.app.render(); }
-      else if (st.mode === 'drill' && st.qIdx > 0) {
-        st.qIdx--; st.prompt = st.queue[st.qIdx]; S.flipped = false; F.typed.reset(); F.app.render();
-      }
     },
     onShuffle() {
-      if (st.mode === 'drill') rebuildDrillQueue();
+      if (st.mode !== 'browse') startSet();
       F.app.render();
     },
-    reset: resetScores,
-    typedActive() { return S.typedMode && st.mode === 'drill' && !!st.prompt; },
+    reset() { if (st.mode !== 'browse') { st.confirmReset = true; F.app.render(); } },
+    typedActive() { return st.mode !== 'browse' && !!current() && !st.confirmReset; },
     typedAnswer() {
-      if (st.mode !== 'drill' || !st.prompt) return '';
-      const ans = V.drillAnswer(st.prompt);
+      const d = current();
+      const ans = d && V.drillAnswer(d);
       return ans ? ans.pin : '';
     },
     speech() {
-      if (st.mode === 'drill' && st.prompt) {
-        const ans = V.drillAnswer(st.prompt);
-        return { text: ans ? ans.fa : '', token: V.drillKey(st.prompt) + '|' + st.right + '|' + st.wrong };
+      const d = current();
+      if (st.mode !== 'browse' && d) {
+        const ans = V.drillAnswer(d);
+        return { text: ans ? ans.fa : '', token: V.drillKey(d) + '|' + st.set.idx };
       }
       if (st.mode === 'browse') {
         const v = browseList()[st.vIdx];
@@ -347,8 +600,10 @@
       return null;
     },
     keydown(e) {
+      if (st.mode === 'browse') return;
       if (e.key === '1') markCard(false);
       if (e.key === '2') markCard(true);
+      if (e.key === 'Enter' && setDone()) { startSet(); F.app.render(); }
     },
   });
 })(window);
