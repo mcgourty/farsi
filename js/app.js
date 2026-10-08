@@ -1,7 +1,7 @@
 // app.js: boot, view switching, the shared render pass, and the global click
 // and keyboard dispatch. Loaded last.
 //
-// Render pass (F.app.render): syncChrome() -> view.render() ->
+// Render pass (F.app.render): syncChrome() -> clear shared chrome -> view.render() ->
 // view.renderScoreRow() -> hooks 'render' -> store.syncPrefs().
 // Nothing here writes the store on render; store.syncPrefs() only schedules
 // a save when a preference actually changed.
@@ -13,6 +13,10 @@
 
   function view() { return F.views.get(S.tab) || F.views.list()[0]; }
 
+  // Short tab names so every tab fits a phone's top bar. A view can set its
+  // own with `tabLabel`; these cover the views registered before that existed.
+  const TAB_LABELS = { cards: 'Study', verbs: 'Verbs' };
+
   function buildTabs() {
     const box = $('tabs');
     box.innerHTML = '';
@@ -22,9 +26,11 @@
       b.className = 'tab-btn';
       b.id = `tab-${v.name}`;
       b.setAttribute('role', 'tab');
+      b.type = 'button';
       b.dataset.action = 'set-view';
       b.dataset.arg = v.name;
-      b.textContent = v.label;
+      b.textContent = v.tabLabel || TAB_LABELS[v.name] || v.label;
+      if (b.textContent !== v.label) b.title = v.label;
       box.appendChild(b);
     }
   }
@@ -33,19 +39,25 @@
     const v = view();
     for (const t of F.views.list()) {
       const b = $(`tab-${t.name}`);
-      if (b) b.classList.toggle('active', t === v);
+      if (!b) continue;
+      b.classList.toggle('active', t === v);
+      b.setAttribute('aria-selected', t === v ? 'true' : 'false');
     }
-    // Each view's settings panel is the element whose id is view.panel.
+    // Each view's settings panel (view.panel) lives in the settings sheet and
+    // shows while its view is active. Views without one (Today, Progress)
+    // show the study panel, since that is what their buttons start.
+    const shown = v.panel ? v : F.views.get('cards');
     for (const t of F.views.list()) {
-      if (t.panel && $(t.panel)) $(t.panel).style.display = t === v ? '' : 'none';
+      if (t.panel && $(t.panel)) $(t.panel).style.display = t === shown ? '' : 'none';
     }
-    document.querySelector('.bottom-actions').style.display = v.hideActions ? 'none' : '';
-    document.body.classList.toggle('filters-collapsed', !S.filtersExpanded);
+    const acts = document.querySelector('.bottom-actions');
+    if (acts) acts.style.display = v.hideActions ? 'none' : '';
+    // backup.js reads this class to know whether its panel is on screen.
+    document.body.classList.toggle('filters-collapsed', !(F.sheet && F.sheet.isOpen()));
     document.body.dataset.view = v.name;
-    const ft = $('filter-toggle');
-    if (ft) ft.textContent = S.filtersExpanded ? 'Hide filters' : 'Filters';
-    const hint = $('phone-hint');
-    if (hint) hint.hidden = app.standalone() || root.innerWidth > 720;
+    // A page view (view.page) draws a whole page into #card-area; the study
+    // chrome (stats, meter, nav, grading row, shortcuts) is hidden for it.
+    if (v.page) document.body.dataset.page = ''; else delete document.body.dataset.page;
     if (v.syncChrome) v.syncChrome();
     $('shortcuts').innerHTML = v.shortcutsHTML ? v.shortcutsHTML() : '';
   }
@@ -53,6 +65,14 @@
   function render() {
     const v = view();
     syncChrome();
+    // The shared meter is drawn by a 'render' hook (progress.js) for the
+    // views that want it; clear it so other views start clean.
+    $('meter-row').innerHTML = '';
+    if (v.page) {
+      $('card-count').innerHTML = '';
+      $('scope-bar').innerHTML = '';
+      $('score-row').innerHTML = '';
+    }
     v.render();
     if (v.renderScoreRow) v.renderScoreRow();
     else $('score-row').innerHTML = '';
@@ -77,6 +97,7 @@
 
   function setView(name) {
     if (!F.views.get(name)) return;
+    if (F.sheet && F.sheet.isOpen()) F.sheet.close();
     const prevView = view();
     if (prevView.leave) prevView.leave();
     S.tab = name;
@@ -84,7 +105,17 @@
     const v = view();
     if (v.enter) v.enter();
     render();
+    root.scrollTo(0, 0);
     F.hooks.emit('view:changed', { from: prevView.name, to: name });
+  }
+
+  // The app opens on Today (when registered) rather than the last tab, unless
+  // the URL names a view: index.html#cards, #verbs, #progress.
+  function initialView() {
+    const hash = (root.location.hash || '').replace(/^#/, '');
+    if (hash && F.views.get(hash)) return hash;
+    if (F.views.get('today')) return 'today';
+    return S.tab;
   }
 
   const app = F.app = {
@@ -123,7 +154,9 @@
     const t = e.target;
     if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.isContentEditable)) return;
     if (e.metaKey || e.ctrlKey || e.altKey) return;
+    if (F.sheet && F.sheet.isOpen()) return;   // the sheet handles its own keys
     const v = view();
+    if (v.page) { if (v.keydown) v.keydown(e); return; }
     if (e.key === ' ' || e.key === 'Spacebar') { e.preventDefault(); flip(); }
     if (e.key === 'ArrowRight' && v.next) v.next();
     if (e.key === 'ArrowLeft' && v.prev) v.prev();
@@ -144,6 +177,7 @@
     F.cards.build();
     F.store.applyPrefs();
     F.store.pruneLogs();
+    S.tab = initialView();
     buildTabs();
     $('shuffle-btn').classList.toggle('active', S.shuffled);
     $('typed-btn').classList.toggle('active', S.typedMode);
