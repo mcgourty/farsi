@@ -355,6 +355,18 @@ test('backup: build -> inspect -> apply round trip; bad files rejected', async (
   }
 });
 
+// ---------------------------------------------------------------- offline shell
+test('sw.js VERSION matches the shell files (run node tools/bump-sw-version.js)', () => {
+  const sw = require('./bump-sw-version');
+  const files = sw.shellFiles();
+  for (const f of ['index.html', 'js/legacy-keys.js', 'manifest.webmanifest', 'css/fonts.css']) ok(files.includes(f), `${f} not precached`);
+  ok(files.some((f) => f.startsWith('fonts/')), 'font files not precached');
+  const manifest = JSON.parse(fs.readFileSync(path.join(ROOT, 'manifest.webmanifest'), 'utf8'));
+  eq([manifest.start_url, manifest.scope], ['./', './'], 'manifest start_url/scope must be relative');
+  for (const i of manifest.icons) ok(files.includes(i.src), `manifest icon ${i.src} not precached`);
+  eq(sw.currentVersion(), sw.computeVersion(), 'sw.js VERSION is stale: run node tools/bump-sw-version.js');
+});
+
 // ---------------------------------------------------------------- run
 (async () => {
   let failed = 0;

@@ -1,0 +1,47 @@
+/* pwa.css: the "Update ready · Reload" banner (js/pwa.js).
+   Tokens fall back from the new identity (--ink, --firuzeh, --paper) to the
+   pre-restyle names (--text, --accent) so it works either side of the restyle. */
+
+.pwa-update {
+  position: fixed;
+  z-index: 1000;
+  top: calc(env(safe-area-inset-top, 0px) + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  max-width: calc(100vw - 32px);
+  padding: 0 4px 0 16px;
+  border-radius: 999px;
+  background: var(--surface, #fbfbf8);
+  color: var(--ink, var(--text, #16213a));
+  border: 1px solid var(--line, rgba(22, 33, 58, .12));
+  box-shadow: 0 6px 24px rgba(13, 20, 34, .16);
+  font: 500 15px/1.2 var(--font-sans, system-ui, sans-serif);
+}
+.pwa-update[hidden] { display: none; }
+.pwa-update-text { white-space: nowrap; }
+.pwa-update-text::after { content: " ·"; color: var(--ink-3, var(--text-dim, #7c8496)); }
+.pwa-update button {
+  min-height: 44px;
+  min-width: 44px;
+  border: 0;
+  background: none;
+  font: inherit;
+  cursor: pointer;
+  border-radius: 999px;
+}
+.pwa-update-btn {
+  padding: 0 10px;
+  color: var(--firuzeh, var(--accent, #0d7a7b));
+  font-weight: 600;
+}
+.pwa-update-close {
+  color: var(--ink-3, var(--text-dim, #7c8496));
+  font-size: 20px;
+}
+.pwa-update button:focus-visible {
+  outline: 2px solid var(--firuzeh, var(--accent, #0d7a7b));
+  outline-offset: -2px;
+}
